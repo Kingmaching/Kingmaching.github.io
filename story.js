@@ -64,8 +64,11 @@
   };
 
   // Where each data step sits in scroll progress q (step k is centred at q = k).
+  // Four night-time steps come first (intro, background, what's next, Project 01), so q runs from
+  // −PRE to 5: q < 0 is the night prologue and q = 0 is the Project 01 introduction.
   const RANGES = { shgc: [1.55, 2.45], vent: [2.55, 3.45], lpd: [3.55, 4.45] };
-  const STEPS = 6;
+  const PRE = 3;
+  const STEPS = 9;
 
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const pct = (v, base) => (v - base) / base;
@@ -276,11 +279,11 @@
   }
 
   // ---------- Scroll progress ----------
-  let q = 0;
+  let q = -PRE;
   function readScroll() {
     const rect = story.getBoundingClientRect();
     const range = rect.height - window.innerHeight;
-    q = range > 0 ? clamp(-rect.top / range, 0, 1) * (STEPS - 1) : 0;
+    q = (range > 0 ? clamp(-rect.top / range, 0, 1) * (STEPS - 1) : 0) - PRE;
     ["shgc", "vent", "lpd"].forEach(name => {
       const c = charts[name];
       if (!c) return;
@@ -296,6 +299,7 @@
   // Shared with building.js
   window.Story = {
     STEPS,
+    PRE,
     DATA,
     progress: () => q,
     runIndex,

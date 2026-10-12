@@ -12,7 +12,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%97%9C%E6%96%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
@@ -36,7 +36,8 @@
     <nav class="topbar-inner glass" aria-label="Primary">
       <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Marco Ching</a>
       <div class="nav-links">
-        <a href="#about">About</a>
+        <a href="#about">Background</a>
+        <a href="#direction">What’s next</a>
         <a href="#projects">Projects</a>
         <a href="#experience">Experience</a>
         <a href="#skills">Skills</a>
@@ -48,9 +49,11 @@
 
   <main id="top">
     <!-- EDIT: SCROLL STORY ----------------------------------------
-         Six steps, one screen each. building.js takes the tower apart
-         as the reader scrolls; story.js steps the charts through the
-         real ME 572 runs. -->
+         Nine steps, one screen each, all over the 3D tower. The first
+         four stay at night with the harbour light show: intro, background,
+         what's next and the Project 01 introduction. The last five are
+         Project 01 itself: building.js takes the tower apart as the reader
+         scrolls and story.js steps the charts through the real ME 572 runs. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <div class="sun-glare"></div>
@@ -69,49 +72,98 @@
                 <a class="btn btn-neon" href="#projects">See projects</a>
                 <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
               </div>
-              <p class="scroll-cue">Scroll through 24 hours in the life of a building</p>
+              <p class="scroll-cue">Scroll to meet me</p>
             </div>
           </div>
         </article>
 
-        <article class="step" data-step="1">
+        <!-- EDIT: BACKGROUND -->
+        <article class="step" data-step="1" id="about" data-nav="about">
+          <div class="step-card step-wide glass">
+            <p class="kicker"><span class="zh">關於</span><span>(01) Background</span></p>
+            <h2>Hi, I’m Marco. <em>Here’s the short version</em></h2>
+            <p>I’m from Hong Kong and study Honours Mechanical Engineering Co-op at the University of Waterloo. My co-op terms have taken me from BIM at Hong Kong International Airport and WSP in Toronto to water-treatment engineering at Chevalier in Kwai Chung.</p>
+            <dl class="about-facts">
+              <div><dt>From</dt><dd>Hong Kong</dd></div>
+              <div><dt>Studying</dt><dd>Mech. Eng., Waterloo</dd></div>
+              <div><dt>Graduating</dt><dd>2027</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <!-- EDIT: WHAT'S NEXT -->
+        <article class="step" data-step="2" id="direction" data-nav="direction">
+          <div class="step-card step-wide glass">
+            <p class="kicker"><span class="zh">方向</span><span>(02) What’s next</span></p>
+            <p class="statement-text" data-reveal>
+              Every number in my projects came from a theoretical model. Next, I want to <b>measure</b> buildings and determine where <b>reality disagrees</b>.
+            </p>
+            <p>Graduate research in building performance, from 2027.</p>
+            <div class="marquee" aria-label="Research interests">
+              <div class="marquee-track">
+                <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive facades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
+                <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive facades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- EDIT: PROJECTS, starting with Project 01 (the tower) -->
+        <article class="step" data-step="3" id="projects" data-nav="projects">
+          <div class="step-card step-wide glass">
+            <p class="kicker"><span class="zh">項目</span><span>(03) Projects</span></p>
+            <h2>Six projects, <em>starting with this building</em></h2>
+            <p class="proj-meta"><span>01</span>ME 572 · 2026</p>
+            <h3 class="step-title">Whole-Building Energy Model</h3>
+            <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
+            <dl class="about-facts">
+              <div><dt>Runs</dt><dd>17</dd></div>
+              <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
+              <div><dt>Emissions</dt><dd>+10.6%</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            <p class="scroll-cue">Scroll through 24 hours in the life of this building</p>
+          </div>
+        </article>
+
+        <article class="step" data-step="4" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker">Shading</p>
+            <p class="kicker"><span class="kicker-num">01</span><span>Shading</span></p>
             <h2>Facades that <em>react to the sun</em></h2>
             <p>This tower’s adaptive shading closes against low sun and opens when the outside air helps. Responsive facades like this are what I want to research.</p>
           </div>
         </article>
 
-        <article class="step" data-step="2">
+        <article class="step" data-step="5" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker">Envelope</p>
+            <p class="kicker"><span class="kicker-num">01</span><span>Envelope</span></p>
             <h2>One variable, <em>three answers</em></h2>
             <p>Lower glazing SHGC: cooling −31.5%, emissions +10.6%.</p>
             <figure class="chart" data-chart="shgc"></figure>
           </div>
         </article>
 
-        <article class="step" data-step="3">
+        <article class="step" data-step="6" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker">Air</p>
+            <p class="kicker"><span class="kicker-num">01</span><span>Air</span></p>
             <h2>Outdoor air is a <em>heating</em> load</h2>
             <p>30 → 10 cfm/person barely moves cooling but swings emissions 18 points.</p>
             <figure class="chart" data-chart="vent"></figure>
           </div>
         </article>
 
-        <article class="step" data-step="4">
+        <article class="step" data-step="7" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker">Lighting</p>
+            <p class="kicker"><span class="kicker-num">01</span><span>Lighting</span></p>
             <h2>Less light, <em>more heat</em></h2>
             <p>−25% lighting power: EUI −6.3%, heating +13.6%.</p>
             <figure class="chart" data-chart="lpd"></figure>
           </div>
         </article>
 
-        <article class="step" data-step="5">
+        <article class="step" data-step="8" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker">Measurement</p>
+            <p class="kicker"><span class="kicker-num">01</span><span>Measurement</span></p>
             <h2>Predicted, <em>not yet measured</em></h2>
             <p>Next: instrument real buildings and explain the gap, starting with Hong Kong.</p>
             <figure class="chart" data-chart="benchmark"></figure>
@@ -120,63 +172,17 @@
       </div>
     </section>
 
-    <!-- EDIT: STATEMENT -------------------------------------------->
-    <section class="statement" id="direction">
+    <!-- EDIT: PROJECTS, continued ------------------------------------
+         Project 01's full run chart, then projects 02-06. Each has a short
+         info column and its own live demo, built from the numbers in the report. -->
+    <section class="projects" id="more-projects" data-nav="projects">
       <div class="wrap">
-        <p class="label"><span class="zh">方向</span> (01) What’s next</p>
-        <p class="statement-text" data-reveal>
-          Every number came from a theoretical model. Next, I want to <b>measure</b> buildings and determine where <b>reality disagrees</b>.
-        </p>
-      </div>
-      <div class="marquee" aria-label="Research interests">
-        <div class="marquee-track">
-          <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive facades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
-          <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive facades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- EDIT: ABOUT: who I am and what I want to do, leading into the projects -->
-    <section class="about" id="about">
-      <div class="wrap about-grid">
-        <header class="about-head">
-          <p class="label"><span class="zh">關於</span> (02) About</p>
-          <h2>Hi, I’m Marco.<br><em>Here’s the short version</em></h2>
-        </header>
-        <div class="about-body">
-          <p>I’m from Hong Kong and study Honours Mechanical Engineering Co-op at the University of Waterloo. My co-op terms have taken me from BIM at Hong Kong International Airport and WSP in Toronto to water-treatment engineering at Chevalier in Kwai Chung.</p>
-          <p>Next, I want to do graduate research in building performance: adaptive facades, natural ventilation and sensing, with one question running through all of it. Does the real building do what the model said?</p>
-          <dl class="about-facts">
-            <div><dt>From</dt><dd>Hong Kong</dd></div>
-            <div><dt>Studying</dt><dd>Mech. Eng., Waterloo</dd></div>
-            <div><dt>Next</dt><dd>Grad school, 2027</dd></div>
-          </dl>
-          <a class="proj-link" href="#projects">The projects that got me here ↓</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- EDIT: PROJECTS --------------------------------------------
-         Each project has a short info column and its own live demo,
-         built from the numbers in the report. -->
-    <section class="projects" id="projects">
-      <div class="wrap">
-        <header class="sec-head">
-          <p class="label"><span class="zh">項目</span> (03) Projects</p>
-          <h2>Six Projects<br><em>Try each one</em></h2>
-        </header>
-
-        <!-- 1. ME 572 envelope study -->
-        <article class="proj">
+        <!-- 1. ME 572, continued: every run at once -->
+        <article class="proj proj-first">
           <div class="proj-info">
-            <p class="proj-meta"><span>01</span>ME 572 · 2026</p>
-            <h3>Whole-Building Energy Model</h3>
-            <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
-            <dl class="proj-stats">
-              <div><dt>Runs</dt><dd>17</dd></div>
-              <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
-              <div><dt>Emissions</dt><dd>+10.6%</dd></div>
-            </dl>
+            <p class="proj-meta"><span>01</span>ME 572 · 2026 · all runs</p>
+            <h3>Every Run, Side by Side</h3>
+            <p>The building above changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
             <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
           <div class="demo" data-demo="envelope">
@@ -192,6 +198,11 @@
             <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
           </div>
         </article>
+
+        <header class="sec-head sec-head-more">
+          <p class="label"><span class="zh">項目</span> (03) Projects, continued</p>
+          <h2>Five more<br><em>Try each one</em></h2>
+        </header>
 
         <!-- 2. Lighting design -->
         <article class="proj proj-flip">
@@ -337,13 +348,14 @@
     </section>
 
     <!-- EDIT: EXPERIENCE: an MTR-style route ----------------------->
-    <section class="experience" id="experience">
+    <section class="experience" id="experience" data-nav="experience">
       <div class="wrap">
         <header class="sec-head">
           <p class="label"><span class="zh">經驗</span> (04) Experience</p>
           <h2>The route <em>so far</em>...</h2>
         </header>
 
+        <p class="route-hint"><span class="route-hint-dot" aria-hidden="true"></span>Click any station to ride there</p>
         <ol class="route" role="list">
           <li class="stop" style="--line: var(--line-uw)">
             <button type="button" class="stop-btn" data-stop="uw" aria-pressed="false">
@@ -375,39 +387,45 @@
               <span class="stop-zh">研究院</span><span class="stop-en">Grad school</span><span class="stop-year">2027</span>
             </button>
           </li>
+          <li class="route-train" aria-hidden="true"><span></span></li>
         </ol>
+
+        <div class="route-nav">
+          <button type="button" class="route-step" data-dir="-1"><span aria-hidden="true">←</span> <span class="route-step-label">Previous station</span></button>
+          <button type="button" class="route-step" data-dir="1"><span class="route-step-label">Next station</span> <span aria-hidden="true">→</span></button>
+        </div>
 
         <!-- EDIT: one panel per stop -->
         <div class="stop-panels">
-          <article class="stop-panel" data-panel="uw" hidden>
+          <article class="stop-panel" data-panel="uw">
             <p class="panel-when">09/2022 – 06/2027 · Waterloo, Canada</p>
             <h3>University of Waterloo</h3>
             <p class="panel-role">BASc, Honours Mechanical Engineering Co-op</p>
             <p>Building Energy Analysis, Fluid Power Control Systems. Next term: HVAC Systems, HVAC Load Analysis and Fire Safety Engineering.</p>
             <p class="panel-stat"><strong>2023</strong> President’s Scholarship</p>
           </article>
-          <article class="stop-panel" data-panel="aahk" hidden>
+          <article class="stop-panel" data-panel="aahk">
             <p class="panel-when">06/2025 – 08/2025 · Hong Kong International Airport</p>
             <h3>Airport Authority Hong Kong</h3>
             <p class="panel-role">BIM Engineering Trainee</p>
             <p>Built a Dynamo–Power BI workflow for BIM analytics during the move to Autodesk Construction Cloud, and worked on SLAM and LiDAR for a waste-sorting patrol robot.</p>
             <p class="panel-stat"><strong>20+</strong> airport Revit models reviewed</p>
           </article>
-          <article class="stop-panel" data-panel="wsp" hidden>
+          <article class="stop-panel" data-panel="wsp">
             <p class="panel-when">01/2026 – 04/2026 · Toronto, Canada</p>
             <h3>WSP Global Inc.</h3>
             <p class="panel-role">BIM Co-op Student</p>
             <p>HVAC and plumbing models for the Eglinton Crosstown West Extension, and sprinkler and water layouts for Union Station’s Blue Route, Phases 2–6.</p>
             <p class="panel-stat"><strong>10</strong> project scopes through IFC review</p>
           </article>
-          <article class="stop-panel" data-panel="chevalier">
+          <article class="stop-panel is-active" data-panel="chevalier">
             <p class="panel-when">09/2026 – present · Kwai Chung, Hong Kong</p>
             <h3>Chevalier Group</h3>
             <p class="panel-role">Envirotech Trainee</p>
             <p>Hydraulic and process calculations for water-treatment chemical dosing: storage sizing, 4:1 turndown, pipe sizing, head loss, pump selection against Arup and WSD requirements.</p>
             <p class="panel-stat"><strong>640</strong> MLD treatment works</p>
           </article>
-          <article class="stop-panel" data-panel="next" hidden>
+          <article class="stop-panel" data-panel="next">
             <p class="panel-when">From 2027</p>
             <h3>Graduate study in building performance</h3>
             <p class="panel-role">Next stop</p>
@@ -419,7 +437,7 @@
     </section>
 
     <!-- EDIT: SKILLS: a toolbox, one compartment per skill group ----------->
-    <section class="skills" id="skills">
+    <section class="skills" id="skills" data-nav="skills">
       <div class="wrap">
         <header class="sec-head">
           <p class="label"><span class="zh">技能</span> (05) Skills</p>
@@ -462,7 +480,7 @@
          The form sends through Web3Forms when data-access-key is set
          (free key from web3forms.com, tied to your Gmail). Without a key it
          opens the visitor's email app with the message filled in. -->
-    <section class="contact" id="contact">
+    <section class="contact" id="contact" data-nav="contact">
       <div class="wrap contact-grid">
         <div class="contact-side">
           <p class="label"><span class="zh">聯絡</span> (06) Contact</p>
