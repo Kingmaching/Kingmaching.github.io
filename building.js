@@ -1,9 +1,11 @@
 // Scroll-driven 3D building for the hero.
-// A street-level tower wrapped in an adaptive louvre façade with planted fins, set in a
+// A street-level tower wrapped in an adaptive louvre facade with planted fins, set in a
 // park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
-// Scroll progress q (0 → 5, one unit per story step, from story.js) drives:
+// Scroll progress q (−3 → 5, one unit per story step, from story.js) drives:
+//  −3 → 0  night prologue (intro, background, what's next, Project 01): the camera holds still;
+//          scrolling moves the traffic, people and the harbour light show
 //   0 → 1  night to morning; the harbour light show ends as day breaks; louvres adapt to the sun
-//   1 → 2  façade pulls away; glazing tint and solar rays follow the SHGC run
+//   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the sun sets
@@ -41,7 +43,7 @@
     }
   }
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduceMotion = false;                        // motion stays on (see sections.js)
   const { clamp, lerp, smoothstep, degToRad } = THREE.MathUtils;
   const D = S.DATA;
 
@@ -436,7 +438,7 @@
     for (let k = -1; k <= 1; k++) pts.push(k * 6.5, 0, 8.6, k * 6.5, 0, -8.6, 8.6, 0, k * 6.5, -8.6, 0, k * 6.5);
     heaterGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
   }
-  // Drawn over the façade (no depth test) so the heat reads through the louvres.
+  // Drawn over the facade (no depth test) so the heat reads through the louvres.
   const heaterMat = new THREE.PointsMaterial({ map: makeGlowTexture(), size: 9, transparent: true, opacity: 0, depthWrite: false, depthTest: false });
 
   for (let i = 0; i < FLOORS; i++) {
@@ -533,7 +535,7 @@
     arrows.instanceMatrix.needsUpdate = true;
   }
 
-  // ---------- Façade: louvres (some planted) and mullions, instanced ----------
+  // ---------- Facade: louvres (some planted) and mullions, instanced ----------
   const SIDES = [
     { n: new THREE.Vector3(0, 0, 1), t: new THREE.Vector3(1, 0, 0), yaw: 0 },
     { n: new THREE.Vector3(1, 0, 0), t: new THREE.Vector3(0, 0, -1), yaw: Math.PI / 2 },
@@ -696,6 +698,8 @@
   }
 
   // ---------- Camera path (one keyframe per step) ----------
+  // Through the night prologue (q < 0) the camera holds the intro shot; scrolling moves only the
+  // traffic, people and the light show.
   const KEYS = [
     { ang: 0.62, rad: 118, h: 16, ty: 27 },
     { ang: 0.95, rad: 112, h: 22, ty: 28 },
@@ -707,8 +711,9 @@
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
   function placeCamera(q) {
-    const i = Math.min(Math.floor(q), KEYS.length - 2);
-    const t = smoothstep(q - i, 0, 1);
+    const k = clamp(q, 0, KEYS.length - 1);
+    const i = Math.min(Math.floor(k), KEYS.length - 2);
+    const t = smoothstep(k - i, 0, 1);
     const a = KEYS[i], b = KEYS[i + 1];
     const ang = lerp(a.ang, b.ang, t), rad = lerp(a.rad, b.rad, t) * distScale;
     camera.position.set(Math.cos(ang) * rad, lerp(a.h, b.h, t) * distScale, Math.sin(ang) * rad);

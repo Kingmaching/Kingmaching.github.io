@@ -3,7 +3,8 @@
 // report and the IEEE poster). Where a picture is illustrative rather than data, it says so.
 
 (function () {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Motion is part of the design, so it stays on even when the system asks for reduced motion.
+  const reduceMotion = false;
   const NS = "http://www.w3.org/2000/svg";
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -648,16 +649,64 @@
   })();
 
   // ---------- Experience: MTR route ----------
+  // A train rides the line to the chosen station (longer trips take longer), then that
+  // station's panel slides in from the direction of travel.
   (function route() {
-    const btns = $$(".stop-btn"), panels = $$(".stop-panel");
-    btns.forEach(b => b.addEventListener("click", () => {
-      btns.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-      panels.forEach(p => {
-        const show = p.dataset.panel === b.dataset.stop;
-        if (show && p.hidden) { p.hidden = false; p.classList.remove("enter"); void p.offsetWidth; p.classList.add("enter"); }
-        else if (!show) p.hidden = true;
+    const routeEl = $(".route"), train = $(".route-train");
+    const btns = $$(".stop-btn"), panels = $$(".stop-panel"), steps = $$(".route-step");
+    if (!routeEl || !btns.length) return;
+    const names = btns.map(b => b.querySelector(".stop-en").textContent);
+    let cur = Math.max(0, btns.findIndex(b => b.getAttribute("aria-pressed") === "true"));
+
+    function placeTrain(i, ms) {
+      if (!train) return;
+      const r = routeEl.getBoundingClientRect(), d = btns[i].querySelector(".stop-dot").getBoundingClientRect();
+      train.style.setProperty("--ride", ms + "ms");
+      train.style.setProperty("--train", getComputedStyle(btns[i].closest(".stop")).getPropertyValue("--line"));
+      train.style.transform = `translate(${d.left + d.width / 2 - r.left}px, ${d.top + d.height / 2 - r.top}px)`;
+    }
+    function syncSteps() {
+      steps.forEach(b => {
+        const to = cur + Number(b.dataset.dir), ok = to >= 0 && to < btns.length;
+        b.disabled = !ok;
+        b.querySelector(".route-step-label").textContent = ok ? names[to] : (to < 0 ? "First station" : "Last station");
+        b.setAttribute("aria-label", ok ? `${b.dataset.dir > 0 ? "Next" : "Previous"} station: ${names[to]}` : "No more stations");
       });
-    }));
+    }
+    function go(i) {
+      if (i === cur || i < 0 || i >= btns.length) return;
+      const dir = i > cur ? 1 : -1, hops = Math.abs(i - cur);
+      const ride = Math.min(500 + hops * 350, 1700);
+      train?.classList.toggle("is-reversed", dir < 0);           // the cab leads the way
+      btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
+      const out = panels[cur], inn = panels[i];
+      // Old panel leaves against the direction of travel; the new one arrives as the train pulls in.
+      out.style.setProperty("--shift", -dir * 70 + "px");
+      out.classList.remove("is-active");
+      inn.style.transition = "none";
+      inn.style.setProperty("--shift", dir * 70 + "px");
+      void inn.offsetWidth;
+      inn.style.transition = "";
+      inn.style.setProperty("--delay", Math.round(ride * 0.45) + "ms");
+      inn.classList.add("is-active");
+      panels.forEach(p => { p.inert = p !== inn; p.setAttribute("aria-hidden", String(p !== inn)); });
+      cur = i;
+      placeTrain(i, ride);
+      syncSteps();
+    }
+    panels.forEach((p, k) => { p.inert = k !== cur; p.setAttribute("aria-hidden", String(k !== cur)); });
+    btns.forEach((b, i) => b.addEventListener("click", () => go(i)));
+    steps.forEach(b => b.addEventListener("click", () => go(cur + Number(b.dataset.dir))));
+    routeEl.addEventListener("keydown", ev => {
+      if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return;
+      ev.preventDefault();
+      go(cur + (ev.key === "ArrowRight" ? 1 : -1));
+      btns[cur].focus();
+    });
+    placeTrain(cur, 0);
+    syncSteps();
+    window.addEventListener("resize", () => placeTrain(cur, 0));
+    document.fonts?.ready.then(() => placeTrain(cur, 0));
   })();
 
   // ---------- Toolbox: the lid swings open when it comes into view ----------
@@ -713,10 +762,11 @@
 
   // ---------- Smooth scrolling with weight, and eased jumps to sections ----------
   (function smoothScroll() {
-    const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);   // ease-in-out cubic
+    const ease = t => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2);   // ease-in-out quart: speeds up, then slows down
     let lenis = null;
-    if (!reduceMotion && window.Lenis) {
-      lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1.2, smoothWheel: true });
+    if (window.Lenis) {
+      // Quick, with just a short glide at the end of each scroll.
+      lenis = new Lenis({ lerp: 0.16, wheelMultiplier: 1.25, touchMultiplier: 1.3, smoothWheel: true });
       (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(performance.now());
       document.documentElement.classList.add("lenis-on");
     }
@@ -727,10 +777,65 @@
       const target = id === "#top" ? document.body : $(id);
       if (!target) return;
       ev.preventDefault();
-      if (lenis) lenis.scrollTo(target, { offset: id === "#top" ? 0 : -76, duration: 1.8, easing: ease });
-      else target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+      // Story steps fill the screen, so they line up with the top; other sections clear the top bar.
+      const offset = id === "#top" || target.closest(".story") ? 0 : -76;
+      const distance = Math.abs(target.getBoundingClientRect().top + offset);
+      const duration = clamp(0.45 + distance / 9000, 0.6, 1.2);
+      if (lenis) lenis.scrollTo(target, { offset, duration, easing: ease });
+      else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + offset, behavior: "smooth" });
       history.replaceState(null, "", id);
     });
+  })();
+
+  // ---------- Top bar: mark the section you're scrolling through ----------
+  // Every region carries data-nav with the id its top-bar link points to; an underline glides between links.
+  (function navSpy() {
+    const nav = $(".nav-links");
+    const links = $$('.nav-links a[href^="#"]');
+    const regions = $$("[data-nav]");
+    if (!nav || !links.length || !regions.length) return;
+    const ink = document.createElement("span");
+    ink.className = "nav-ink";
+    ink.setAttribute("aria-hidden", "true");
+    nav.appendChild(ink);
+    let current, queued = false;
+    function moveInk() {
+      if (!current) { ink.style.opacity = "0"; return; }
+      ink.style.opacity = "1";
+      ink.style.width = current.offsetWidth + "px";
+      ink.style.transform = `translateX(${current.offsetLeft}px)`;
+    }
+    function mark() {
+      queued = false;
+      const line = window.innerHeight * 0.4;                // a region counts once its top passes this line
+      const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      let key = atEnd ? regions[regions.length - 1].dataset.nav : null;
+      if (!key) regions.forEach(r => { const b = r.getBoundingClientRect(); if (b.top <= line && b.bottom > line) key = r.dataset.nav; });
+      const on = key ? links.find(a => a.getAttribute("href") === "#" + key) || null : null;
+      if (on === current) return;
+      current = on;
+      links.forEach(a => (a === on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+      moveInk();
+      // On phones the links scroll sideways: keep the marked one in view.
+      if (on && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollTo({ left: on.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2, behavior: "smooth" });
+      }
+    }
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(mark); } };
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", () => { moveInk(); queue(); });
+    document.fonts?.ready.then(moveInk);
+    mark();
+  })();
+
+  // ---------- Content below the story slides up into place as it arrives ----------
+  (function slideIn() {
+    const items = $$(".projects .proj, .sec-head, .route-hint, .route, .route-nav, .stop-panels, .toolbox, .contact-side, .mail-form");
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+    }), { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    items.forEach(el => { el.classList.add("slide-in"); io.observe(el); });
   })();
 
   // ---------- Copy email, year ----------
