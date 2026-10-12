@@ -343,6 +343,8 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .d-steel { fill: #8e98a8; }
 .d-steel-s { stroke: #8e98a8; fill: none; }
 .d-dim { stroke: var(--muted-d); stroke-dasharray: 3 3; fill: none; }
+.d-land { fill: #1a212c; stroke: #3a4352; stroke-width: 0.8; stroke-linejoin: round; }
+.d-place { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; fill: #5b6576; }
 
 /* Runs table (dark) */
 .runs summary { cursor: pointer; font-weight: 600; font-size: 0.875rem; color: var(--neon); }
@@ -520,6 +522,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .d-text { font-size: 14px; }
   .d-label { font-size: 16px; }
   .d-value { font-size: 15px; }
+  .d-place { font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
