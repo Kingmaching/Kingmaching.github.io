@@ -94,6 +94,7 @@ a { color: inherit; }
 button { font: inherit; color: inherit; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 p, ul, ol, dl, dd, figure { margin: 0; }
+p { text-align: justify; -webkit-hyphens: auto; hyphens: auto; }   /* the big What's next statement opts out */
 ul, ol { padding: 0; }
 em { font-style: normal; color: var(--neon); }
 ::selection { background: var(--neon); color: #fff; }
@@ -208,29 +209,28 @@ em { font-style: normal; color: var(--neon); }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
 .step-card > p:not(.kicker):not(.scroll-cue) { color: var(--muted-d); }
 .step-wide { width: min(100%, 560px); }
-/* Background and What's next: full-screen panels you can see the night-time tower through */
-.step-fill { align-items: stretch; }
+/* Background and What's next: a tinted layer across the whole screen, edge to edge, that you can see
+   the night-time tower through. The tint fades out at the top and bottom so the two run into each other. */
+.step.step-fill { display: block; padding: 0; max-width: none; }
 .panel-full {
-  width: 100%; min-height: calc(100vh - 144px); min-height: calc(100svh - 144px);
-  grid-template-rows: auto 1fr auto; align-content: stretch; gap: clamp(16px, 3vh, 32px);
-  padding: clamp(24px, 4vw, 56px);
+  display: flex; min-height: 100vh; min-height: 100svh; pointer-events: auto;
+  background: linear-gradient(180deg, rgba(8, 11, 16, 0) 0%, rgba(8, 11, 16, 0.42) 14%, rgba(8, 11, 16, 0.42) 86%, rgba(8, 11, 16, 0) 100%);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
 }
-.glass-thin {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, transparent 45%), rgba(8, 11, 16, 0.34);
-  -webkit-backdrop-filter: blur(2px) saturate(130%); backdrop-filter: blur(2px) saturate(130%);
-  border: 1px solid var(--glass-edge);
-  box-shadow: inset 0 1px 0 var(--glass-edge);
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75);
+.panel-inner {
+  display: flex; flex-direction: column; gap: 24px; width: 100%;
+  max-width: calc(var(--max) + 2 * var(--gutter)); margin-inline: auto; padding: 104px var(--gutter) 48px;
 }
-.panel-full .kicker { font-size: 0.875rem; }
-.step-card .panel-title {
-  align-self: center; max-width: 18ch;
+.panel-inner .kicker { font-size: 0.875rem; }
+.panel-body { display: grid; gap: clamp(20px, 3.5vh, 36px); margin-block: auto; }
+.panel-title {
+  max-width: 18ch;
   font-family: var(--font-display); font-weight: 800; color: var(--text-d);
   font-size: clamp(2.6rem, min(7vw, 11vh), 6.6rem); line-height: 0.95; letter-spacing: -0.045em;
 }
-.step-card .statement-text.panel-title { max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
+.statement-text.panel-title { text-align: left; max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
 .panel-foot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: end; }
-.panel-full .panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: #d5dae3; max-width: 52ch; }
+.panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: #d5dae3; max-width: 52ch; }
 .panel-full .about-facts dd { font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
 .panel-full .marquee span { font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: rgba(238, 240, 244, 0.42); }
 .step-card .proj-meta { color: var(--muted-d); margin-top: 6px; }
@@ -422,16 +422,20 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 @keyframes beckon { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.28); } 70%, 100% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); } }
 
 .route { position: relative; }
-.route-train {                        /* the train that rides between stations */
-  position: absolute; left: 0; top: 0; z-index: 2; width: 58px; height: 26px; margin: -13px 0 0 -29px;
-  border-radius: 13px; background: #f4f6f9; pointer-events: none;
-  box-shadow: 0 0 0 3px var(--train, var(--neon)), 0 8px 22px -6px rgba(0, 0, 0, 0.7), 0 0 26px -4px var(--train, var(--neon));
-  transition: transform var(--ride, 800ms) cubic-bezier(0.65, 0, 0.35, 1), box-shadow 400ms;
+.route-train {                        /* the train that rides between stations, wheels on the line */
+  position: absolute; left: 0; top: 0; z-index: 2; width: 110px; height: 34px; margin: -29px 0 0 -55px;
+  list-style: none; pointer-events: none;
+  transition: transform var(--ride, 800ms) cubic-bezier(0.65, 0, 0.35, 1);
 }
-.route-train span {                   /* windows */
-  position: absolute; inset: 7px 9px; border-radius: 4px;
-  background: repeating-linear-gradient(90deg, #1c2330 0 9px, transparent 9px 12px);
-}
+.route-train svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55)); transition: transform 300ms; }
+.route-train.is-reversed svg { transform: scaleX(-1); }
+.t-body { fill: #eef1f5; }
+.t-glass { fill: #1c2330; }
+.t-door { stroke: #b8c0cc; stroke-width: 1; fill: none; }
+.t-stripe { fill: var(--train, var(--neon)); transition: fill 400ms; }
+.t-lamp { fill: #ffe9a8; }
+.t-under { fill: #2a3344; }
+.t-wheel { fill: #0d1015; stroke: #5b6576; stroke-width: 1.2; }
 .route-hint { display: flex; align-items: center; gap: 10px; margin: -12px 0 18px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-d); }
 .route-hint-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); animation: beckon 2s ease-out infinite; }
 .route-nav { display: flex; justify-content: space-between; gap: 12px; margin: -8px 0 22px; max-width: 760px; }
@@ -585,10 +589,12 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .stop-en { grid-column: 2; }
   .stop-year { grid-column: 3; grid-row: 1 / span 2; }
   .meters { grid-template-columns: minmax(0, 1fr); }
-  .route-train { width: 26px; height: 50px; margin: -25px 0 0 -13px; }
-  .route-train span { inset: 9px 7px; background: repeating-linear-gradient(180deg, #1c2330 0 8px, transparent 8px 11px); }
+  .route-train { width: 92px; height: 28px; margin: -14px 0 0 -46px; }
+  .route-train svg { transform: rotate(90deg); }                     /* the line runs down the page */
+  .route-train.is-reversed svg { transform: rotate(-90deg) scaleY(-1); }
   .route-step { padding: 0 14px; font-size: 0.85rem; }
   .panel-foot { grid-template-columns: minmax(0, 1fr); }
+  .panel-inner { padding: 92px var(--gutter) 32px; }
   .sliders { grid-template-columns: minmax(0, 1fr); }
   .brand { font-size: 0.95rem; }
   .tb-top, .tb-bottom, .field-row { grid-template-columns: minmax(0, 1fr); }

@@ -677,6 +677,7 @@
       if (i === cur || i < 0 || i >= btns.length) return;
       const dir = i > cur ? 1 : -1, hops = Math.abs(i - cur);
       const ride = Math.min(500 + hops * 350, 1700);
+      train?.classList.toggle("is-reversed", dir < 0);           // the cab leads the way
       btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
       const out = panels[cur], inn = panels[i];
       // Old panel leaves against the direction of travel; the new one arrives as the train pulls in.
@@ -764,8 +765,8 @@
     const ease = t => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2);   // ease-in-out quart: speeds up, then slows down
     let lenis = null;
     if (window.Lenis) {
-      // A slightly low lerp gives the page a little weight without slowing it down.
-      lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 1, touchMultiplier: 1.1, smoothWheel: true });
+      // Quick, with just a short glide at the end of each scroll.
+      lenis = new Lenis({ lerp: 0.16, wheelMultiplier: 1.25, touchMultiplier: 1.3, smoothWheel: true });
       (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(performance.now());
       document.documentElement.classList.add("lenis-on");
     }
@@ -779,7 +780,7 @@
       // Story steps fill the screen, so they line up with the top; other sections clear the top bar.
       const offset = id === "#top" || target.closest(".story") ? 0 : -76;
       const distance = Math.abs(target.getBoundingClientRect().top + offset);
-      const duration = clamp(0.6 + distance / 6000, 0.8, 1.6);
+      const duration = clamp(0.45 + distance / 9000, 0.6, 1.2);
       if (lenis) lenis.scrollTo(target, { offset, duration, easing: ease });
       else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + offset, behavior: "smooth" });
       history.replaceState(null, "", id);
