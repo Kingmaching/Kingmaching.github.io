@@ -1,9 +1,9 @@
 // Scroll-driven 3D building for the hero.
-// A street-level tower wrapped in an adaptive louvre façade with planted fins, set in a
+// A street-level tower wrapped in an adaptive louvre facade with planted fins, set in a
 // park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
 // Scroll progress q (0 → 5, one unit per story step, from story.js) drives:
 //   0 → 1  night to morning; the harbour light show ends as day breaks; louvres adapt to the sun
-//   1 → 2  façade pulls away; glazing tint and solar rays follow the SHGC run
+//   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the sun sets
@@ -84,10 +84,15 @@
     lamp: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }),
     accent: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xff3d6e }),
     headlight: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xfff2c8 }),
+    taillight: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xff2a3a }),
+    tyre: std({ roughness: 0.9, color: 0x15181d }),
+    railGlass: std({ roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.22, depthWrite: false, color: 0xbfd4e2 }),
+    lampGlow: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xffd88a }),
     brace: new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5, color: 0xffffff }),
     sun: new THREE.MeshBasicMaterial({ color: 0xffe7a8, fog: false }),
   };
   const rayMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0 });
+  const dummy = new THREE.Object3D();
   const UP = new THREE.Vector3(0, 1, 0);
 
   function cssColor(name, fallback) {
@@ -170,6 +175,29 @@
     return m;
   }
   function toBack(obj) { obj.traverse(o => o.layers.set(BACK)); return obj; }
+  // Lumpy foliage: push each vertex in or out by a smooth function of its position, so duplicated
+  // vertices of the same corner move together and the faceted canopy stays closed.
+  function lumpy(geo, amt) {
+    const p = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      v.multiplyScalar(1 + amt * Math.sin(v.x * 4.1 + v.y * 2.3) * Math.cos(v.z * 3.7 - v.y * 1.9));
+      p.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }
+  // Louvre blade with an aerofoil section (w across, t thick), standing h tall, centred on the origin.
+  function bladeGeometry(w, h, t) {
+    const sec = new THREE.Shape();
+    sec.moveTo(-w / 2, 0);
+    sec.quadraticCurveTo(0, t, w / 2, 0);
+    sec.quadraticCurveTo(0, -t, -w / 2, 0);
+    const g = new THREE.ExtrudeGeometry(sec, { depth: h, bevelEnabled: false, curveSegments: 8 });
+    g.rotateX(-Math.PI / 2);
+    g.translate(0, -h / 2, 0);
+    return g;
+  }
 
   // ---------- Lights ----------
   const hemi = new THREE.HemisphereLight(0xffffff, 0x3a4a3c, 0.9);
@@ -224,6 +252,41 @@
   for (let s = -RING; s < RING; s += 6) {
     [[s, -RING, 2.5, 0.25], [s, RING, 2.5, 0.25], [-RING, s, 0.25, 2.5], [RING, s, 0.25, 2.5]].forEach(([x, z, w, d]) => flat(w, d, dash, x, z, 0.07));
   }
+
+  // Zebra crossings where the four avenues meet the ring road
+  [[0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([ax, az]) => {
+    for (let k = -3; k <= 3; k++) {
+      const along = RING + 7.5, across = k * 1.1;
+      flat(ax ? 2.6 : 0.55, ax ? 0.55 : 2.6, dash, ax ? ax * along : across, ax ? across : az * along, 0.07);
+    }
+  });
+
+  // Street lamps on the pavement inside the ring road, arms reaching over the kerb
+  const lampSpots = [];
+  [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(([nx, nz]) => {
+    for (let s = -RING + 8; s <= RING - 8; s += 13) {
+      if (Math.abs(s) < 7) continue;                         // leave the avenue mouths clear
+      lampSpots.push([nx ? nx * (RING - 4.8) : s, nz ? nz * (RING - 4.8) : s, Math.atan2(-nz, nx)]);
+    }
+  });
+  const poleGeo = new THREE.CylinderGeometry(0.09, 0.14, 6.5, 8); poleGeo.translate(0, 3.25, 0);
+  const armGeo = new THREE.BoxGeometry(1.7, 0.12, 0.12); armGeo.translate(0.8, 6.4, 0);
+  const lampHeadGeo = new THREE.BoxGeometry(0.9, 0.18, 0.42); lampHeadGeo.translate(1.55, 6.3, 0);
+  const bulbGeo = new THREE.BoxGeometry(0.8, 0.05, 0.34); bulbGeo.translate(1.55, 6.19, 0);
+  [[poleGeo, mat.mullion], [armGeo, mat.mullion], [lampHeadGeo, mat.mullion], [bulbGeo, mat.lampGlow]].forEach(([geo, m]) => {
+    const im = new THREE.InstancedMesh(geo, m, lampSpots.length);
+    lampSpots.forEach(([x, z, yaw], i) => {
+      dummy.position.set(x, 0, z); dummy.rotation.set(0, yaw, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+      im.setMatrixAt(i, dummy.matrix);
+    });
+    im.castShadow = m !== mat.lampGlow;
+    scene.add(im);
+  });
+  // A soft pool of light around each lamp head at night
+  const lampPts = new THREE.BufferGeometry();
+  lampPts.setAttribute("position", new THREE.Float32BufferAttribute(lampSpots.flatMap(([x, z, yaw]) => [x + Math.cos(yaw) * 1.55, 6.05, z - Math.sin(yaw) * 1.55]), 3));
+  const lampHaloMat = new THREE.PointsMaterial({ map: makeGlowTexture(), color: 0xffe2a8, size: 5, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  scene.add(new THREE.Points(lampPts, lampHaloMat));
 
   // ---------- Hong Kong skyline across the harbour (stylised, scaled down) ----------
   const skyline = new THREE.Group();
@@ -403,12 +466,12 @@
   }
   const trunkGeo = new THREE.CylinderGeometry(0.25, 0.35, 3, 6);
   trunkGeo.translate(0, 1.5, 0);
-  const canopyGeo = new THREE.IcosahedronGeometry(1, 0);
+  const canopyGeo = lumpy(new THREE.IcosahedronGeometry(1, 1), 0.16);
   const PLAZA_TREES = [[-20, -14], [21, 12], [-21, 5], [8, 21], [-6, -21], [14, 20]];
   const trunks = new THREE.InstancedMesh(trunkGeo, mat.trunk, treeSpots.length + PLAZA_TREES.length);
   const canopies = new THREE.InstancedMesh(canopyGeo, mat.canopy, treeSpots.length + PLAZA_TREES.length);
   canopies.castShadow = true;
-  const dummy = new THREE.Object3D(), leaf = new THREE.Color();
+  const leaf = new THREE.Color();
   const LEAVES = ["#4f8a45", "#5d9a4c", "#3f7a3f", "#6aa451", "#7aa85a"];
   function addTree(i, x, y, z, s) {
     dummy.position.set(x, y, z); dummy.rotation.set(0, rand() * 3, 0); dummy.scale.set(s, s, s); dummy.updateMatrix();
@@ -428,7 +491,7 @@
   const floors = [], risers = [], sensors = [], streams = [], heaters = [];
   const sensorGeo = new THREE.SphereGeometry(0.45, 12, 10);
   const lampGeo = new THREE.PlaneGeometry(W - 2, W - 2);
-  const smallCanopy = new THREE.IcosahedronGeometry(1.3, 0);
+  const smallCanopy = lumpy(new THREE.IcosahedronGeometry(1.3, 1), 0.14);
   const SKY_GARDENS = [4, 9];
   const heaterGeo = new THREE.BufferGeometry();
   {
@@ -436,7 +499,7 @@
     for (let k = -1; k <= 1; k++) pts.push(k * 6.5, 0, 8.6, k * 6.5, 0, -8.6, 8.6, 0, k * 6.5, -8.6, 0, k * 6.5);
     heaterGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
   }
-  // Drawn over the façade (no depth test) so the heat reads through the louvres.
+  // Drawn over the facade (no depth test) so the heat reads through the louvres.
   const heaterMat = new THREE.PointsMaterial({ map: makeGlowTexture(), size: 9, transparent: true, opacity: 0, depthWrite: false, depthTest: false });
 
   for (let i = 0; i < FLOORS; i++) {
@@ -451,6 +514,23 @@
     box(W + 1.0, 0.45, 0.6, mat.hedge, g, 0, 1.15, W / 2 + 0.35, false);
     box(0.7, 0.5, W + 1.2, mat.slab, g, -W / 2 - 0.35, 0.7, 0, false);
     box(0.6, 0.45, W + 1.0, mat.hedge, g, -W / 2 - 0.35, 1.15, 0, false);
+    // sill transoms on all four faces, and glass balustrades on the two edges without planters
+    const sillY = 0.45 + 1.05;
+    box(W - 0.6, 0.1, 0.12, mat.mullion, g, 0, sillY, W / 2 - 0.24, false);
+    box(W - 0.6, 0.1, 0.12, mat.mullion, g, 0, sillY, -W / 2 + 0.24, false);
+    box(0.12, 0.1, W - 0.6, mat.mullion, g, W / 2 - 0.24, sillY, 0, false);
+    box(0.12, 0.1, W - 0.6, mat.mullion, g, -W / 2 + 0.24, sillY, 0, false);
+    if (i > 0) {
+      box(0.05, 1.0, W + 1.3, mat.railGlass, g, W / 2 + 0.68, 0.95, 0, false);
+      box(0.1, 0.07, W + 1.4, mat.mullion, g, W / 2 + 0.68, 1.48, 0, false);
+      box(W + 1.3, 1.0, 0.05, mat.railGlass, g, 0, 0.95, -W / 2 - 0.68, false);
+      box(W + 1.4, 0.07, 0.1, mat.mullion, g, 0, 1.48, -W / 2 - 0.68, false);
+    } else {
+      // street entrance: a cantilevered canopy on slim columns over the lobby doors
+      box(3.8, 0.28, 9, mat.slab, g, W / 2 + 2.6, 3.05, 0);
+      [-3.8, 3.8].forEach(z => box(0.22, 2.9, 0.22, mat.mullion, g, W / 2 + 4.2, 1.45, z));
+      box(0.1, 2.3, 4.2, mat.mullion, g, W / 2 - 0.2, 1.6, 0, false);                        // door frame
+    }
     if (SKY_GARDENS.includes(i)) {                                                          // sky garden trees
       [[-7, 7], [7, 7], [-7, -7], [7, -7]].forEach(([x, z]) => {
         const t = new THREE.Mesh(smallCanopy, mat.canopy);
@@ -501,7 +581,19 @@
     if (i === FLOORS - 1) {
       box(W + 1.6, 0.5, W + 1.6, mat.slab, g, 0, FH + 0.25, 0);
       box(W - 1, 0.4, W - 1, mat.green, g, 0, FH + 0.7, 0, false);
-      [[-5, -5, 5, 2.4, 3], [4, -5, 4, 2, 4], [0, 5, 7, 2.6, 3.5]].forEach(([x, z, w, h, d]) => box(w, h, d, mat.plant, g, x, FH + 0.9 + h / 2, z));
+      const fanGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.22, 16);
+      [[-5, -5, 5, 2.4, 3], [4, -5, 4, 2, 4], [0, 5, 7, 2.6, 3.5]].forEach(([x, z, w, h, d]) => {
+        box(w, h, d, mat.plant, g, x, FH + 0.9 + h / 2, z);
+        box(w + 0.1, 0.12, d + 0.1, mat.mullion, g, x, FH + 0.9 + h * 0.35, z, false);     // access-panel seam
+        for (let k = 0; k < Math.floor(w / 1.8); k++) {                                         // condenser fans on top
+          const fan = new THREE.Mesh(fanGeo, mat.mullion);
+          fan.position.set(x - w / 2 + 0.95 + k * 1.8, FH + 0.9 + h + 0.11, z);
+          g.add(fan);
+        }
+      });
+      box(5, 2.8, 4.4, mat.concrete, g, 0, FH + 0.9 + 1.4, -0.5);                             // lift overrun
+      [[0, W / 2 + 0.68, W + 1.6, 0.25], [0, -W / 2 - 0.68, W + 1.6, 0.25]].forEach(([x, z, w, d]) => box(w, 1.05, d, mat.slab, g, x, FH + 1.0, z, false));
+      [[W / 2 + 0.68, 0], [-W / 2 - 0.68, 0]].forEach(([x, z]) => box(0.25, 1.05, W + 1.1, mat.slab, g, x, FH + 1.0, z, false));
       [[-7, 6], [7, 7], [-7, 0], [7, 0]].forEach(([x, z]) => {
         const t = new THREE.Mesh(smallCanopy, mat.canopy); t.position.set(x, FH + 2.4, z); t.castShadow = true; g.add(t);
       });
@@ -533,14 +625,14 @@
     arrows.instanceMatrix.needsUpdate = true;
   }
 
-  // ---------- Façade: louvres (some planted) and mullions, instanced ----------
+  // ---------- Facade: louvres (some planted) and mullions, instanced ----------
   const SIDES = [
     { n: new THREE.Vector3(0, 0, 1), t: new THREE.Vector3(1, 0, 0), yaw: 0 },
     { n: new THREE.Vector3(1, 0, 0), t: new THREE.Vector3(0, 0, -1), yaw: Math.PI / 2 },
     { n: new THREE.Vector3(0, 0, -1), t: new THREE.Vector3(-1, 0, 0), yaw: Math.PI },
     { n: new THREE.Vector3(-1, 0, 0), t: new THREE.Vector3(0, 0, 1), yaw: -Math.PI / 2 },
   ];
-  const louvres = new THREE.InstancedMesh(new THREE.BoxGeometry(W / PANELS - 0.15, FH - 0.6, 0.14), mat.panel, FLOORS * SIDES.length * PANELS);
+  const louvres = new THREE.InstancedMesh(bladeGeometry(W / PANELS - 0.15, FH - 0.6, 0.16), mat.panel, FLOORS * SIDES.length * PANELS);
   louvres.castShadow = louvres.receiveShadow = true;
   louvres.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(louvres);
@@ -656,33 +748,41 @@
   const carBody = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), mat.car, cars.length);
   const carCab = new THREE.InstancedMesh(new THREE.BoxGeometry(2.2, 0.8, 1.7), mat.car, cars.length);
   const lights = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.3, 1.6), mat.headlight, cars.length);
+  const tails = new THREE.InstancedMesh(new THREE.BoxGeometry(0.12, 0.22, 1.5), mat.taillight, cars.length);
+  const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.3, 14); wheelGeo.rotateX(Math.PI / 2);
+  const wheels = new THREE.InstancedMesh(wheelGeo, mat.tyre, cars.length * 4);
+  const WHEELS = [[1.35, 0.92], [1.35, -0.92], [-1.35, 0.92], [-1.35, -0.92]];
   carBody.castShadow = true;
   cars.forEach((c, i) => {
     carBody.setColorAt(i, C(CAR_COLOURS[i % CAR_COLOURS.length]));
     carCab.setColorAt(i, C("#1c2430"));
   });
-  scene.add(carBody, carCab, lights);
+  scene.add(carBody, carCab, lights, tails, wheels);
   const people = Array.from({ length: 14 }, (_, i) => {
     const outer = i % 3 === 0;                          // outer pavement beyond the ring road, or the plaza
     return { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4 };
   });
-  const personGeo = new THREE.CylinderGeometry(0.32, 0.38, 1.8, 6);
-  personGeo.translate(0, 0.9, 0);
+  const personGeo = new THREE.CylinderGeometry(0.3, 0.36, 1.45, 8);
+  personGeo.translate(0, 0.72, 0);
   const crowd = new THREE.InstancedMesh(personGeo, mat.person, people.length);
+  const headGeo = new THREE.SphereGeometry(0.22, 10, 8); headGeo.translate(0, 1.68, 0);
+  const heads = new THREE.InstancedMesh(headGeo, mat.person, people.length);
   const SHIRTS = ["#ff3d6e", "#2a9fd6", "#f5a623", "#eef0f4", "#1c2330", "#7cc46b"];
-  people.forEach((p, i) => crowd.setColorAt(i, C(SHIRTS[i % SHIRTS.length])));
-  scene.add(crowd);
+  const SKIN = ["#e6c09c", "#c4936a", "#8a5c3b", "#f0d0b2"];
+  people.forEach((p, i) => { crowd.setColorAt(i, C(SHIRTS[i % SHIRTS.length])); heads.setColorAt(i, C(SKIN[i % SKIN.length])); });
+  scene.add(crowd, heads);
 
+  const carM = new THREE.Matrix4(), partM = new THREE.Matrix4();
+  function put(mesh, i, x, y, z) { mesh.setMatrixAt(i, partM.makeTranslation(x, y, z).premultiply(carM)); }   // part offset in the car's own frame
   function moveTraffic(q, nightAmt) {
     cars.forEach((c, i) => {
       const [x, z, yaw] = rectPath(c.s0 + c.lane * c.v * q, RING + c.lane * 1.8, RING + c.lane * 1.8);
       const dir = c.lane > 0 ? yaw : yaw + Math.PI;
-      dummy.position.set(x, 0.75, z); dummy.rotation.set(0, dir, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
-      carBody.setMatrixAt(i, dummy.matrix);
-      dummy.position.y = 1.65; dummy.translateX(-0.3); dummy.updateMatrix();
-      carCab.setMatrixAt(i, dummy.matrix);
-      dummy.position.set(x, 0.85, z); dummy.translateX(2.15); dummy.updateMatrix();
-      lights.setMatrixAt(i, dummy.matrix);
+      dummy.position.set(x, 0, z); dummy.rotation.set(0, dir, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+      carM.copy(dummy.matrix);
+      put(carBody, i, 0, 0.8, 0); put(carCab, i, -0.3, 1.7, 0);
+      put(lights, i, 2.15, 0.9, 0); put(tails, i, -2.12, 0.95, 0);
+      WHEELS.forEach(([wx, wz], k) => put(wheels, i * 4 + k, wx, 0.42, wz));
     });
     people.forEach((p, i) => {
       const r = (p.outer ? RING + 5.2 : 24.8) + p.off * 0.5;
@@ -690,9 +790,13 @@
       dummy.position.set(x, 0.05, z);
       dummy.rotation.set(0, yaw, 0); dummy.scale.set(1.5, 1.5, 1.5); dummy.updateMatrix();
       crowd.setMatrixAt(i, dummy.matrix);
+      heads.setMatrixAt(i, dummy.matrix);
     });
-    carBody.instanceMatrix.needsUpdate = carCab.instanceMatrix.needsUpdate = lights.instanceMatrix.needsUpdate = crowd.instanceMatrix.needsUpdate = true;
+    [carBody, carCab, lights, tails, wheels, crowd, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; });
     mat.headlight.opacity = nightAmt;
+    mat.taillight.opacity = 0.35 + 0.65 * nightAmt;
+    mat.lampGlow.opacity = nightAmt;
+    lampHaloMat.opacity = nightAmt * 0.9;
   }
 
   // ---------- Camera path (one keyframe per step) ----------

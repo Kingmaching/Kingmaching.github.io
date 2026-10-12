@@ -1,6 +1,6 @@
 /* =========================================================
    MARCO CHING PORTFOLIO · Hong Kong edition
-   Layout: alternating harbour-night and warm-paper bands, each
+   Layout: alternating harbour-night and white bands, each
    with one interactive idea. Neon pink is the signature colour
    (Hong Kong signage at night); cyan and amber carry meaning in
    charts (cooling / heating). Bilingual labels, an MTR-style
@@ -18,11 +18,11 @@
   --line-d: #2a3344;
   --text-d: #eef0f4;
   --muted-d: #9aa3b3;
-  --paper: #f0ece3;
-  --paper-2: #e4ddcf;
+  --paper: #ffffff;
+  --paper-2: #f4f5f7;
   --ink: #0f1218;
   --muted-p: #5b606b;
-  --line-p: #d2cab9;
+  --line-p: #e3e5e9;
 
   /* Signature + meaning */
   --neon: #ff3d6e;          /* Hong Kong neon, the one loud colour */
@@ -64,7 +64,7 @@
   --b-lamp: #ffd88a;
 
   /* Type */
-  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  --font-display: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --font-body: "Funnel Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --font-led: "Doto", "Geist Mono", ui-monospace, monospace;
@@ -207,7 +207,7 @@ em { font-style: normal; color: var(--neon); }
 .giant-name {
   grid-row: 3;
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(5.5rem, min(24vw, 44vh), 24rem); line-height: 0.8; letter-spacing: -0.06em;
+  font-size: clamp(3.25rem, min(15vw, 21vh), 11rem); line-height: 0.88; letter-spacing: -0.05em;
   color: var(--text-d); text-shadow: 0 10px 60px rgba(0, 0, 0, 0.45);
 }
 .intro-foot { display: grid; gap: 14px; max-width: 520px; padding: 18px 20px; border-radius: var(--radius);
@@ -265,7 +265,20 @@ em { font-style: normal; color: var(--neon); }
 .marquee span:nth-child(3n + 1) { color: var(--neon); }
 @keyframes slide { to { transform: translateX(-50%); } }
 
-/* ---------- Projects (paper with night demos) ---------- */
+/* ---------- Background (white, leads into the projects) ---------- */
+
+.about { background: var(--paper); color: var(--ink); padding-block: clamp(72px, 10vw, 128px) clamp(24px, 4vw, 48px); }
+.about .label { color: var(--muted-p); }
+.about .label .zh, .about em { color: var(--neon-ink); }
+.about-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
+.about .sec-head { margin-bottom: 0; }
+.about-text { display: grid; gap: 16px; max-width: 60ch; color: var(--muted-p); }
+.about-text strong { color: var(--ink); font-weight: 600; }
+.about-facts { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
+.about-facts li { padding: 5px 12px; border: 1px solid var(--line-p); border-radius: 999px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); }
+.about + .projects { padding-top: clamp(24px, 4vw, 48px); }
+
+/* ---------- Projects (white with night demos) ---------- */
 
 .projects { background: var(--paper); color: var(--ink); padding-block: clamp(72px, 10vw, 128px); }
 .projects .label { color: var(--muted-p); }
@@ -390,7 +403,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .panel-stat { display: flex; align-items: baseline; gap: 10px; color: var(--muted-d); }
 .panel-stat strong { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; color: var(--text-d); letter-spacing: -0.03em; }
 
-/* ---------- Skills: the toolbox (paper) ---------- */
+/* ---------- Skills: the toolbox (white) ---------- */
 
 .skills { background: var(--paper); color: var(--ink); padding-block: clamp(72px, 10vw, 128px); }
 .skills .label { color: var(--muted-p); }
@@ -495,7 +508,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 @media (max-width: 960px) {
   .proj { grid-template-columns: minmax(0, 1fr); }
   .proj-flip .proj-info { order: 0; }
-  .contact-grid { grid-template-columns: minmax(0, 1fr); }
+  .contact-grid, .about-grid { grid-template-columns: minmax(0, 1fr); }
   .tb-top, .tb-bottom { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .tb-top .bin:last-child { grid-column: 1 / -1; }
 }

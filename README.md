@@ -4,10 +4,11 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 
 - `index.html` holds all the text. Search for `EDIT:` to find each section.
 - `styles.css` holds the palette (top of file), fonts and layout. One fixed look: harbour-night and
-  warm-paper bands, neon pink accent, MTR line colours for the route map.
+  white bands, neon pink accent, MTR line colours for the route map.
 - `story.js` holds the ME 572 data and draws the hero charts.
 - `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the street-level tower with
-  planted fins and sky gardens; parks, roads, cars and people that move with the scroll; a stylised
+  aerofoil louvres, planted fins, sill transoms, glass balustrades, an entrance canopy, a roof parapet and
+  rooftop plant, and sky gardens; street lamps, zebra crossings, cars with wheels and tail lights; parks, roads, cars and people that move with the scroll; a stylised
   Hong Kong skyline with a harbour light show, drawn on a second canvas that CSS blurs so the tower
   stays in focus; and a night → day → sunset sky (sunset only in the last step).
 - `sections.js` runs everything below the hero: statement reveal, sliding tabs, the six project demos
