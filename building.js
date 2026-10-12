@@ -7,6 +7,8 @@
 //   3 → 4  ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on
 // The core glows with the heating load of whichever run is on screen.
+// The sky runs night → dawn → day (sun shafts for shading and envelope) → dusk → night,
+// when the surrounding Hong Kong towers light up for the lighting step.
 // The tower is illustrative; the numbers belong to the ME 572 models. Units are metres.
 
 (function () {
@@ -59,29 +61,55 @@
   const lineMat = new THREE.LineDashedMaterial({ dashSize: 1.6, gapSize: 1.1, transparent: true, opacity: 0 });
   const rayMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0 });
   const glassBase = new THREE.Color(), glassTint = new THREE.Color(), heatColor = new THREE.Color();
+  const glassNow = new THREE.Color(), skyTop = new THREE.Color(), skyLow = new THREE.Color(), ctxColor = new THREE.Color();
+  const sunScreen = new THREE.Vector3();
+  const stage = canvas.parentElement;
 
   function cssColor(name, fallback) {
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return v || fallback;
   }
+  // Night colours come from CSS tokens; day colours are fixed here. update() blends them.
+  const NIGHT = {}, DAY = {
+    concrete: new THREE.Color("#959fa7"), slab: new THREE.Color("#c9ced2"), panel: new THREE.Color("#dfe2e0"),
+    glass: new THREE.Color("#7fb0cc"), ground: new THREE.Color("#8d989b"), context: new THREE.Color("#a9b4bc"),
+    green: new THREE.Color("#6f9e5c"),
+  };
+  const SKY = {
+    nightTop: new THREE.Color("#05070b"), nightLow: new THREE.Color("#121b28"),
+    dayTop: new THREE.Color("#2f78c9"), dayLow: new THREE.Color("#bfdcf0"), dusk: new THREE.Color("#f2995a"),
+  };
   function applyTheme() {
-    mat.concrete.color.set(cssColor("--b-concrete", "#c9ced0"));
-    mat.core.color.set(cssColor("--b-concrete", "#c9ced0"));
-    mat.slab.color.set(cssColor("--b-slab", "#e9ecec"));
-    mat.panel.color.set(cssColor("--b-panel", "#f4f5f2"));
-    glassBase.set(cssColor("--b-glass", "#7fb3c4"));
-    glassTint.copy(glassBase).multiplyScalar(0.45);
-    mat.ground.color.set(cssColor("--b-ground", "#dde6e8"));
-    mat.context.color.set(cssColor("--b-context", "#cfd8db"));
-    mat.green.color.set(cssColor("--b-green", "#8fb07a"));
+    NIGHT.concrete = new THREE.Color(cssColor("--b-concrete", "#3b4552"));
+    NIGHT.slab = new THREE.Color(cssColor("--b-slab", "#5b6776"));
+    NIGHT.panel = new THREE.Color(cssColor("--b-panel", "#a3adb8"));
+    NIGHT.glass = new THREE.Color(cssColor("--b-glass", "#ffcf86"));
+    NIGHT.ground = new THREE.Color(cssColor("--b-ground", "#0c1118"));
+    NIGHT.context = new THREE.Color(cssColor("--b-context", "#19222d"));
+    NIGHT.green = new THREE.Color(cssColor("--b-green", "#2f5a3c"));
+    glassBase.copy(NIGHT.glass);
     mat.air.color.set(cssColor("--c-cool", "#00869e"));
     lineMat.color.set(cssColor("--c-cool", "#00869e"));
     heatColor.set(cssColor("--c-heat", "#c96a0e"));
     rayMat.color.set(cssColor("--heat", "#d9822b"));
     mat.sensor.color.set(cssColor("--heat", "#d9822b"));
-    mat.sun.color.set(cssColor("--heat", "#d9822b"));
+    mat.sun.color.set("#ffe7a8");
     mat.lamp.color.set(cssColor("--b-lamp", "#fff1c9"));
-    scene.fog.color.set(cssColor("--sky-low", "#eef3f4"));
+  }
+
+  // Lit-window texture for the surrounding towers (mostly warm, a few cool and neon).
+  function makeWindowTexture() {
+    const c = document.createElement("canvas");
+    c.width = 64; c.height = 128;
+    const g = c.getContext("2d");
+    g.fillStyle = "#000"; g.fillRect(0, 0, 64, 128);
+    const tones = ["#ffd9a0", "#ffe9bf", "#fff4d6", "#ffd9a0", "#bfe8ff", "#ff7aa0"];
+    for (let r = 0; r < 16; r++) for (let col = 0; col < 4; col++) {
+      if (Math.random() < 0.52) { g.fillStyle = tones[Math.floor(Math.random() * tones.length)]; g.fillRect(4 + col * 15, 3 + r * 8, 10, 4); }
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return t;
   }
 
   function box(w, h, d, material, parent, x = 0, y = 0, z = 0) {
@@ -93,7 +121,8 @@
   }
 
   // ---------- Lights ----------
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xb4c0c6, 1.05));
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xb4c0c6, 1.05);
+  scene.add(hemi);
   const sunLight = new THREE.DirectionalLight(0xfff6e8, 1.0);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.set(2048, 2048);
@@ -113,13 +142,56 @@
   // Surrounding blocks, placed deterministically so the skyline never changes.
   let seed = 7;
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 22; i++) {
-    const a = (i / 22) * Math.PI * 2 + rand() * 0.2;
-    const r = 52 + rand() * 60;
-    const h = 8 + rand() * 34;
+  const windowTex = makeWindowTexture();
+  const cityMats = [], signs = [];
+  const SIGN_COLOURS = ["#ff3d6e", "#2a9fd6", "#f5a623", "#ff3d6e", "#7cf0c8"];
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * Math.PI * 2 + rand() * 0.12;
+    const r = 55 + rand() * 125;
+    const h = 14 + rand() * (r > 110 ? 85 : 45);
+    const w = 9 + rand() * 10, d = 9 + rand() * 10;
     // Keep the camera's side of the site clear so nothing blocks the tower.
     if (a > 0.1 && a < 2.7) continue;
-    box(10 + rand() * 12, h, 10 + rand() * 12, mat.context, scene, Math.cos(a) * r, h / 2, Math.sin(a) * r);
+    const tex = windowTex.clone();
+    tex.needsUpdate = true;
+    tex.repeat.set(Math.max(1, Math.round(w / 5)), Math.max(1, Math.round(h / 9)));
+    const m = std({ emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0 });
+    cityMats.push(m);
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    box(w, h, d, m, scene, x, h / 2, z);
+    if (rand() < 0.4) {                 // vertical neon sign facing the tower
+      const sm = new THREE.MeshBasicMaterial({ color: SIGN_COLOURS[i % SIGN_COLOURS.length], transparent: true, opacity: 0 });
+      const sign = new THREE.Mesh(new THREE.BoxGeometry(1.4, 7 + rand() * 5, 0.4), sm);
+      const n = new THREE.Vector3(-x, 0, -z).normalize();
+      sign.position.set(x + n.x * (Math.max(w, d) / 2 + 0.6), Math.min(h - 4, 10 + rand() * 12), z + n.z * (Math.max(w, d) / 2 + 0.6));
+      sign.lookAt(0, sign.position.y, 0);
+      scene.add(sign);
+      signs.push(sm);
+    }
+  }
+
+  // Sun shafts: open cones from the sun towards the tower, faded at both ends (additive blend).
+  const shaftGeo = new THREE.CylinderGeometry(0.3, 6, 170, 20, 8, true);
+  const sp = shaftGeo.attributes.position, cols = [];
+  for (let i = 0; i < sp.count; i++) {
+    const t = (sp.getY(i) + 85) / 170, f = Math.pow(Math.sin(Math.PI * t), 1.6);
+    cols.push(1 * f, 0.8 * f, 0.45 * f);
+  }
+  shaftGeo.setAttribute("color", new THREE.Float32BufferAttribute(cols, 3));
+  const shaftMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+  const shafts = Array.from({ length: 8 }, () => {
+    const m = new THREE.Mesh(shaftGeo, shaftMat);
+    m.userData.aim = new THREE.Vector3((rand() - 0.5) * 34, 12 + rand() * 50, (rand() - 0.5) * 34);
+    m.frustumCulled = false;
+    scene.add(m);
+    return m;
+  });
+  const UP = new THREE.Vector3(0, 1, 0);
+  function layoutShafts() {
+    shafts.forEach(m => {
+      m.position.copy(m.userData.aim).addScaledVector(sunDir, 85);
+      m.quaternion.setFromUnitVectors(UP, sunDir);
+    });
   }
 
   box(36, PODIUM_H, 32, mat.concrete, scene, 0, PODIUM_H / 2, 0);
@@ -314,6 +386,29 @@
       Math.cos(degToRad(alt)) * Math.cos(degToRad(az))
     );
     flatSun.set(sunDir.x, 0, sunDir.z).normalize();
+
+    // Daylight: dawn during step 0→1, full day for shading and envelope, dusk into the lighting step.
+    const day = smoothstep(q, 0.3, 1.0) * (1 - smoothstep(q, 2.5, 3.35));
+    const night = 1 - day, warm = 4 * day * (1 - day);
+    skyTop.copy(SKY.nightTop).lerp(SKY.dayTop, day);
+    skyLow.copy(SKY.nightLow).lerp(SKY.dayLow, day).lerp(SKY.dusk, warm * 0.75);
+    stage.style.setProperty("--sky-a", "#" + skyTop.getHexString());
+    stage.style.setProperty("--sky-b", "#" + skyLow.getHexString());
+    scene.fog.color.copy(skyLow);
+    hemi.intensity = lerp(0.5, 0.95, day);
+    hemi.groundColor.set(day > 0.5 ? 0xb4c0c6 : 0x2a3344);
+    sunLight.intensity = lerp(0.22, 1.1, day);
+    sunLight.color.set(0x8fa3c8).lerp(new THREE.Color(0xfff1d8), day);
+    ["concrete", "slab", "panel", "ground", "green"].forEach(k => mat[k].color.copy(NIGHT[k]).lerp(DAY[k], day));
+    mat.core.color.copy(mat.concrete.color);
+    ctxColor.copy(NIGHT.context).lerp(DAY.context, day);
+    cityMats.forEach(m => { m.color.copy(ctxColor); m.emissiveIntensity = Math.pow(night, 1.5) * 1.15; });
+    signs.forEach(m => { m.opacity = smoothstep(night, 0.6, 1); });
+    sunDisc.visible = day > 0.02;
+    sunDisc.scale.setScalar(0.6 + day);
+    shaftMat.opacity = day * smoothstep(q, 0.45, 1.0) * (1 - smoothstep(q, 2.3, 2.8)) * 0.55;
+    if (shaftMat.opacity > 0.005) layoutShafts();
+    shafts.forEach(m => { m.visible = shaftMat.opacity > 0.005; });
     sunLight.position.copy(sunDir).multiplyScalar(220);
     sunLight.target.position.set(0, 25, 0);
     sunDisc.position.copy(sunDir).multiplyScalar(330);
@@ -323,7 +418,10 @@
 
     // Envelope: tint follows SHGC, rays carry the transmitted solar gain.
     const tint = norm(0.70 - live.shgc, 0, 0.40);
-    mat.glass.color.copy(glassBase).lerp(glassTint, tint);
+    glassNow.copy(DAY.glass).lerp(glassBase, night);
+    glassTint.copy(glassNow).multiplyScalar(0.45);
+    mat.glass.color.copy(glassNow).lerp(glassTint, tint);
+    mat.glass.emissive.copy(glassBase).multiplyScalar(night * 0.35 * (1 - tint * 0.5));
     mat.glass.opacity = lerp(0.36, 0.6, tint);
     rays.visible = st.rays > 0.01;
     if (rays.visible) layoutRays();
@@ -348,6 +446,14 @@
     sensors.forEach((s, i) => { s.scale.setScalar(Math.max(0.001, st.sense * pulse * (i % 4 === 0 ? 1.15 : 1))); });
 
     placeCamera(q);
+
+    // Glare follows the sun on screen.
+    camera.updateMatrixWorld();
+    sunScreen.copy(sunDisc.position).project(camera);
+    const onScreen = sunScreen.z < 1;
+    stage.style.setProperty("--day", (onScreen ? day : 0).toFixed(3));
+    stage.style.setProperty("--sx", clamp((sunScreen.x + 1) * 50, 4, 96).toFixed(1) + "%");
+    stage.style.setProperty("--sy", clamp((1 - sunScreen.y) * 50, -10, 70).toFixed(1) + "%");
   }
 
   // ---------- Size and framing ----------

@@ -26,23 +26,31 @@
   }
   function setPressed(group, attr, value) {
     $$(`[${attr}]`, group).forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute(attr) === String(value))));
+    $$(".seg", group).forEach(syncPill);
   }
 
-  // ---------- Counters ----------
-  $$("[data-count]").forEach(el => {
-    const target = Number(el.dataset.count), pre = el.dataset.prefix || "", suf = el.dataset.suffix || "";
-    let done = false;
-    whenVisible(el, () => {
-      if (done || reduceMotion) return;
-      done = true;
-      const t0 = performance.now(), dur = 1300;
-      (function step(now) {
-        const p = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(1 - p, 3);
-        el.textContent = pre + Math.round(target * e).toLocaleString("en-US") + suf;
-        if (p < 1) requestAnimationFrame(step);
-      })(t0);
-    }, null, 0.6);
+  // ---------- Sliding tabs: a pill that glides to the pressed option ----------
+  function syncPill(seg) {
+    const pill = seg.querySelector(".seg-pill"), on = seg.querySelector('button[aria-pressed="true"]');
+    if (!pill || !on) return;
+    pill.style.left = on.offsetLeft + "px";
+    pill.style.width = on.offsetWidth + "px";
+    pill.style.top = on.offsetTop + "px";
+    pill.style.height = on.offsetHeight + "px";
+    pill.style.bottom = "auto";
+  }
+  $$(".seg").forEach(seg => {
+    const pill = document.createElement("span");
+    pill.className = "seg-pill";
+    pill.setAttribute("aria-hidden", "true");
+    seg.prepend(pill);
+    seg.classList.add("has-pill");
+    pill.style.transition = "none";
+    syncPill(seg);
+    requestAnimationFrame(() => { pill.style.transition = ""; });
   });
+  window.addEventListener("resize", () => $$(".seg").forEach(syncPill));
+  document.fonts?.ready.then(() => $$(".seg").forEach(syncPill));
 
   // ---------- Statement: words light up as it scrolls through ----------
   const statement = $("[data-reveal]");
@@ -535,63 +543,77 @@
     }));
   })();
 
-  // ---------- Skills: physics chips ----------
-  (function skills() {
-    const box = $("#skill-box");
-    if (!box || reduceMotion || !window.Matter) return;
-    const { Engine, Bodies, Composite, Body, Mouse, MouseConstraint } = Matter;
-    let started = false, running = false, engine, chips = [], raf = 0;
-
-    function start() {
-      started = true;
-      const sizes = $$(".chip", box).map(el => ({ el, w: el.offsetWidth, h: el.offsetHeight }));
-      box.classList.add("is-physics");
-      const W = box.clientWidth, H = box.clientHeight;
-      engine = Engine.create();
-      engine.gravity.y = 1;
-      const wall = { isStatic: true, render: { visible: false } };
-      Composite.add(engine.world, [
-        Bodies.rectangle(W / 2, H + 30, W * 2, 60, wall),
-        Bodies.rectangle(-30, H / 2, 60, H * 3, wall),
-        Bodies.rectangle(W + 30, H / 2, 60, H * 3, wall),
-      ]);
-      chips = sizes.map(({ el, w, h }, i) => {
-        const body = Bodies.rectangle(40 + Math.random() * (W - 80), -60 - i * 38, w, h, { chamfer: { radius: h / 2 }, restitution: 0.35, friction: 0.3 });
-        Body.setAngle(body, (Math.random() - 0.5) * 0.6);
-        Composite.add(engine.world, body);
-        return { el, w, h, body };
-      });
-      // Drag with a mouse; on touch screens leave scrolling alone and tap to flick a chip.
-      if (window.matchMedia("(pointer: fine)").matches) {
-        const mouse = Mouse.create(box);
-        mouse.element.removeEventListener("mousewheel", mouse.mousewheel);
-        mouse.element.removeEventListener("DOMMouseScroll", mouse.mousewheel);
-        mouse.element.removeEventListener("wheel", mouse.mousewheel);
-        Composite.add(engine.world, MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2 } }));
-      } else {
-        chips.forEach(c => c.el.addEventListener("click", () => Body.setVelocity(c.body, { x: (Math.random() - 0.5) * 8, y: -14 })));
-      }
-      resume();
-    }
-    function tick() {
-      if (!running) return;
-      Engine.update(engine, 1000 / 60);
-      chips.forEach(({ el, w, h, body }) => {
-        el.style.transform = `translate(${body.position.x - w / 2}px, ${body.position.y - h / 2}px) rotate(${body.angle}rad)`;
-      });
-      raf = requestAnimationFrame(tick);
-    }
-    function resume() { if (!running) { running = true; raf = requestAnimationFrame(tick); } }
-    whenVisible(box, () => (started ? resume() : start()), () => { running = false; cancelAnimationFrame(raf); }, 0.3);
+  // ---------- Toolbox: the lid swings open when it comes into view ----------
+  (function toolbox() {
+    const box = $("#toolbox");
+    if (!box || reduceMotion) return;
+    box.classList.add("is-closed");
+    whenVisible(box, () => box.classList.remove("is-closed"), null, 0.35);
   })();
 
-  // ---------- Neon sign ----------
-  (function neon() {
-    const sign = $(".neon-sign");
-    if (!sign) return;
-    const flick = () => { sign.classList.remove("flicker"); void sign.offsetWidth; sign.classList.add("flicker"); };
-    whenVisible(sign, () => { if (!sign.classList.contains("lit")) { sign.classList.add("lit"); flick(); } }, null, 0.4);
-    sign.addEventListener("pointerenter", flick);
+  // ---------- Contact form ----------
+  (function contactForm() {
+    const form = $("#mail-form"), status = $("#form-status");
+    if (!form) return;
+    const TO = "marcokingching@gmail.com";
+    const fields = ["#f-first", "#f-last", "#f-email", "#f-body"].map(id => $(id));
+    const say = (msg, kind = "") => { status.textContent = msg; status.className = "form-status" + (kind ? " is-" + kind : ""); };
+    form.addEventListener("submit", async ev => {
+      ev.preventDefault();
+      let bad = null;
+      fields.forEach(f => {
+        const ok = f.value.trim() !== "" && (f.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.value.trim()));
+        f.setAttribute("aria-invalid", String(!ok));
+        if (!ok && !bad) bad = f;
+      });
+      if (bad) { say(bad.type === "email" ? "Check the email address, it needs an @ and a domain." : "Fill in every field so I know who to reply to."); bad.focus(); return; }
+      const [first, last, email, body] = fields.map(f => f.value.trim());
+      const name = `${first} ${last}`, subject = `Website message from ${name}`;
+      const key = form.dataset.accessKey;
+      if (key) {
+        say("Sending…");
+        try {
+          const res = await fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ access_key: key, subject, from_name: name, name, email, message: body, replyto: email }),
+          });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Send failed");
+          form.reset();
+          say(`Sent. I’ll reply to ${email}.`, "ok");
+        } catch (err) {
+          say(`That didn’t go through (${err.message}). Email ${TO} directly instead.`, "error");
+        }
+        return;
+      }
+      const href = `mailto:${TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${body}\n\n${name}\n${email}`)}`;
+      window.location.href = href;
+      say(`Your email app should open with the message ready to send. If nothing opens, email ${TO}.`, "ok");
+    });
+    fields.forEach(f => f.addEventListener("input", () => f.removeAttribute("aria-invalid")));
+  })();
+
+  // ---------- Smooth scrolling with weight, and eased jumps to sections ----------
+  (function smoothScroll() {
+    const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);   // ease-in-out cubic
+    let lenis = null;
+    if (!reduceMotion && window.Lenis) {
+      lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1.2, smoothWheel: true });
+      (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(performance.now());
+      document.documentElement.classList.add("lenis-on");
+    }
+    document.addEventListener("click", ev => {
+      const a = ev.target.closest('a[href^="#"]');
+      if (!a) return;
+      const id = a.getAttribute("href");
+      const target = id === "#top" ? document.body : $(id);
+      if (!target) return;
+      ev.preventDefault();
+      if (lenis) lenis.scrollTo(target, { offset: id === "#top" ? 0 : -76, duration: 1.8, easing: ease });
+      else target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+      history.replaceState(null, "", id);
+    });
   })();
 
   // ---------- Copy email, year ----------

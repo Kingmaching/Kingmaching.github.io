@@ -6,10 +6,11 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 - `styles.css` holds the palette (top of file), fonts and layout. One fixed look: harbour-night and
   warm-paper bands, neon pink accent, MTR line colours for the route map.
 - `story.js` holds the ME 572 data and draws the hero charts.
-- `building.js` draws the scroll-driven 3D tower with Three.js (cdnjs).
-- `sections.js` runs everything below the hero: counters, statement reveal, the six project demos
+- `building.js` draws the scroll-driven 3D tower with Three.js (cdnjs), including the night → day → night
+  sky, sun shafts, and the lit Hong Kong skyline.
+- `sections.js` runs everything below the hero: statement reveal, sliding tabs, the six project demos
   (envelope chart, lighting plan, seismic schematic, pitch model, crane, suspension), the MTR route,
-  the Matter.js skill chips (cdnjs), the neon footer and the copy-email button.
+  the toolbox, the contact form and Lenis smooth scrolling (jsDelivr).
 - `Marco_Ching_Resume.pdf` is an export of the Google Doc "Marco Ching's CV".
 
 ## Where the numbers come from
@@ -22,6 +23,13 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 | Suspension | ME 481 FDR §3.4 and §4.3 (131 N/mm shock, MR 0.316, 263 mm arm, 50 mm travel) |
 | Crane | Robotic crane report + CV (51 cm reach, ±5 mm) |
 | Seismic schematic | IEEE poster (stations, Cheung Chau, HKO threshold). Traces are illustrative. |
+
+## Contact form
+
+The form works two ways. With no key it opens the visitor's email app with the message filled in.
+To have it send directly, get a free access key at https://web3forms.com (sign up with
+marcokingching@gmail.com) and paste it into `data-access-key=""` on `<form id="mail-form">` in
+`index.html`. The key is designed to be public.
 
 ## Adding photos
 

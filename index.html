@@ -14,10 +14,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E4%B8%8A%E6%B0%B4%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E9%A6%99%E6%B8%AF%E5%BB%BA%E7%AF%89%E8%A1%A8%E7%8F%BE&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
   <script src="story.js" defer></script>
   <script src="building.js" defer></script>
   <script src="sections.js" defer></script>
@@ -29,7 +29,7 @@
        All visible text lives in this file. Search for "EDIT:" to
        jump to each section. Colours and fonts: top of styles.css.
        3D tower: building.js. Hero charts + ME 572 data: story.js.
-       Project demos, map, skills physics, counters: sections.js.
+       Project demos, route map, toolbox, contact form, smooth scrolling: sections.js.
        ========================================================= -->
 
   <header class="topbar">
@@ -52,21 +52,24 @@
          real ME 572 runs. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
+        <div class="sun-glare"></div>
         <canvas id="building-canvas"></canvas>
         <p class="stage-note">Illustrative tower · numbers from my ME 572 models</p>
       </div>
 
       <div class="steps">
         <article class="step step-intro" data-step="0">
-          <div class="step-card glass">
+          <div class="intro">
             <p class="kicker"><span class="zh">香港</span> Building performance · Waterloo · 2027</p>
-            <h1>Marco<br>Ching</h1>
-            <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
-            <div class="actions">
-              <a class="btn btn-neon" href="#projects">See projects</a>
-              <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF)&nbsp;↗</a>
+            <h1 class="giant-name">Marco<br>Ching</h1>
+            <div class="intro-foot">
+              <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
+              <div class="actions">
+                <a class="btn btn-neon" href="#projects">See projects</a>
+                <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF)&nbsp;↗</a>
+              </div>
+              <p class="scroll-cue">Scroll: night to day and back</p>
             </div>
-            <p class="scroll-cue">Scroll to take the tower apart</p>
           </div>
         </article>
 
@@ -116,25 +119,12 @@
       </div>
     </section>
 
-    <!-- EDIT: COUNTERS -------------------------------------------->
-    <section class="counters" aria-label="By the numbers">
-      <div class="wrap counters-row">
-        <div class="counter"><strong data-count="17">17</strong><span>energy simulations</span></div>
-        <div class="counter"><strong data-count="20" data-suffix="+">20+</strong><span>Revit models reviewed</span></div>
-        <div class="counter"><strong data-count="10">10</strong><span>BIM scopes coordinated</span></div>
-        <div class="counter"><strong data-count="640">640</strong><span>MLD treatment works</span></div>
-        <div class="counter"><strong data-count="5" data-prefix="±">±5</strong><span>mm crane accuracy</span></div>
-      </div>
-    </section>
-
     <!-- EDIT: STATEMENT -------------------------------------------->
     <section class="statement" id="direction">
       <div class="wrap">
         <p class="label"><span class="zh">方向</span> (01) Direction</p>
         <p class="statement-text" data-reveal>
-          I grew up between Hong Kong’s towers and its mountains. A visit to <b>K11&nbsp;Musea</b>
-          made me ask why some buildings shut nature out. Now I study whether the ones that
-          <b>let it in</b> actually <b>perform</b>.
+          <b>K11&nbsp;Musea</b> made me ask why some buildings let nature in. Now I test whether they actually <b>perform</b>.
         </p>
       </div>
       <div class="marquee" aria-label="Research interests">
@@ -355,10 +345,10 @@
               <span class="stop-zh">多倫多</span><span class="stop-en">Toronto</span><span class="stop-year">2026</span>
             </button>
           </li>
-          <li class="stop" style="--line: var(--line-east)">
+          <li class="stop" style="--line: var(--line-tw)">
             <button type="button" class="stop-btn" data-stop="chevalier" aria-pressed="true">
               <span class="stop-dot" aria-hidden="true"></span>
-              <span class="stop-zh">上水</span><span class="stop-en">Sheung Shui</span><span class="stop-year">Now</span>
+              <span class="stop-zh">葵涌</span><span class="stop-en">Kwai Chung</span><span class="stop-year">Now</span>
             </button>
           </li>
           <li class="stop stop-next" style="--line: var(--neon)">
@@ -393,7 +383,7 @@
             <p class="panel-stat"><strong>10</strong> project scopes through IFC review</p>
           </article>
           <article class="stop-panel" data-panel="chevalier">
-            <p class="panel-when">09/2026 – present · Sheung Shui, Hong Kong</p>
+            <p class="panel-when">09/2026 – present · Kwai Chung, Hong Kong</p>
             <h3>Chevalier Group</h3>
             <p class="panel-role">Envirotech Trainee</p>
             <p>Hydraulic and process calculations for water-treatment chemical dosing: storage sizing, 4:1 turndown, pipe sizing, head loss, pump selection against Arup and WSD requirements.</p>
@@ -410,28 +400,42 @@
       </div>
     </section>
 
-    <!-- EDIT: SKILLS: drag the chips --------------------------------->
+    <!-- EDIT: SKILLS: a toolbox, one compartment per skill group ----------->
     <section class="skills" id="skills">
       <div class="wrap">
-        <header class="sec-head sec-head-row">
-          <div>
-            <p class="label"><span class="zh">技能</span> (04) Skills</p>
-            <h2>Toolbox. <em>Grab one.</em></h2>
-          </div>
-          <ul class="skill-legend">
-            <li class="g-energy">Building energy</li>
-            <li class="g-fluid">Fluids</li>
-            <li class="g-design">Design &amp; BIM</li>
-            <li class="g-code">Code &amp; controls</li>
-            <li class="g-fab">Fabrication</li>
-          </ul>
+        <header class="sec-head">
+          <p class="label"><span class="zh">技能</span> (04) Skills</p>
+          <h2>The <em>toolbox</em>.</h2>
         </header>
-        <div class="skill-box" id="skill-box">
-          <span class="chip g-energy">Energy modelling</span><span class="chip g-energy">COMFEN</span><span class="chip g-energy">HVAC loads</span><span class="chip g-energy">ASHRAE 90.1</span><span class="chip g-energy">Envelope U-values</span><span class="chip g-energy">Lighting design</span><span class="chip g-energy">Fire protection</span>
-          <span class="chip g-fluid">Head loss</span><span class="chip g-fluid">Pipe sizing</span><span class="chip g-fluid">Pumps</span><span class="chip g-fluid">P&amp;IDs</span><span class="chip g-fluid">Hydraulics</span>
-          <span class="chip g-design">Revit</span><span class="chip g-design">Navisworks</span><span class="chip g-design">SolidWorks</span><span class="chip g-design">AutoCAD</span><span class="chip g-design">Dynamo</span><span class="chip g-design">ACC</span><span class="chip g-design">Bluebeam</span><span class="chip g-design">GD&amp;T</span><span class="chip g-design">Power BI</span>
-          <span class="chip g-code">C++</span><span class="chip g-code">MATLAB</span><span class="chip g-code">Simulink</span><span class="chip g-code">PLC</span><span class="chip g-code">Arduino</span><span class="chip g-code">Raspberry Pi</span>
-          <span class="chip g-fab">3D printing</span><span class="chip g-fab">Laser cutting</span><span class="chip g-fab">Machining</span>
+        <div class="toolbox" id="toolbox">
+          <div class="tb-handle" aria-hidden="true"></div>
+          <div class="tb-lid" aria-hidden="true"><span>M. CHING · TOOLS</span></div>
+          <div class="tb-body">
+            <div class="tb-tray tb-top">
+            <section class="bin g-energy">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 1 2 2v9.3a4 4 0 1 1-4 0V5a2 2 0 0 1 2-2z"/><path d="M12 9v7"/></svg>Building energy<span>7</span></h3>
+              <ul><li>Energy modelling</li><li>COMFEN</li><li>HVAC loads</li><li>ASHRAE 90.1</li><li>U-values</li><li>Lighting design</li><li>Fire protection</li></ul>
+            </section>
+            <section class="bin g-fluid">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>Fluid systems<span>6</span></h3>
+              <ul><li>Head loss</li><li>Pipe sizing</li><li>Pumps</li><li>P&amp;IDs</li><li>Hydraulics</li><li>Pneumatics</li></ul>
+            </section>
+            <section class="bin g-fab">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Fabrication<span>3</span></h3>
+              <ul><li>3D printing</li><li>Laser cutting</li><li>Machining</li></ul>
+            </section>
+            </div>
+            <div class="tb-tray tb-bottom">
+            <section class="bin g-design">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4"/><path d="M7 17l2 2M10 14l2 2M13 11l2 2M16 8l2 2"/></svg>Design &amp; BIM<span>11</span></h3>
+              <ul><li>Revit</li><li>Navisworks</li><li>SolidWorks</li><li>AutoCAD</li><li>Dynamo</li><li>ACC</li><li>Bluebeam</li><li>Power BI</li><li>ArcGIS</li><li>GD&amp;T</li><li>DFM/A</li></ul>
+            </section>
+            <section class="bin g-code">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>Code &amp; controls<span>8</span></h3>
+              <ul><li>C++</li><li>MATLAB</li><li>Simulink</li><li>PLC</li><li>Arduino</li><li>Raspberry Pi</li><li>Sensors</li><li>Motor control</li></ul>
+            </section>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -439,30 +443,46 @@
     <!-- EDIT: LED TICKER (minibus destination board) -------------------->
     <div class="ticker" aria-label="Latest">
       <div class="ticker-track">
-        <span>NOW · ENVIROTECH TRAINEE · CHEVALIER</span><span>NEXT STOP · GRAD SCHOOL 2027</span><span>ME 572 · 17 RUNS</span><span>IEEE YEC · 3RD PLACE</span><span>PRESIDENT'S SCHOLARSHIP 2023</span>
-        <span aria-hidden="true">NOW · ENVIROTECH TRAINEE · CHEVALIER</span><span aria-hidden="true">NEXT STOP · GRAD SCHOOL 2027</span><span aria-hidden="true">ME 572 · 17 RUNS</span><span aria-hidden="true">IEEE YEC · 3RD PLACE</span><span aria-hidden="true">PRESIDENT'S SCHOLARSHIP 2023</span>
+        <span>NOW · CHEVALIER · KWAI CHUNG</span><span>NEXT STOP · GRAD SCHOOL 2027</span><span>ME 572 · 17 RUNS</span><span>IEEE YEC · 3RD PLACE</span><span>PRESIDENT'S SCHOLARSHIP 2023</span>
+        <span aria-hidden="true">NOW · CHEVALIER · KWAI CHUNG</span><span aria-hidden="true">NEXT STOP · GRAD SCHOOL 2027</span><span aria-hidden="true">ME 572 · 17 RUNS</span><span aria-hidden="true">IEEE YEC · 3RD PLACE</span><span aria-hidden="true">PRESIDENT'S SCHOLARSHIP 2023</span>
       </div>
     </div>
 
-    <!-- EDIT: CONTACT ---------------------------------------------->
+    <!-- EDIT: CONTACT ----------------------------------------------
+         The form sends through Web3Forms when data-access-key is set
+         (free key from web3forms.com, tied to your Gmail). Without a key it
+         opens the visitor's email app with the message filled in. -->
     <section class="contact" id="contact">
-      <div class="wrap">
-        <p class="label"><span class="zh">聯絡</span> (05) Contact</p>
-        <h2>Working on façades, ventilation or building performance? <em>Let’s talk.</em></h2>
-        <div class="contact-row">
-          <a class="contact-email" href="mailto:marcokingching@gmail.com">marcokingching@gmail.com</a>
-          <button class="btn btn-neon" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy email</button>
+      <div class="wrap contact-grid">
+        <div class="contact-side">
+          <p class="label"><span class="zh">聯絡</span> (05) Contact</p>
+          <h2>Working on façades, ventilation or building performance? <em>Let’s talk.</em></h2>
+          <div class="contact-row">
+            <a class="contact-email" href="mailto:marcokingching@gmail.com">marcokingching@gmail.com</a>
+            <button class="btn btn-glass btn-small" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy</button>
+          </div>
+          <p class="contact-links">
+            <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
+            <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF) ↗</a>
+          </p>
         </div>
-        <p class="contact-links">
-          <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
-          <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF) ↗</a>
-        </p>
+        <form class="mail-form" id="mail-form" novalidate data-access-key="">
+          <div class="field-row">
+            <div class="field"><label for="f-first">First name</label><input id="f-first" name="first_name" autocomplete="given-name" required></div>
+            <div class="field"><label for="f-last">Last name</label><input id="f-last" name="last_name" autocomplete="family-name" required></div>
+          </div>
+          <div class="field"><label for="f-email">Your email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="f-body">Message</label><textarea id="f-body" name="message" rows="6" required></textarea></div>
+          <div class="form-foot">
+            <button class="btn btn-neon" type="submit">Send message</button>
+            <p class="form-status" id="form-status" role="status"></p>
+          </div>
+        </form>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p class="neon-sign" aria-label="Marco Ching">MARCO CHING</p>
     <div class="wrap footer-row">
       <span>© <span id="year">2026</span> Marco Ching</span>
       <span><span class="zh">下一站</span> Next stop: graduate school, 2027</span>
