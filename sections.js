@@ -9,6 +9,18 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+  const easeIO = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  // Animate from 0 to 1 over `ms`, calling fn(eased). Returns a cancel function.
+  function tween(ms, fn) {
+    if (reduceMotion || ms <= 0) { fn(1); return () => {}; }
+    let raf = 0; const t0 = performance.now();
+    (function step(now) {
+      const k = clamp((now - t0) / ms, 0, 1);
+      fn(easeIO(k));
+      if (k < 1) raf = requestAnimationFrame(step);
+    })(t0);
+    return () => cancelAnimationFrame(raf);
+  }
   function svgEl(tag, attrs = {}, parent) {
     const e = document.createElementNS(NS, tag);
     for (const k in attrs) e.setAttribute(k, attrs[k]);
@@ -80,68 +92,111 @@
     update();
   }
 
-  // ---------- 01 · Envelope: best tested value vs control ----------
+  // ---------- 01 · Envelope: best tested value vs control, or all 17 runs ----------
   (function envelope() {
     const svg = $("#envelope-svg");
     if (!svg) return;
-    // ME 572 Project 2, "Comparison of Lowest Tested Values vs Control" (% change)
-    const ROWS = [
-      { name: "Roof U-value", change: "0.063 → 0.033", cost: -3.05, eui: -6.02, ghg: -7.93 },
-      { name: "Wall U-value", change: "0.084 → 0.044", cost: -2.17, eui: -4.10, ghg: -5.34 },
-      { name: "Glazing SHGC", change: "0.70 → 0.30", cost: -7.47, eui: 3.49, ghg: 10.61 },
-      { name: "Outdoor air", change: "20 → 10 cfm/p", cost: -2.46, eui: -6.45, ghg: -9.00 },
+    // ME 572 Project 2 parametric runs (ascending parameter value; control marked)
+    const RUNS = [
+      { name: "Roof U-value", unit: "Btu/h·ft²·°F", ctrl: 2, best: 0, xs: ["0.033", "0.048", "0.063", "0.078", "0.093"],
+        cost: [12256, 12449, 12642, 12832, 13023], eui: [98.06, 101.21, 104.34, 107.41, 110.54], ghg: [17905, 18677, 19448, 20209, 20984] },
+      { name: "Wall U-value", unit: "Btu/h·ft²·°F", ctrl: 2, best: 0, xs: ["0.044", "0.064", "0.084", "0.104", "0.124"],
+        cost: [12368, 12506, 12642, 12775, 12909], eui: [100.06, 102.22, 104.34, 106.41, 108.48], ghg: [18409, 18934, 19448, 19955, 20463] },
+      { name: "Glazing SHGC", unit: "", ctrl: 4, best: 0, xs: ["0.30", "0.40", "0.50", "0.60", "0.70"],
+        cost: [11698, 11886, 12099, 12359, 12642], eui: [107.98, 106.50, 105.49, 104.75, 104.34], ghg: [21511, 20873, 20350, 19867, 19448] },
+      { name: "Outdoor air", unit: "cfm/person", ctrl: 2, best: 0, xs: ["10", "15", "20", "25", "30"],
+        cost: [12331, 12480, 12642, 12804, 12972], eui: [97.61, 100.89, 104.34, 107.77, 111.33], ghg: [17698, 18555, 19448, 20344, 21271] },
     ];
-    const L = 150, R = 470, top = 26, rowH = 50, lim = 12;
+    const pct = (r, m) => r[m].map(v => ((v - r[m][r.ctrl]) / r[m][r.ctrl]) * 100);
+    const lim = 12;
+
+    // View 1: diverging bars of the lowest tested value vs control
+    const vBars = svgEl("g", { class: "view" }, svg);
+    const L = 150, R = 470, top = 26, rowH = 50;
     const x = v => L + ((v + lim) / (2 * lim)) * (R - L);
     for (let t = -10; t <= 10; t += 5) {
-      svgEl("line", { x1: x(t), x2: x(t), y1: top - 8, y2: top + rowH * 4, class: t === 0 ? "d-axis" : "d-grid" }, svg);
-      text(svg, x(t), top + rowH * 4 + 16, (t > 0 ? "+" : t < 0 ? "−" : "") + Math.abs(t) + "%", "d-text", "middle");
+      svgEl("line", { x1: x(t), x2: x(t), y1: top - 8, y2: top + rowH * 4, class: t === 0 ? "d-axis" : "d-grid" }, vBars);
+      text(vBars, x(t), top + rowH * 4 + 16, (t > 0 ? "+" : t < 0 ? "−" : "") + Math.abs(t) + "%", "d-text", "middle");
     }
-    text(svg, x(-lim) + 2, top - 12, "← better", "d-text");
-    text(svg, x(lim) - 2, top - 12, "worse →", "d-text", "end");
-    const bars = ROWS.map((r, i) => {
+    text(vBars, x(-lim) + 2, top - 12, "← better", "d-text");
+    text(vBars, x(lim) - 2, top - 12, "worse →", "d-text", "end");
+    const bars = RUNS.map((r, i) => {
       const y = top + i * rowH + 8;
-      text(svg, 0, y + 12, r.name, "d-label");
-      text(svg, 0, y + 27, r.change, "d-text");
-      const bar = svgEl("rect", { y, height: 22, rx: 4 }, svg);
-      const val = text(svg, 0, y + 15, "", "d-value");
-      const tip = svgEl("title", {}, bar);
-      return { r, bar, val, tip };
+      text(vBars, 0, y + 12, r.name, "d-label");
+      text(vBars, 0, y + 27, `${r.xs[r.ctrl]} → ${r.xs[r.best]}`, "d-text");
+      const bar = svgEl("rect", { y, height: 22, rx: 4 }, vBars);
+      const val = text(vBars, 0, y + 15, "", "d-value");
+      return { bar, val };
     });
-    function render(metric) {
-      bars.forEach(({ r, bar, val, tip }) => {
-        const v = r[metric];
+
+    // View 2: small multiples, one panel per parameter, all five runs
+    const vRuns = svgEl("g", { class: "view is-off" }, svg);
+    const PW = 252, PH = 118;
+    const panels = RUNS.map((r, i) => {
+      const ox = (i % 2) * 268, oy = Math.floor(i / 2) * 130;
+      const g = svgEl("g", { transform: `translate(${ox} ${oy})` }, vRuns);
+      const px = j => 34 + (j / 4) * (PW - 50), py = v => 24 + ((lim - v) / (2 * lim)) * 72;
+      text(g, 0, 12, r.name, "d-label");
+      text(g, PW - 6, 12, r.unit, "d-text", "end");
+      svgEl("line", { x1: 30, x2: PW - 10, y1: py(0), y2: py(0), class: "d-axis" }, g);
+      [-10, 10].forEach(t => { svgEl("line", { x1: 30, x2: PW - 10, y1: py(t), y2: py(t), class: "d-grid" }, g); text(g, 26, py(t) + 3, (t > 0 ? "+" : "−") + "10%", "d-text", "end"); });
+      r.xs.forEach((v, j) => text(g, px(j), PH - 4, v, "d-text", "middle"));
+      const line = svgEl("polyline", { fill: "none", stroke: "#9aa3b3", "stroke-width": 1.6 }, g);
+      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#0a0d12", "stroke-width": 2 }, g));
+      const endLabel = text(g, 0, 0, "", "d-value");
+      return { r, px, py, line, dots, endLabel };
+    });
+
+    let shown = Object.fromEntries(["cost", "eui", "ghg"].map(m => [m, null]));
+    let metric = "ghg", cancel = () => {};
+    let cur = RUNS.map(r => pct(r, metric));
+    function draw(vals) {
+      bars.forEach(({ bar, val }, i) => {
+        const v = vals[i][RUNS[i].best];
         bar.setAttribute("x", Math.min(x(0), x(v)));
         bar.setAttribute("width", Math.max(2, Math.abs(x(v) - x(0))));
         bar.setAttribute("class", v < 0 ? "d-cyan" : "d-neon");
         val.textContent = (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%";
         val.setAttribute("x", v < 0 ? x(v) - 6 : x(v) + 6);
         val.setAttribute("text-anchor", v < 0 ? "end" : "start");
-        tip.textContent = `${r.name} ${r.change}: ${val.textContent}`;
       });
+      panels.forEach((p, i) => {
+        const v = vals[i];
+        p.line.setAttribute("points", v.map((y, j) => `${p.px(j)},${p.py(y)}`).join(" "));
+        p.dots.forEach((d, j) => {
+          d.setAttribute("cx", p.px(j)); d.setAttribute("cy", p.py(v[j]));
+          d.setAttribute("fill", j === p.r.ctrl ? "#eef0f4" : v[j] < 0 ? "#2a9fd6" : "#ff3d6e");
+        });
+        const far = v[0] * v[0] > v[4] * v[4] ? 0 : 4;
+        p.endLabel.textContent = (v[far] > 0 ? "+" : "−") + Math.abs(v[far]).toFixed(1) + "%";
+        p.endLabel.setAttribute("x", p.px(far) + (far ? -8 : 8));
+        p.endLabel.setAttribute("y", p.py(v[far]) + (v[far] > 0 ? -8 : 14));
+        p.endLabel.setAttribute("text-anchor", far ? "end" : "start");
+      });
+    }
+    function setMetric(m) {
+      const from = cur.map(a => a.slice()), to = RUNS.map(r => pct(r, m));
+      metric = m;
+      cancel();
+      cancel = tween(480, e => { cur = from.map((a, i) => a.map((v, j) => v + (to[i][j] - v) * e)); draw(cur); });
     }
     const group = svg.closest(".demo");
     $$("[data-metric]", group).forEach(b => b.addEventListener("click", () => {
       setPressed(group, "data-metric", b.dataset.metric);
-      render(b.dataset.metric);
+      setMetric(b.dataset.metric);
     }));
-    render("ghg");
-
-    // All 17 runs (control repeated once per parameter)
-    const runs = [
-      ["Roof U-value", [[0.033, 12256, 98.06, 17905, 239.8, 187.3], [0.048, 12449, 101.21, 18677, 243.7, 191.7], [0.063, 12642, 104.34, 19448, 247.6, 196.4], [0.078, 12832, 107.41, 20209, 251.4, 201.0], [0.093, 13023, 110.54, 20984, 255.0, 205.6]], 0.063],
-      ["Wall U-value", [[0.044, 12368, 100.06, 18409, 240.1, 190.1], [0.064, 12506, 102.22, 18934, 243.8, 193.2], [0.084, 12642, 104.34, 19448, 247.6, 196.4], [0.104, 12775, 106.41, 19955, 251.3, 199.5], [0.124, 12909, 108.48, 20463, 254.9, 202.6]], 0.084],
-      ["Glazing SHGC", [[0.30, 11698, 107.98, 21511, 169.5, 201.0], [0.40, 11886, 106.50, 20873, 186.7, 200.1], [0.50, 12099, 105.49, 20350, 206.0, 199.0], [0.60, 12359, 104.75, 19867, 226.5, 197.8], [0.70, 12642, 104.34, 19448, 247.6, 196.4]], 0.70],
-      ["Outdoor air", [[10, 12331, 97.61, 17698, 248.0, 183.2], [15, 12480, 100.89, 18555, 247.7, 189.8], [20, 12642, 104.34, 19448, 247.6, 196.4], [25, 12804, 107.77, 20344, 247.4, 203.0], [30, 12972, 111.33, 21271, 247.3, 209.6]], 20],
-    ];
-    const table = $("#runs-table");
-    if (table) {
-      const fmt = (name, v) => name === "Glazing SHGC" ? v.toFixed(2) : String(v);
-      table.innerHTML = `<thead><tr><th scope="col">Parameter</th><th scope="col">Value</th><th scope="col">Cost/yr</th><th scope="col">Site EUI</th><th scope="col">GHG kg</th><th scope="col">Peak cool</th><th scope="col">Peak heat</th></tr></thead><tbody>` +
-        runs.flatMap(([name, rows, ctrl]) => rows.map(([v, c, e, g, pc, ph]) =>
-          `<tr${v === ctrl ? ' class="is-control"' : ""}><th scope="row">${name}</th><td>${fmt(name, v)}</td><td>$${c.toLocaleString("en-US")}</td><td>${e.toFixed(2)}</td><td>${g.toLocaleString("en-US")}</td><td>${pc.toFixed(1)}</td><td>${ph.toFixed(1)}</td></tr>`)).join("") +
-        `</tbody><caption class="demo-note" style="caption-side:bottom;text-align:left;padding-top:8px">Highlighted: control case (one run, listed per parameter). EUI in kBtu/ft²·yr, peaks in kBtu/h.</caption>`;
-    }
+    const toggle = $("#runs-toggle"), title = $("#envelope-title");
+    toggle.addEventListener("click", () => {
+      const on = toggle.getAttribute("aria-pressed") !== "true";
+      toggle.setAttribute("aria-pressed", String(on));
+      toggle.textContent = on ? "Back to best vs control" : "Show all 17 runs";
+      vBars.classList.toggle("is-off", on);
+      vRuns.classList.toggle("is-off", !on);
+      title.classList.add("fade-swap"); title.style.opacity = 0;
+      setTimeout(() => { title.textContent = on ? "All 17 runs · % change vs control" : "Best tested value vs control"; title.style.opacity = 1; }, 220);
+      svg.setAttribute("aria-label", on ? "Percent change for every run of each parameter" : "Percent change from the control case for the best tested value of each parameter");
+    });
+    draw(cur);
   })();
 
   // ---------- 02 · Lighting plan ----------
@@ -159,39 +214,50 @@
     svgEl("stop", { offset: "0%", "stop-color": "#ffd88a", "stop-opacity": "0.55" }, grad);
     svgEl("stop", { offset: "100%", "stop-color": "#ffd88a", "stop-opacity": "0" }, grad);
     svgEl("rect", { x: ox, y: oy, width: W * s, height: D * s, fill: "#131923", stroke: "#8e98a8", "stroke-width": 2 }, svg);
-    // South window: 44 ft wide, 2 ft from the left (COMFEN model)
     svgEl("line", { x1: ox + 2 * s, x2: ox + 46 * s, y1: oy + D * s, y2: oy + D * s, stroke: "#2a9fd6", "stroke-width": 5 }, svg);
     text(svg, ox + 24 * s, oy + D * s + 16, "South window · 44 ft", "d-text", "middle");
     text(svg, ox, oy - 8, "48 ft", "d-text");
     text(svg, ox + W * s + 6, oy + 10, "34 ft", "d-text");
-    const layer = svgEl("g", {}, svg);
+    // 20 luminaires; the 4 × 4 layout parks four of them, invisible, on their neighbours
+    const lums = Array.from({ length: 20 }, () => {
+      const g = svgEl("g", { class: "lum" }, svg);
+      svgEl("circle", { r: 6.5 * s, fill: "url(#pool)" }, g);
+      svgEl("rect", { x: -2 * s, y: -1 * s, width: 4 * s, height: 2 * s, rx: 2, fill: "#fff1c9" }, g);
+      return g;
+    });
+    const dimLine = svgEl("line", { class: "d-dim lum" }, svg);
+    const dimText = text(svg, 0, 0, "", "d-value", "middle");
+    dimText.classList.add("fade-swap");
     function render(i) {
-      const o = OPTIONS[i];
-      layer.replaceChildren();
-      const sx = W / o.cols, sy = D / o.rows;
-      for (let c = 0; c < o.cols; c++) for (let r = 0; r < o.rows; r++) {
-        const cx = ox + (c + 0.5) * sx * s, cy = oy + (r + 0.5) * sy * s;
-        svgEl("circle", { cx, cy, r: 6.5 * s, fill: "url(#pool)" }, layer);
-        svgEl("rect", { x: cx - 2 * s, y: cy - 1 * s, width: 4 * s, height: 2 * s, rx: 2, fill: "#fff1c9" }, layer);
+      const o = OPTIONS[i], sx = W / o.cols, sy = D / o.rows;
+      let k = 0;
+      for (let r = 0; r < o.rows; r++) for (let c = 0; c < 5; c++) {
+        const g = lums[k++], col = Math.min(c, o.cols - 1);
+        const cx = ox + (col + 0.5) * sx * s, cy = oy + (r + 0.5) * sy * s;
+        g.style.transform = `translate(${cx}px, ${cy}px)`;
+        g.style.opacity = c < o.cols ? 1 : 0;
       }
-      // spacing dimension on the first row
-      const y = oy + 0.5 * sy * s - 14;
-      const x1 = ox + 0.5 * sx * s, x2 = ox + 1.5 * sx * s;
-      svgEl("line", { x1, x2, y1: y, y2: y, class: "d-dim" }, layer);
-      text(layer, (x1 + x2) / 2, y - 4, sx.toFixed(1) + " ft", "d-value", "middle");
+      const y = oy + 0.5 * sy * s - 14, x1 = ox + 0.5 * sx * s, x2 = ox + 1.5 * sx * s;
+      dimLine.setAttribute("x1", x1); dimLine.setAttribute("x2", x2); dimLine.setAttribute("y1", y); dimLine.setAttribute("y2", y);
+      dimText.style.opacity = 0;
+      setTimeout(() => { dimText.setAttribute("x", (x1 + x2) / 2); dimText.setAttribute("y", y - 4); dimText.textContent = sx.toFixed(1) + " ft"; dimText.style.opacity = 1; }, 250);
       meters.innerHTML = `
         <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · min 42</span>
-          <div class="meter-bar"><div class="meter-fill" style="width:${(o.fc / 70) * 100}%"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
+          <div class="meter-bar"><div class="meter-fill" data-w="${(o.fc / 70) * 100}"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
         <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b> · max 0.60</span>
-          <div class="meter-bar"><div class="meter-fill" style="width:${(o.lpd / 0.8) * 100}%;background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
+          <div class="meter-bar"><div class="meter-fill" data-w="${(o.lpd / 0.8) * 100}" style="background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
         <p class="demo-note" style="grid-column:1/-1">${o.n} luminaires. ${o.note}</p>`;
+      $$(".meter-fill", meters).forEach(f => { f.style.width = (render.prev?.[f.dataset.w] ?? 0) + "%"; });
+      requestAnimationFrame(() => $$(".meter-fill", meters).forEach(f => { f.style.width = f.dataset.w + "%"; }));
     }
     const group = svg.closest(".demo");
     $$("[data-layout]", group).forEach(b => b.addEventListener("click", () => {
       setPressed(group, "data-layout", b.dataset.layout);
       render(Number(b.dataset.layout));
     }));
+    lums.forEach(g => { g.style.transition = "none"; });
     render(1);
+    requestAnimationFrame(() => requestAnimationFrame(() => lums.forEach(g => { g.style.transition = ""; })));
   })();
 
   // ---------- 03 · Seismic schematic ----------
@@ -283,7 +349,7 @@
     };
     function simulate(V, rpm, axis, launch) {
       const rho = 1.2, m = 0.145, R = 0.0366, A = 0.0042, Cd = 0.35, g = 9.81, X = 18.44, dt = 0.0005;
-      const n = Math.hypot(...axis), ax = axis.map(a => a / n), th = (launch * Math.PI) / 180, w = (rpm * 2 * Math.PI) / 60;
+      const n = Math.hypot(...axis) || 1, ax = axis.map(a => a / n), th = (launch * Math.PI) / 180, w = (rpm * 2 * Math.PI) / 60;
       let p = [0, 0, 1.8], v = [V * Math.cos(th), 0, V * Math.sin(th)], t = 0;
       const path = [p.slice()];
       while (p[0] < X && p[2] > 0 && t < 3) {
@@ -314,21 +380,23 @@
     svgEl("line", { x1: CX(0), x2: CX(0), y1: SZ(2.1), y2: SZ(0), class: "d-grid" }, svg);
     text(svg, CX(0), 16, "At the plate", "d-text", "middle");
     text(svg, CX(-0.35), 222, "← glove side", "d-text");
-    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#2a9fd6", "stroke-dasharray": "3 3" }, svg);
+    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#2a9fd6", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
     const mlbText = text(svg, 0, 0, "MLB range", "d-text");
+    mlbText.classList.add("fade-swap");
     const sidePath = svgEl("polyline", { fill: "none", stroke: "#ff3d6e", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
     const ball = svgEl("circle", { r: 5, fill: "#fff" }, svg);
     const hit = svgEl("circle", { r: 6, fill: "#ff3d6e", stroke: "#0a0d12", "stroke-width": 2 }, svg);
     const ballC = svgEl("circle", { r: 5, fill: "#fff" }, svg);
 
     const group = svg.closest(".demo"), vIn = $("#pitch-v"), rIn = $("#pitch-rpm"), out = $("#pitch-readout");
-    let current = "curveball", anim = 0;
+    let current = "curveball", anim = 0, cancelMorph = () => {};
+    const cur = { axis: PITCHES.curveball.axis.slice(), launch: PITCHES.curveball.launch };
 
     function run(animate = true) {
       const P = PITCHES[current], V = Number(vIn.value), rpm = Number(rIn.value);
       $("#pitch-v-out").textContent = V + " m/s";
       $("#pitch-rpm-out").textContent = rpm + " rpm";
-      const res = simulate(V, rpm, P.axis, P.launch);
+      const res = simulate(V, rpm, cur.axis, cur.launch);
       sidePath.setAttribute("points", res.path.map(p => `${SX(p[0])},${SZ(p[2])}`).join(" "));
       const [ex, ey, ez] = res.end;
       hit.setAttribute("cx", CX(ey)); hit.setAttribute("cy", CZ(Math.max(0, ez)));
@@ -359,8 +427,18 @@
     $$("[data-pitch]", group).forEach(b => b.addEventListener("click", () => {
       current = b.dataset.pitch;
       setPressed(group, "data-pitch", current);
-      vIn.value = PITCHES[current].V; rIn.value = PITCHES[current].rpm;
-      run();
+      const P = PITCHES[current];
+      const from = { V: Number(vIn.value), rpm: Number(rIn.value), axis: cur.axis.slice(), launch: cur.launch };
+      cancelMorph();
+      mlbBox.style.opacity = mlbText.style.opacity = 0.15;
+      cancelMorph = tween(700, e => {             // the trajectory morphs into the new pitch
+        vIn.value = Math.round(from.V + (P.V - from.V) * e);
+        rIn.value = Math.round((from.rpm + (P.rpm - from.rpm) * e) / 50) * 50;
+        cur.axis = from.axis.map((a, i) => a + (P.axis[i] - a) * e);
+        cur.launch = from.launch + (P.launch - from.launch) * e;
+        run(false);
+        if (e >= 1) { mlbBox.style.opacity = mlbText.style.opacity = 1; run(true); }
+      });
     }));
     vIn.addEventListener("input", () => run(false));
     rIn.addEventListener("input", () => run(false));
@@ -539,7 +617,11 @@
     const btns = $$(".stop-btn"), panels = $$(".stop-panel");
     btns.forEach(b => b.addEventListener("click", () => {
       btns.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-      panels.forEach(p => { p.hidden = p.dataset.panel !== b.dataset.stop; });
+      panels.forEach(p => {
+        const show = p.dataset.panel === b.dataset.stop;
+        if (show && p.hidden) { p.hidden = false; p.classList.remove("enter"); void p.offsetWidth; p.classList.add("enter"); }
+        else if (!show) p.hidden = true;
+      });
     }));
   })();
 

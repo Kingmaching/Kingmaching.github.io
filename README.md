@@ -6,8 +6,9 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 - `styles.css` holds the palette (top of file), fonts and layout. One fixed look: harbour-night and
   warm-paper bands, neon pink accent, MTR line colours for the route map.
 - `story.js` holds the ME 572 data and draws the hero charts.
-- `building.js` draws the scroll-driven 3D tower with Three.js (cdnjs), including the night → day → night
-  sky, sun shafts, and the lit Hong Kong skyline.
+- `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the tower with planted fins,
+  sky gardens and a lit crown; parks, roads, cars and people; a stylised Hong Kong skyline across the
+  harbour; and a night → day → sunset sky.
 - `sections.js` runs everything below the hero: statement reveal, sliding tabs, the six project demos
   (envelope chart, lighting plan, seismic schematic, pitch model, crane, suspension), the MTR route,
   the toolbox, the contact form and Lenis smooth scrolling (jsDelivr).
@@ -26,10 +27,9 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 
 ## Contact form
 
-The form works two ways. With no key it opens the visitor's email app with the message filled in.
-To have it send directly, get a free access key at https://web3forms.com (sign up with
-marcokingching@gmail.com) and paste it into `data-access-key=""` on `<form id="mail-form">` in
-`index.html`. The key is designed to be public.
+Messages are sent through Web3Forms to marcokingching@gmail.com using the access key in
+`data-access-key` on `<form id="mail-form">` in `index.html` (the key is designed to be public).
+If the key is removed, the form falls back to opening the visitor's email app with the message filled in.
 
 ## Adding photos
 

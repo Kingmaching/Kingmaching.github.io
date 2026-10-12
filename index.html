@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Marco Ching Portfolio</title>
+  <title>Marco Ching 程敬弼</title>
   <meta name="description" content="Marco Ching, Mechanical Engineering at the University of Waterloo. Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
-  <meta property="og:title" content="Marco Ching Portfolio">
+  <meta property="og:title" content="Marco Ching 程敬弼">
   <meta property="og:description" content="Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#0a0d12">
@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E7%A8%8B%E6%95%AC%E5%BC%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
@@ -61,14 +61,14 @@
         <article class="step step-intro" data-step="0">
           <div class="intro">
             <p class="kicker"><span class="zh">香港</span> Building performance · Waterloo · 2027</p>
-            <h1 class="giant-name">Marco<br>Ching</h1>
+            <h1 class="giant-name"><span class="name-en">Marco<br>Ching</span><span class="name-zh" lang="zh-Hant">程敬弼</span></h1>
             <div class="intro-foot">
               <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
               <div class="actions">
                 <a class="btn btn-neon" href="#projects">See projects</a>
                 <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF)&nbsp;↗</a>
               </div>
-              <p class="scroll-cue">Scroll: night to day and back</p>
+              <p class="scroll-cue">Scroll from night to sunset</p>
             </div>
           </div>
         </article>
@@ -122,9 +122,9 @@
     <!-- EDIT: STATEMENT -------------------------------------------->
     <section class="statement" id="direction">
       <div class="wrap">
-        <p class="label"><span class="zh">方向</span> (01) Direction</p>
+        <p class="label"><span class="zh">方向</span> (01) What’s next</p>
         <p class="statement-text" data-reveal>
-          <b>K11&nbsp;Musea</b> made me ask why some buildings let nature in. Now I test whether they actually <b>perform</b>.
+          Every number above came from a model. Next, I want to <b>measure</b> buildings like this one and find out where <b>reality disagrees</b>.
         </p>
       </div>
       <div class="marquee" aria-label="Research interests">
@@ -160,7 +160,7 @@
           </div>
           <div class="demo" data-demo="envelope">
             <div class="demo-bar">
-              <span class="demo-title">Best tested value vs control</span>
+              <span class="demo-title" id="envelope-title">Best tested value vs control</span>
               <div class="seg" role="group" aria-label="Metric">
                 <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
                 <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
@@ -168,10 +168,7 @@
               </div>
             </div>
             <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
-            <details class="runs">
-              <summary>All 17 runs</summary>
-              <div class="table-scroll"><table id="runs-table"></table></div>
-            </details>
+            <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
           </div>
         </article>
 
@@ -440,14 +437,6 @@
       </div>
     </section>
 
-    <!-- EDIT: LED TICKER (minibus destination board) -------------------->
-    <div class="ticker" aria-label="Latest">
-      <div class="ticker-track">
-        <span>NOW · CHEVALIER · KWAI CHUNG</span><span>NEXT STOP · GRAD SCHOOL 2027</span><span>ME 572 · 17 RUNS</span><span>IEEE YEC · 3RD PLACE</span><span>PRESIDENT'S SCHOLARSHIP 2023</span>
-        <span aria-hidden="true">NOW · CHEVALIER · KWAI CHUNG</span><span aria-hidden="true">NEXT STOP · GRAD SCHOOL 2027</span><span aria-hidden="true">ME 572 · 17 RUNS</span><span aria-hidden="true">IEEE YEC · 3RD PLACE</span><span aria-hidden="true">PRESIDENT'S SCHOLARSHIP 2023</span>
-      </div>
-    </div>
-
     <!-- EDIT: CONTACT ----------------------------------------------
          The form sends through Web3Forms when data-access-key is set
          (free key from web3forms.com, tied to your Gmail). Without a key it
@@ -466,7 +455,7 @@
             <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF) ↗</a>
           </p>
         </div>
-        <form class="mail-form" id="mail-form" novalidate data-access-key="">
+        <form class="mail-form" id="mail-form" novalidate data-access-key="0339b063-9075-45ef-893a-902152c48b8e">
           <div class="field-row">
             <div class="field"><label for="f-first">First name</label><input id="f-first" name="first_name" autocomplete="given-name" required></div>
             <div class="field"><label for="f-last">Last name</label><input id="f-last" name="last_name" autocomplete="family-name" required></div>
