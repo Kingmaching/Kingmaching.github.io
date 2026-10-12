@@ -301,7 +301,7 @@
     ];
     const SRC = { name: "Cheung Chau", p: proj(114.028, 22.209) };
     const STATIONS = [
-      { name: "School", p: proj(114.131, 22.262), dy: -7 },
+      { name: "Telegraph Bay", p: proj(114.131, 22.262), dy: -7 },
       { name: "Cyberport 2", p: proj(114.131, 22.262), dy: 7 },
       { name: "Sai Kung", p: proj(114.272, 22.383), dy: 0 },
     ];
@@ -323,7 +323,7 @@
 
     const dist = STATIONS.map(st => Math.hypot(st.p[0] - SRC.p[0], st.p[1] - SRC.p[1]));
     const ctx = canvas.getContext("2d");
-    const LABELS = ["School", "Cyberport", "Sai Kung"];
+    const LABELS = ["Telegraph Bay", "Cyberport", "Sai Kung"];
     const rows = LABELS.map(() => ({ buf: new Float32Array(260), amp: 0 }));
     let quakeT = -1, running = false, last = 0, autoTimer = 0;
     const SPEED = 110; // px per second, illustrative
@@ -357,11 +357,11 @@
         row.amp *= 0.965;
         if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#2a9fd6");
         const mid = rh * i + rh / 2;
-        ctx.strokeStyle = "#2a3344"; ctx.beginPath(); ctx.moveTo(70, mid); ctx.lineTo(W, mid); ctx.stroke();
+        ctx.strokeStyle = "#2a3344"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
         ctx.fillStyle = "#9aa3b3"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
         ctx.strokeStyle = row.amp > 0.1 ? "#ff3d6e" : "#2a9fd6"; ctx.lineWidth = 1.5; ctx.beginPath();
         for (let k = 0; k < row.buf.length; k++) {
-          const px = 70 + (k / (row.buf.length - 1)) * (W - 74), py = mid - row.buf[k] * rh * 0.42;
+          const px = 96 + (k / (row.buf.length - 1)) * (W - 100), py = mid - row.buf[k] * rh * 0.42;
           k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
         }
         ctx.stroke();
