@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="story.js" defer></script>
   <script src="building.js" defer></script>
   <script src="script.js" defer></script>
 </head>
@@ -42,16 +43,22 @@
 
   <main id="top">
     <!-- EDIT: SCROLL STORY ----------------------------------------
-         Five steps. Each .step is one screen of scrolling; building.js
-         takes the building apart as the reader moves through them. -->
+         Six steps. Each .step is one screen of scrolling. building.js takes
+         the building apart as the reader moves through them, and story.js
+         steps the charts and readout through the real ME 572 runs. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <canvas id="building-canvas"></canvas>
-        <div class="stage-readout glass">
-          <div><span>Façade open</span><strong id="ro-open">0%</strong></div>
-          <div><span>Sun altitude</span><strong id="ro-sun">18°</strong></div>
-          <div><span>Glazing SHGC</span><strong id="ro-shgc">0.70</strong></div>
+        <div class="stage-readout glass" id="readout">
+          <p class="ro-title" id="ro-title">ME 572 model</p>
+          <div class="ro-cells">
+            <div class="ro-cell"><span></span><strong></strong><em></em></div>
+            <div class="ro-cell"><span></span><strong></strong><em></em></div>
+            <div class="ro-cell"><span></span><strong></strong><em></em></div>
+            <div class="ro-cell"><span></span><strong></strong><em></em></div>
+          </div>
         </div>
+        <p class="stage-note">Illustrative tower. All numbers come from my ME 572 models.</p>
       </div>
 
       <div class="steps">
@@ -88,44 +95,51 @@
             <p class="kicker">02 · Envelope</p>
             <h2>One variable, three answers</h2>
             <p>
-              In ME 572 I modelled a 5,000 ft² office and lowered the glazing SHGC from
-              0.70 to 0.30. The result depended on which number I looked at.
+              In ME 572 I lowered the glazing SHGC of a 5,000 ft² office from 0.70 to 0.30.
+              Cooling and cost fell, but emissions rose: less solar gain shifted the load
+              onto natural-gas heating.
             </p>
-            <dl class="figures">
-              <div><dt>Energy cost</dt><dd class="down">−7.5%</dd></div>
-              <div><dt>Peak cooling</dt><dd class="down">−31.5%</dd></div>
-              <div><dt>GHG emissions</dt><dd class="up">+10.6%</dd></div>
-            </dl>
-            <p class="note">Less solar gain cut cooling but shifted demand to natural-gas heating.</p>
+            <figure class="chart" data-chart="shgc"></figure>
           </div>
         </article>
 
         <article class="step" data-step="3">
           <div class="step-card glass">
             <p class="kicker">03 · Air &amp; systems</p>
-            <h2>From the drawing to the plant room</h2>
+            <h2>Outdoor air is a heating load</h2>
             <p>
-              At WSP I modelled HVAC, plumbing and fire protection in Revit for transit
-              projects. At Chevalier I size pipes and dosing pumps for a 640 MLD water
-              treatment works and inspect what actually gets installed.
+              Cutting outdoor air from 30 to 10 cfm per person barely moved peak cooling
+              in Rochester, but it changed emissions by about 18 points, all through heating.
+              At WSP and Chevalier I see the other side: the ducts, pipes and pumps that
+              carry these loads once they’re built.
             </p>
-            <p>
-              Installed systems corrode, age and get maintained. The calculation ends;
-              the system keeps running for decades.
-            </p>
+            <figure class="chart" data-chart="vent"></figure>
           </div>
         </article>
 
         <article class="step" data-step="4">
           <div class="step-card glass">
-            <p class="kicker">04 · Measurement</p>
+            <p class="kicker">04 · Lighting</p>
+            <h2>Less light, more heat</h2>
+            <p>
+              My lighting layout hit 52 fc at 0.52 W/ft². In COMFEN, cutting lighting power
+              by 25% lowered total EUI by 6.3%, but heating rose 13.6% because the lights
+              were also heating the room.
+            </p>
+            <figure class="chart" data-chart="lpd"></figure>
+          </div>
+        </article>
+
+        <article class="step" data-step="5">
+          <div class="step-card glass">
+            <p class="kicker">05 · Measurement</p>
             <h2>Predicted, then measured</h2>
             <p>
-              Every number in my energy model came from a simulation. Next, I want to
-              instrument real buildings, measure them through changing weather and
-              occupancy, and explain the gap, especially in hot, humid, high-rise
-              cities like Hong Kong.
+              Every number above came from a simulation. Next, I want to instrument real
+              buildings, measure them through changing weather and occupancy, and explain
+              the gap, especially in hot, humid, high-rise cities like Hong Kong.
             </p>
+            <figure class="chart" data-chart="benchmark"></figure>
           </div>
         </article>
       </div>
@@ -200,6 +214,40 @@
             <li>Found that one-at-a-time analysis isolates single effects but misses interactions between envelope variables.</li>
           </ul>
           <a class="report" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
+          <details class="runs">
+            <summary>All 17 simulation runs</summary>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th scope="col">Parameter</th><th scope="col">Value</th><th scope="col">Cost/yr</th><th scope="col">Site EUI</th><th scope="col">GHG kg</th><th scope="col">Peak cool kBtu/h</th><th scope="col">Peak heat kBtu/h</th></tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Roof U-value</th><td>0.033</td><td>$12,256</td><td>98.06</td><td>17,905</td><td>239.8</td><td>187.3</td></tr>
+                  <tr><th scope="row">Roof U-value</th><td>0.048</td><td>$12,449</td><td>101.21</td><td>18,677</td><td>243.7</td><td>191.7</td></tr>
+                  <tr class="is-control"><th scope="row">Roof U-value</th><td>0.063</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
+                  <tr><th scope="row">Roof U-value</th><td>0.078</td><td>$12,832</td><td>107.41</td><td>20,209</td><td>251.4</td><td>201.0</td></tr>
+                  <tr><th scope="row">Roof U-value</th><td>0.093</td><td>$13,023</td><td>110.54</td><td>20,984</td><td>255.0</td><td>205.6</td></tr>
+                  <tr><th scope="row">Wall U-value</th><td>0.044</td><td>$12,368</td><td>100.06</td><td>18,409</td><td>240.1</td><td>190.1</td></tr>
+                  <tr><th scope="row">Wall U-value</th><td>0.064</td><td>$12,506</td><td>102.22</td><td>18,934</td><td>243.8</td><td>193.2</td></tr>
+                  <tr class="is-control"><th scope="row">Wall U-value</th><td>0.084</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
+                  <tr><th scope="row">Wall U-value</th><td>0.104</td><td>$12,775</td><td>106.41</td><td>19,955</td><td>251.3</td><td>199.5</td></tr>
+                  <tr><th scope="row">Wall U-value</th><td>0.124</td><td>$12,909</td><td>108.48</td><td>20,463</td><td>254.9</td><td>202.6</td></tr>
+                  <tr><th scope="row">Glazing SHGC</th><td>0.30</td><td>$11,698</td><td>107.98</td><td>21,511</td><td>169.5</td><td>201.0</td></tr>
+                  <tr><th scope="row">Glazing SHGC</th><td>0.40</td><td>$11,886</td><td>106.50</td><td>20,873</td><td>186.7</td><td>200.1</td></tr>
+                  <tr><th scope="row">Glazing SHGC</th><td>0.50</td><td>$12,099</td><td>105.49</td><td>20,350</td><td>206.0</td><td>199.0</td></tr>
+                  <tr><th scope="row">Glazing SHGC</th><td>0.60</td><td>$12,359</td><td>104.75</td><td>19,867</td><td>226.5</td><td>197.8</td></tr>
+                  <tr class="is-control"><th scope="row">Glazing SHGC</th><td>0.70</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
+                  <tr><th scope="row">Outdoor air</th><td>10</td><td>$12,331</td><td>97.61</td><td>17,698</td><td>248.0</td><td>183.2</td></tr>
+                  <tr><th scope="row">Outdoor air</th><td>15</td><td>$12,480</td><td>100.89</td><td>18,555</td><td>247.7</td><td>189.8</td></tr>
+                  <tr class="is-control"><th scope="row">Outdoor air</th><td>20</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
+                  <tr><th scope="row">Outdoor air</th><td>25</td><td>$12,804</td><td>107.77</td><td>20,344</td><td>247.4</td><td>203.0</td></tr>
+                  <tr><th scope="row">Outdoor air</th><td>30</td><td>$12,972</td><td>111.33</td><td>21,271</td><td>247.3</td><td>209.6</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="table-note">Highlighted rows are the control case, which appears once per parameter (4 rows, 1 unique run). Site EUI in kBtu/ft²·yr. U-values in Btu/h·ft²·°F.</p>
+          </details>
+
         </article>
 
         <article class="project">
@@ -222,7 +270,7 @@
             <span class="year">2024</span>
           </div>
           <h3>Volcanic-Tectonic Earthquake Monitoring</h3>
-          <p class="project-sub">IEEE Young Engineers Conference, 3rd place</p>
+          <p class="project-sub">IEEE Young Engineers Conference, 3rd place · recognised by the Hong Kong Observatory</p>
           <ul class="points">
             <li>Deployed Raspberry Shake geophones at two Hong Kong sites and triangulated the source region of low-magnitude tremors near Cheung Chau.</li>
             <li>Traced data loss to power, connectivity and sensor placement on an elevated column.</li>
@@ -253,7 +301,8 @@
           <h3>Five-Degree-of-Freedom Robotic Manipulator</h3>
           <p class="project-sub">51 cm reach · ±5 mm positional accuracy</p>
           <ul class="points">
-            <li>Designed in SolidWorks with 3D-printed components; built the motor-driver circuitry and programmed coordinated joint motion in C++ on an Arduino Mega ADK.</li>
+            <li>Designed five custom mechanisms in SolidWorks and 3D printed them: a lazy-Susan base, belt-driven horizontal axis, worm-gear pulley vertical axis, two-pronged gripper and gripper rotation stage.</li>
+            <li>Validated the ±5 mm accuracy by stacking three 3D-printed test parts; built the motor-driver circuitry and programmed coordinated joint motion in C++ on an Arduino Mega ADK.</li>
             <li>Fixed servo over-current, crimp failures and USB host-shield signal issues over several build iterations.</li>
           </ul>
           <a class="report" href="https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
@@ -350,8 +399,8 @@
         <p class="kicker">Contact</p>
         <h2>Working on building performance, façades or ventilation? I’d like to hear about it.</h2>
         <div class="contact-row">
-          <a class="contact-email" href="mailto:mkbching@uwaterloo.ca">mkbching@uwaterloo.ca</a>
-          <button class="btn btn-glass" type="button" id="copy-email" data-email="mkbching@uwaterloo.ca">Copy email</button>
+          <a class="contact-email" href="mailto:marcokingching@gmail.com">marcokingching@gmail.com</a>
+          <button class="btn btn-glass" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy email</button>
         </div>
         <p class="contact-links">
           <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn&nbsp;↗</a>
