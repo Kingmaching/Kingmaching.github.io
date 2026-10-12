@@ -4,38 +4,42 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Marco Ching Portfolio</title>
-  <meta name="description" content="Marco Ching, Mechanical Engineering at the University of Waterloo. Building energy modelling, adaptive façades, natural ventilation and building performance verification.">
+  <meta name="description" content="Marco Ching, Mechanical Engineering at the University of Waterloo. Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
   <meta property="og:title" content="Marco Ching Portfolio">
-  <meta property="og:description" content="Building energy modelling, adaptive façades, natural ventilation and building performance verification.">
+  <meta property="og:description" content="Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
   <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0a0d12">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
+  <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E4%B8%8A%E6%B0%B4%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E9%A6%99%E6%B8%AF%E5%BB%BA%E7%AF%89%E8%A1%A8%E7%8F%BE&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js" defer></script>
   <script src="story.js" defer></script>
   <script src="building.js" defer></script>
-  <script src="script.js" defer></script>
+  <script src="sections.js" defer></script>
 </head>
 
 <body>
   <!-- =========================================================
        EDITING NOTE
        All visible text lives in this file. Search for "EDIT:" to
-       jump to each section. Colours and fonts are at the top of
-       styles.css. The scroll-driven 3D building is in building.js.
-       Images: see README.md for where to add your own.
+       jump to each section. Colours and fonts: top of styles.css.
+       3D tower: building.js. Hero charts + ME 572 data: story.js.
+       Project demos, map, skills physics, counters: sections.js.
        ========================================================= -->
 
   <header class="topbar">
     <nav class="topbar-inner glass" aria-label="Primary">
-      <a class="brand" href="#top">Marco Ching</a>
+      <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Marco Ching</a>
       <div class="nav-links">
-        <a href="#direction">Direction</a>
         <a href="#projects">Projects</a>
         <a href="#experience">Experience</a>
         <a href="#skills">Skills</a>
+        <a href="#contact">Contact</a>
         <a class="nav-cta" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
       </div>
     </nav>
@@ -43,76 +47,51 @@
 
   <main id="top">
     <!-- EDIT: SCROLL STORY ----------------------------------------
-         Six steps. Each .step is one screen of scrolling. building.js takes
-         the building apart as the reader moves through them, and story.js
-         steps the charts and readout through the real ME 572 runs. -->
+         Six steps, one screen each. building.js takes the tower apart
+         as the reader scrolls; story.js steps the charts through the
+         real ME 572 runs. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <canvas id="building-canvas"></canvas>
-        <div class="stage-readout glass" id="readout">
-          <p class="ro-title" id="ro-title">ME 572 model</p>
-          <div class="ro-cells">
-            <div class="ro-cell"><span></span><strong></strong><em></em></div>
-            <div class="ro-cell"><span></span><strong></strong><em></em></div>
-            <div class="ro-cell"><span></span><strong></strong><em></em></div>
-            <div class="ro-cell"><span></span><strong></strong><em></em></div>
-          </div>
-        </div>
-        <p class="stage-note">Illustrative tower. All numbers come from my ME 572 models.</p>
+        <p class="stage-note">Illustrative tower · numbers from my ME 572 models</p>
       </div>
 
       <div class="steps">
         <article class="step step-intro" data-step="0">
           <div class="step-card glass">
-            <p class="kicker">Mechanical Engineering · University of Waterloo · 2027</p>
-            <h1>Marco Ching</h1>
-            <p class="lede">
-              I study how buildings perform: what the model predicts, what the sensors
-              measure, and why the two disagree.
-            </p>
+            <p class="kicker"><span class="zh">香港</span> Building performance · Waterloo · 2027</p>
+            <h1>Marco<br>Ching</h1>
+            <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
             <div class="actions">
-              <a class="btn btn-solid" href="#direction">Read my direction</a>
+              <a class="btn btn-neon" href="#projects">See projects</a>
               <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF)&nbsp;↗</a>
             </div>
-            <p class="scroll-cue">Scroll to take the building apart</p>
+            <p class="scroll-cue">Scroll to take the tower apart</p>
           </div>
         </article>
 
         <article class="step" data-step="1">
           <div class="step-card glass">
-            <p class="kicker">01 · Responsive shading</p>
-            <h2>A façade that reacts to the sun</h2>
-            <p>
-              The skin of a building decides how much sun, heat and air get in. An adaptive
-              façade changes that decision as the weather changes: closing against low
-              afternoon sun, opening when the air outside is useful.
-            </p>
+            <p class="kicker">01 · Shading</p>
+            <h2>Façades that react to the sun.</h2>
+            <p>An adaptive skin closes against low sun and opens when the outside air helps.</p>
           </div>
         </article>
 
         <article class="step" data-step="2">
           <div class="step-card glass">
             <p class="kicker">02 · Envelope</p>
-            <h2>One variable, three answers</h2>
-            <p>
-              In ME 572 I lowered the glazing SHGC of a 5,000 ft² office from 0.70 to 0.30.
-              Cooling and cost fell, but emissions rose: less solar gain shifted the load
-              onto natural-gas heating.
-            </p>
+            <h2>One variable, <em>three answers</em>.</h2>
+            <p>Lower glazing SHGC: cooling −31.5%, emissions +10.6%.</p>
             <figure class="chart" data-chart="shgc"></figure>
           </div>
         </article>
 
         <article class="step" data-step="3">
           <div class="step-card glass">
-            <p class="kicker">03 · Air &amp; systems</p>
-            <h2>Outdoor air is a heating load</h2>
-            <p>
-              Cutting outdoor air from 30 to 10 cfm per person barely moved peak cooling
-              in Rochester, but it changed emissions by about 18 points, all through heating.
-              At WSP and Chevalier I see the other side: the ducts, pipes and pumps that
-              carry these loads once they’re built.
-            </p>
+            <p class="kicker">03 · Air</p>
+            <h2>Outdoor air is a <em>heating</em> load.</h2>
+            <p>30 → 10 cfm/person barely moves cooling but swings emissions 18 points.</p>
             <figure class="chart" data-chart="vent"></figure>
           </div>
         </article>
@@ -120,12 +99,8 @@
         <article class="step" data-step="4">
           <div class="step-card glass">
             <p class="kicker">04 · Lighting</p>
-            <h2>Less light, more heat</h2>
-            <p>
-              My lighting layout hit 52 fc at 0.52 W/ft². In COMFEN, cutting lighting power
-              by 25% lowered total EUI by 6.3%, but heating rose 13.6% because the lights
-              were also heating the room.
-            </p>
+            <h2>Less light, <em>more heat</em>.</h2>
+            <p>−25% lighting power: EUI −6.3%, heating +13.6%.</p>
             <figure class="chart" data-chart="lpd"></figure>
           </div>
         </article>
@@ -133,286 +108,365 @@
         <article class="step" data-step="5">
           <div class="step-card glass">
             <p class="kicker">05 · Measurement</p>
-            <h2>Predicted, then measured</h2>
-            <p>
-              Every number above came from a simulation. Next, I want to instrument real
-              buildings, measure them through changing weather and occupancy, and explain
-              the gap, especially in hot, humid, high-rise cities like Hong Kong.
-            </p>
+            <h2>Predicted. <em>Not yet measured.</em></h2>
+            <p>Next: instrument real buildings and explain the gap, starting with Hong Kong.</p>
             <figure class="chart" data-chart="benchmark"></figure>
           </div>
         </article>
       </div>
     </section>
 
-    <!-- EDIT: DIRECTION ------------------------------------------>
-    <section class="section wrap" id="direction">
-      <header class="section-head">
-        <p class="kicker">Direction</p>
-        <h2>Why buildings</h2>
-      </header>
-      <div class="direction">
-        <div class="prose">
-          <p>
-            I grew up in Hong Kong, between dense high-rises and the mountains and coastline
-            that are never far away. A visit to K11 Musea was the first time I noticed a
-            building that tried to invite nature back in rather than shut it out.
-          </p>
-          <p>
-            Mechanical engineering gave me a way to turn that into engineering questions.
-            Thermodynamics, fluid mechanics and building energy analysis changed what I see in
-            a building: air-conditioning became heat transfer and loads, and a façade became a
-            decision about solar gain, ventilation and comfort.
-          </p>
-          <p>
-            I’m now preparing for graduate study in building performance. I want to combine
-            computational modelling with sensors and physical testing: predict how a system
-            should behave, build or test it, measure what happens, and find out why reality
-            differs.
-          </p>
+    <!-- EDIT: COUNTERS -------------------------------------------->
+    <section class="counters" aria-label="By the numbers">
+      <div class="wrap counters-row">
+        <div class="counter"><strong data-count="17">17</strong><span>energy simulations</span></div>
+        <div class="counter"><strong data-count="20" data-suffix="+">20+</strong><span>Revit models reviewed</span></div>
+        <div class="counter"><strong data-count="10">10</strong><span>BIM scopes coordinated</span></div>
+        <div class="counter"><strong data-count="640">640</strong><span>MLD treatment works</span></div>
+        <div class="counter"><strong data-count="5" data-prefix="±">±5</strong><span>mm crane accuracy</span></div>
+      </div>
+    </section>
+
+    <!-- EDIT: STATEMENT -------------------------------------------->
+    <section class="statement" id="direction">
+      <div class="wrap">
+        <p class="label"><span class="zh">方向</span> (01) Direction</p>
+        <p class="statement-text" data-reveal>
+          I grew up between Hong Kong’s towers and its mountains. A visit to <b>K11&nbsp;Musea</b>
+          made me ask why some buildings shut nature out. Now I study whether the ones that
+          <b>let it in</b> actually <b>perform</b>.
+        </p>
+      </div>
+      <div class="marquee" aria-label="Research interests">
+        <div class="marquee-track">
+          <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive façades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
+          <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive façades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
         </div>
-        <aside class="interests glass-flat">
-          <h3>Research interests</h3>
-          <ul>
-            <li>Building energy modelling and simulation</li>
-            <li>Building performance verification</li>
-            <li>HVAC systems and controls</li>
-            <li>Adaptive façades and natural ventilation</li>
-            <li>Low-carbon building systems</li>
-          </ul>
-          <h3>Coursework</h3>
-          <ul class="coursework">
-            <li>Building Energy Analysis</li>
-            <li>Fluid Power Control Systems</li>
-            <li>HVAC Systems, Equipment &amp; Energy Efficiency <span>W2027</span></li>
-            <li>HVAC Load Analysis and Design <span>W2027</span></li>
-            <li>Fire Safety Engineering <span>W2027</span></li>
-          </ul>
-        </aside>
       </div>
     </section>
 
     <!-- EDIT: PROJECTS --------------------------------------------
-         To add an image, see README.md. Report links come from the CV. -->
-    <section class="section wrap" id="projects">
-      <header class="section-head">
-        <p class="kicker">Research &amp; technical projects</p>
-        <h2>Projects</h2>
-      </header>
+         Each project has a short info column and its own live demo,
+         built from the numbers in the report. -->
+    <section class="projects" id="projects">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="label"><span class="zh">項目</span> (02) Projects</p>
+          <h2>Six projects.<br><em>Try each one.</em></h2>
+        </header>
 
-      <div class="projects">
-        <article class="project">
-          <div class="project-top">
-            <span class="tag tag-heat">Building energy</span>
-            <span class="year">2026</span>
+        <!-- 1. ME 572 envelope study -->
+        <article class="proj">
+          <div class="proj-info">
+            <p class="proj-meta"><span>01</span>ME 572 · 2026</p>
+            <h3>Whole-building energy model</h3>
+            <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
+            <dl class="proj-stats">
+              <div><dt>Runs</dt><dd>17</dd></div>
+              <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
+              <div><dt>Emissions</dt><dd>+10.6%</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
-          <h3>Energy Simulation &amp; Parametric Analysis</h3>
-          <p class="project-sub">ME 572 Building Energy Analysis</p>
-          <ul class="points">
-            <li>Built a 5,000 ft² office energy model, benchmarked site energy against ENERGY STAR, and ran 17 parametric simulations of roof, wall, glazing and ventilation measures.</li>
-            <li>Lowering glazing SHGC from 0.70 to 0.30 cut energy cost by 7.5% and peak cooling by 31.5% but raised GHG emissions by 10.6%.</li>
-            <li>Found that one-at-a-time analysis isolates single effects but misses interactions between envelope variables.</li>
-          </ul>
-          <a class="report" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
-          <details class="runs">
-            <summary>All 17 simulation runs</summary>
-            <div class="table-scroll">
-              <table>
-                <thead>
-                  <tr><th scope="col">Parameter</th><th scope="col">Value</th><th scope="col">Cost/yr</th><th scope="col">Site EUI</th><th scope="col">GHG kg</th><th scope="col">Peak cool kBtu/h</th><th scope="col">Peak heat kBtu/h</th></tr>
-                </thead>
-                <tbody>
-                  <tr><th scope="row">Roof U-value</th><td>0.033</td><td>$12,256</td><td>98.06</td><td>17,905</td><td>239.8</td><td>187.3</td></tr>
-                  <tr><th scope="row">Roof U-value</th><td>0.048</td><td>$12,449</td><td>101.21</td><td>18,677</td><td>243.7</td><td>191.7</td></tr>
-                  <tr class="is-control"><th scope="row">Roof U-value</th><td>0.063</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
-                  <tr><th scope="row">Roof U-value</th><td>0.078</td><td>$12,832</td><td>107.41</td><td>20,209</td><td>251.4</td><td>201.0</td></tr>
-                  <tr><th scope="row">Roof U-value</th><td>0.093</td><td>$13,023</td><td>110.54</td><td>20,984</td><td>255.0</td><td>205.6</td></tr>
-                  <tr><th scope="row">Wall U-value</th><td>0.044</td><td>$12,368</td><td>100.06</td><td>18,409</td><td>240.1</td><td>190.1</td></tr>
-                  <tr><th scope="row">Wall U-value</th><td>0.064</td><td>$12,506</td><td>102.22</td><td>18,934</td><td>243.8</td><td>193.2</td></tr>
-                  <tr class="is-control"><th scope="row">Wall U-value</th><td>0.084</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
-                  <tr><th scope="row">Wall U-value</th><td>0.104</td><td>$12,775</td><td>106.41</td><td>19,955</td><td>251.3</td><td>199.5</td></tr>
-                  <tr><th scope="row">Wall U-value</th><td>0.124</td><td>$12,909</td><td>108.48</td><td>20,463</td><td>254.9</td><td>202.6</td></tr>
-                  <tr><th scope="row">Glazing SHGC</th><td>0.30</td><td>$11,698</td><td>107.98</td><td>21,511</td><td>169.5</td><td>201.0</td></tr>
-                  <tr><th scope="row">Glazing SHGC</th><td>0.40</td><td>$11,886</td><td>106.50</td><td>20,873</td><td>186.7</td><td>200.1</td></tr>
-                  <tr><th scope="row">Glazing SHGC</th><td>0.50</td><td>$12,099</td><td>105.49</td><td>20,350</td><td>206.0</td><td>199.0</td></tr>
-                  <tr><th scope="row">Glazing SHGC</th><td>0.60</td><td>$12,359</td><td>104.75</td><td>19,867</td><td>226.5</td><td>197.8</td></tr>
-                  <tr class="is-control"><th scope="row">Glazing SHGC</th><td>0.70</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
-                  <tr><th scope="row">Outdoor air</th><td>10</td><td>$12,331</td><td>97.61</td><td>17,698</td><td>248.0</td><td>183.2</td></tr>
-                  <tr><th scope="row">Outdoor air</th><td>15</td><td>$12,480</td><td>100.89</td><td>18,555</td><td>247.7</td><td>189.8</td></tr>
-                  <tr class="is-control"><th scope="row">Outdoor air</th><td>20</td><td>$12,642</td><td>104.34</td><td>19,448</td><td>247.6</td><td>196.4</td></tr>
-                  <tr><th scope="row">Outdoor air</th><td>25</td><td>$12,804</td><td>107.77</td><td>20,344</td><td>247.4</td><td>203.0</td></tr>
-                  <tr><th scope="row">Outdoor air</th><td>30</td><td>$12,972</td><td>111.33</td><td>21,271</td><td>247.3</td><td>209.6</td></tr>
-                </tbody>
-              </table>
+          <div class="demo" data-demo="envelope">
+            <div class="demo-bar">
+              <span class="demo-title">Best tested value vs control</span>
+              <div class="seg" role="group" aria-label="Metric">
+                <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
+                <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
+                <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
+              </div>
             </div>
-            <p class="table-note">Highlighted rows are the control case, which appears once per parameter (4 rows, 1 unique run). Site EUI in kBtu/ft²·yr. U-values in Btu/h·ft²·°F.</p>
-          </details>
-
+            <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
+            <details class="runs">
+              <summary>All 17 runs</summary>
+              <div class="table-scroll"><table id="runs-table"></table></div>
+            </details>
+          </div>
         </article>
 
-        <article class="project">
-          <div class="project-top">
-            <span class="tag tag-heat">Building energy</span>
-            <span class="year">2026</span>
+        <!-- 2. Lighting design -->
+        <article class="proj proj-flip">
+          <div class="proj-info">
+            <p class="proj-meta"><span>02</span>ME 572 · 2026</p>
+            <h3>Office lighting layout</h3>
+            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
+            <dl class="proj-stats">
+              <div><dt>Illuminance</dt><dd>52 fc</dd></div>
+              <div><dt>Power</dt><dd>0.52 W/ft²</dd></div>
+              <div><dt>Luminaires</dt><dd>20</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
-          <h3>Interior Lighting Design &amp; COMFEN Analysis</h3>
-          <p class="project-sub">ME 572 Building Energy Analysis</p>
-          <ul class="points">
-            <li>Designed a 1,632 ft² lighting layout to 52 fc at 0.52 W/ft², under the 0.6 W/ft² target.</li>
-            <li>Modelled a 25% lighting-power cut in COMFEN with Toronto weather: annual EUI fell 6.3% while heating demand rose 13.6% from lost internal gains.</li>
-          </ul>
-          <a class="report" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
+          <div class="demo" data-demo="lighting">
+            <div class="demo-bar">
+              <span class="demo-title">Plan view · 48 × 34 ft</span>
+              <div class="seg" role="group" aria-label="Layout option">
+                <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
+                <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
+              </div>
+            </div>
+            <svg class="demo-svg" id="lighting-svg" viewBox="0 0 520 300" role="img" aria-label="Office plan with luminaire grid"></svg>
+            <div class="meters" id="lighting-meters"></div>
+          </div>
         </article>
 
-        <article class="project">
-          <div class="project-top">
-            <span class="tag tag-air">Sensing</span>
-            <span class="year">2024</span>
+        <!-- 3. Seismic monitoring -->
+        <article class="proj">
+          <div class="proj-info">
+            <p class="proj-meta"><span>03</span>IEEE YEC · 3rd place</p>
+            <h3>Listening to Hong Kong’s old volcano</h3>
+            <p>Two Raspberry Shake geophones in Pokfulam, a seismograph in Sai Kung, and triangulated tremors near Cheung Chau too small for the Observatory’s list.</p>
+            <dl class="proj-stats">
+              <div><dt>Detects</dt><dd>~M1</dd></div>
+              <div><dt>HKO lists</dt><dd>≥M3</dd></div>
+              <div><dt>Station gap</dt><dd>280 m</dd></div>
+            </dl>
+            <a class="proj-link" href="https://docs.google.com/presentation/d/1tkdNsuMAD67OgtxQ-YM7wEmLvsL-Ea81CECaYw2BRl0/edit?usp=sharing" target="_blank" rel="noopener">See the poster ↗</a>
           </div>
-          <h3>Volcanic-Tectonic Earthquake Monitoring</h3>
-          <p class="project-sub">IEEE Young Engineers Conference, 3rd place · recognised by the Hong Kong Observatory</p>
-          <ul class="points">
-            <li>Deployed Raspberry Shake geophones at two Hong Kong sites and triangulated the source region of low-magnitude tremors near Cheung Chau.</li>
-            <li>Traced data loss to power, connectivity and sensor placement on an elevated column.</li>
-            <li>Added backup power, offline data acquisition, higher-sensitivity sensors and ground mounting to improve coupling and signal quality.</li>
-          </ul>
-          <a class="report" href="https://docs.google.com/presentation/d/1tkdNsuMAD67OgtxQ-YM7wEmLvsL-Ea81CECaYw2BRl0/edit?usp=sharing" target="_blank" rel="noopener">Poster&nbsp;↗</a>
+          <div class="demo" data-demo="seismic">
+            <div class="demo-bar">
+              <span class="demo-title">Schematic · stations and source</span>
+              <button type="button" class="demo-btn" id="quake-btn">Trigger a tremor</button>
+            </div>
+            <svg class="demo-svg" id="seismic-svg" viewBox="0 0 520 260" role="img" aria-label="Schematic map of Cheung Chau, Pokfulam and Sai Kung with a wave travelling to the stations"></svg>
+            <canvas class="traces" id="seismic-traces" width="520" height="120" aria-hidden="true"></canvas>
+            <p class="demo-note">Illustrative traces. Real waveforms are on the poster (18 Aug 2021).</p>
+          </div>
         </article>
 
-        <article class="project">
-          <div class="project-top">
-            <span class="tag tag-air">Fluid mechanics</span>
-            <span class="year">2025</span>
+        <!-- 4. Baseball aerodynamics -->
+        <article class="proj proj-flip">
+          <div class="proj-info">
+            <p class="proj-meta"><span>04</span>ME 362 · 2025</p>
+            <h3>Pitch aerodynamics</h3>
+            <p>My MATLAB model of drag and spin-dependent Magnus lift, re-built here so you can throw it. It matches MLB Statcast for three of four pitches; the knuckleball needs seams.</p>
+            <dl class="proj-stats">
+              <div><dt>Curveball drop</dt><dd>1.5 m</dd></div>
+              <div><dt>Slider break</dt><dd>0.48 m</dd></div>
+              <div><dt>Re</dt><dd>~2×10⁵</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/170KikfBvYJqbIyHyzvZuVhXJN9q0Hq_5/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
-          <h3>Baseball Aerodynamics &amp; Pitch Modelling</h3>
-          <p class="project-sub">ME 362 Fluid Mechanics II</p>
-          <ul class="points">
-            <li>Modelled fastball, curveball, slider and knuckleball trajectories in MATLAB from drag, spin-dependent lift, release velocity and spin axis, and compared the break with MLB Statcast data.</li>
-            <li>Showed where a smooth-sphere model fails to capture the knuckleball’s asymmetric, unsteady wake.</li>
-          </ul>
-          <a class="report" href="https://drive.google.com/file/d/170KikfBvYJqbIyHyzvZuVhXJN9q0Hq_5/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
+          <div class="demo" data-demo="pitch">
+            <div class="demo-bar">
+              <div class="seg" role="group" aria-label="Pitch">
+                <button type="button" data-pitch="fastball" aria-pressed="false">Fastball</button>
+                <button type="button" data-pitch="curveball" aria-pressed="true">Curve</button>
+                <button type="button" data-pitch="slider" aria-pressed="false">Slider</button>
+                <button type="button" data-pitch="knuckleball" aria-pressed="false">Knuckle</button>
+              </div>
+            </div>
+            <div class="sliders">
+              <label for="pitch-v">Release speed <output id="pitch-v-out">35 m/s</output></label>
+              <input type="range" id="pitch-v" min="25" max="45" step="1" value="35">
+              <label for="pitch-rpm">Spin <output id="pitch-rpm-out">2600 rpm</output></label>
+              <input type="range" id="pitch-rpm" min="0" max="3000" step="50" value="2600">
+            </div>
+            <svg class="demo-svg" id="pitch-svg" viewBox="0 0 520 230" role="img" aria-label="Side view and catcher's view of the simulated pitch"></svg>
+            <p class="demo-readout" id="pitch-readout"></p>
+          </div>
         </article>
 
-        <article class="project">
-          <div class="project-top">
-            <span class="tag">Mechatronics</span>
-            <span class="year">2025</span>
+        <!-- 5. Robotic crane -->
+        <article class="proj">
+          <div class="proj-info">
+            <p class="proj-meta"><span>05</span>Mechatronics · 2025</p>
+            <h3>Five-axis robotic crane</h3>
+            <p>Turntable base, belt-driven arm, worm-gear hoist and a rotating gripper, driven from a game controller in C++.</p>
+            <dl class="proj-stats">
+              <div><dt>Reach</dt><dd>51 cm</dd></div>
+              <div><dt>Accuracy</dt><dd>±5 mm</dd></div>
+              <div><dt>Axes</dt><dd>5</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
-          <h3>Five-Degree-of-Freedom Robotic Manipulator</h3>
-          <p class="project-sub">51 cm reach · ±5 mm positional accuracy</p>
-          <ul class="points">
-            <li>Designed five custom mechanisms in SolidWorks and 3D printed them: a lazy-Susan base, belt-driven horizontal axis, worm-gear pulley vertical axis, two-pronged gripper and gripper rotation stage.</li>
-            <li>Validated the ±5 mm accuracy by stacking three 3D-printed test parts; built the motor-driver circuitry and programmed coordinated joint motion in C++ on an Arduino Mega ADK.</li>
-            <li>Fixed servo over-current, crimp failures and USB host-shield signal issues over several build iterations.</li>
-          </ul>
-          <a class="report" href="https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
+          <div class="demo" data-demo="crane" tabindex="0" aria-label="Crane controls: arrow keys move the trolley and hoist, Q and E rotate, space closes the gripper">
+            <div class="demo-bar">
+              <span class="demo-title">Drive it like the D-pad</span>
+              <span class="keys"><kbd>←</kbd><kbd>→</kbd> trolley <kbd>↑</kbd><kbd>↓</kbd> hoist <kbd>Q</kbd><kbd>E</kbd> rotate <kbd>Space</kbd> grip</span>
+            </div>
+            <svg class="demo-svg" id="crane-svg" viewBox="0 0 520 280" role="img" aria-label="Side view of the crane"></svg>
+            <div class="pad" aria-label="On-screen controls">
+              <button type="button" data-crane="left" aria-label="Trolley in">←</button>
+              <button type="button" data-crane="right" aria-label="Trolley out">→</button>
+              <button type="button" data-crane="up" aria-label="Hoist up">↑</button>
+              <button type="button" data-crane="down" aria-label="Hoist down">↓</button>
+              <button type="button" data-crane="ccw" aria-label="Rotate left">Q</button>
+              <button type="button" data-crane="cw" aria-label="Rotate right">E</button>
+              <button type="button" data-crane="grip" aria-label="Toggle gripper">Grip</button>
+            </div>
+            <p class="demo-readout" id="crane-readout"></p>
+          </div>
         </article>
 
-        <article class="project">
-          <div class="project-top">
-            <span class="tag">Mechanical design</span>
-            <span class="year">Ongoing</span>
+        <!-- 6. Capstone wagon -->
+        <article class="proj proj-flip">
+          <div class="proj-info">
+            <p class="proj-meta"><span>06</span>ME 481 Capstone · now</p>
+            <h3>All-terrain electric wagon</h3>
+            <p>I designed the steering, which falls back to manual if the motors fail, and the trailing-arm suspension shared by all four wheels.</p>
+            <dl class="proj-stats">
+              <div><dt>Ride frequency</dt><dd>4.1 Hz</dd></div>
+              <div><dt>Wheel travel</dt><dd>50 mm</dd></div>
+              <div><dt>Powertrain</dt><dd>36 V</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1iHX16wDuQlWoo2We_pLd0g6E9CP2kmpn/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
-          <h3>All-Terrain Electronically-Assisted Collapsible Wagon</h3>
-          <p class="project-sub">ME 481 Capstone</p>
-          <ul class="points">
-            <li>Designed a fail-safe mechanical steering system that keeps the front wheels steerable if the electric steering or motor fails.</li>
-            <li>Developed a trailing-arm suspension layout; now in prototyping and procurement of drive, power and structural parts.</li>
-          </ul>
-          <a class="report" href="https://drive.google.com/file/d/1iHX16wDuQlWoo2We_pLd0g6E9CP2kmpn/view?usp=sharing" target="_blank" rel="noopener">Report&nbsp;↗</a>
+          <div class="demo" data-demo="suspension">
+            <div class="demo-bar">
+              <span class="demo-title">One corner · trailing arm</span>
+            </div>
+            <div class="sliders">
+              <label for="susp-load">Load on this corner <output id="susp-load-out">20 kg</output></label>
+              <input type="range" id="susp-load" min="5" max="45" step="1" value="20">
+            </div>
+            <svg class="demo-svg" id="susp-svg" viewBox="0 0 520 230" role="img" aria-label="Trailing-arm suspension compressing under load"></svg>
+            <p class="demo-readout" id="susp-readout"></p>
+          </div>
         </article>
       </div>
     </section>
 
-    <!-- EDIT: EXPERIENCE ----------------------------------------->
-    <section class="section wrap" id="experience">
-      <header class="section-head">
-        <p class="kicker">Engineering experience</p>
-        <h2>Experience</h2>
-      </header>
+    <!-- EDIT: EXPERIENCE: an MTR-style route ----------------------->
+    <section class="experience" id="experience">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="label"><span class="zh">經驗</span> (03) Experience</p>
+          <h2>The route <em>so far</em>.</h2>
+        </header>
 
-      <ol class="jobs">
-        <li class="job">
-          <div class="job-when"><span>09/2026 – Present</span><span>Hong Kong</span></div>
-          <div class="job-body">
-            <h3>Chevalier Group <span>Envirotech Trainee</span></h3>
-            <ul class="points">
-              <li>Process and hydraulic calculations for water-treatment chemical systems: sodium bisulfite storage for a 640 MLD facility, dosing flows across a 4:1 turndown, pipe sizing and suction and discharge head loss.</li>
-              <li>Designed chemical-storage, dosing and piping layouts from P&amp;IDs in Navisworks, and reviewed installed works for constructability, durability and design intent.</li>
-              <li>Evaluated centrifugal and progressive-cavity pumps against Arup and WSD requirements; prepared compliance submissions and pump submittals.</li>
-            </ul>
-          </div>
-        </li>
-        <li class="job">
-          <div class="job-when"><span>01/2026 – 04/2026</span><span>Toronto</span></div>
-          <div class="job-body">
-            <h3>WSP Global Inc. <span>BIM Co-op Student</span></h3>
-            <ul class="points">
-              <li>Developed Revit models for HVAC and plumbing on the Eglinton Crosstown West Extension, including ductwork, piping, air terminals and equipment clearances.</li>
-              <li>Designed fire-protection sprinkler layouts and water distribution for Union Station Expansion Blue Route, Phases 2–6.</li>
-              <li>Managed BIM coordination and submissions across 10 project scopes, through internal, interdisciplinary, alliance and IFC reviews.</li>
-            </ul>
-          </div>
-        </li>
-        <li class="job">
-          <div class="job-when"><span>06/2025 – 08/2025</span><span>Hong Kong</span></div>
-          <div class="job-body">
-            <h3>Airport Authority Hong Kong <span>BIM Engineering Trainee</span></h3>
-            <ul class="points">
-              <li>Built a Dynamo–Power BI workflow to extract BIM data for project analytics during the move to Autodesk Construction Cloud.</li>
-              <li>Reviewed and maintained 20+ Revit models for Hong Kong International Airport.</li>
-              <li>Contributed to an AI-assisted waste-sorting patrol robot using SLAM and LiDAR for mapping and navigation.</li>
-            </ul>
-          </div>
-        </li>
-      </ol>
-    </section>
+        <ol class="route" role="list">
+          <li class="stop" style="--line: var(--line-uw)">
+            <button type="button" class="stop-btn" data-stop="uw" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">滑鐵盧</span><span class="stop-en">Waterloo</span><span class="stop-year">2022</span>
+            </button>
+          </li>
+          <li class="stop" style="--line: var(--line-airport)">
+            <button type="button" class="stop-btn" data-stop="aahk" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">機場</span><span class="stop-en">Airport</span><span class="stop-year">2025</span>
+            </button>
+          </li>
+          <li class="stop" style="--line: var(--line-ttc)">
+            <button type="button" class="stop-btn" data-stop="wsp" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">多倫多</span><span class="stop-en">Toronto</span><span class="stop-year">2026</span>
+            </button>
+          </li>
+          <li class="stop" style="--line: var(--line-east)">
+            <button type="button" class="stop-btn" data-stop="chevalier" aria-pressed="true">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">上水</span><span class="stop-en">Sheung Shui</span><span class="stop-year">Now</span>
+            </button>
+          </li>
+          <li class="stop stop-next" style="--line: var(--neon)">
+            <button type="button" class="stop-btn" data-stop="next" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">研究院</span><span class="stop-en">Grad school</span><span class="stop-year">2027</span>
+            </button>
+          </li>
+        </ol>
 
-    <!-- EDIT: SKILLS & AWARDS ------------------------------------->
-    <section class="section wrap" id="skills">
-      <header class="section-head">
-        <p class="kicker">Tools &amp; recognition</p>
-        <h2>Skills</h2>
-      </header>
-      <div class="skills-grid">
-        <dl class="skills">
-          <div><dt>Building energy &amp; simulation</dt><dd>Whole-building energy modelling, COMFEN, HVAC load calculations and design, U-value and envelope analysis, lighting design, fire protection design, ASHRAE 90.1</dd></div>
-          <div><dt>Fluid process systems</dt><dd>Head-loss calculations, pipe sizing, pump systems, P&amp;ID interpretation, hydraulic and pneumatic circuits</dd></div>
-          <div><dt>Design &amp; digital engineering</dt><dd>Revit, BIM coordination, Navisworks, SolidWorks, AutoCAD, Dynamo, Autodesk Construction Cloud, Bluebeam, ArcGIS, Power BI, GD&amp;T, DFM/A</dd></div>
-          <div><dt>Computation &amp; controls</dt><dd>C++, MATLAB, Simulink, PLC, Raspberry Pi, Arduino, sensor integration, motor control</dd></div>
-          <div><dt>Fabrication &amp; prototyping</dt><dd>3D printing, laser cutting, machining</dd></div>
-        </dl>
-        <div class="awards glass-flat">
-          <h3>Awards &amp; certifications</h3>
-          <ul>
-            <li><span class="year">2026</span>Mandatory Basic Safety Training Certificate (Construction Work)</li>
-            <li><span class="year">2023</span>University of Waterloo President’s Scholarship</li>
-            <li><span class="year">2022</span>3rd Place, IEEE Young Engineers Conference</li>
-          </ul>
+        <!-- EDIT: one panel per stop -->
+        <div class="stop-panels">
+          <article class="stop-panel" data-panel="uw" hidden>
+            <p class="panel-when">09/2022 – 06/2027 · Waterloo, Canada</p>
+            <h3>University of Waterloo</h3>
+            <p class="panel-role">BASc, Honours Mechanical Engineering Co-op</p>
+            <p>Building Energy Analysis, Fluid Power Control Systems. Next term: HVAC Systems, HVAC Load Analysis and Fire Safety Engineering.</p>
+            <p class="panel-stat"><strong>2023</strong> President’s Scholarship</p>
+          </article>
+          <article class="stop-panel" data-panel="aahk" hidden>
+            <p class="panel-when">06/2025 – 08/2025 · Hong Kong International Airport</p>
+            <h3>Airport Authority Hong Kong</h3>
+            <p class="panel-role">BIM Engineering Trainee</p>
+            <p>Built a Dynamo–Power BI workflow for BIM analytics during the move to Autodesk Construction Cloud, and worked on SLAM and LiDAR for a waste-sorting patrol robot.</p>
+            <p class="panel-stat"><strong>20+</strong> airport Revit models reviewed</p>
+          </article>
+          <article class="stop-panel" data-panel="wsp" hidden>
+            <p class="panel-when">01/2026 – 04/2026 · Toronto, Canada</p>
+            <h3>WSP Global Inc.</h3>
+            <p class="panel-role">BIM Co-op Student</p>
+            <p>HVAC and plumbing models for the Eglinton Crosstown West Extension, and sprinkler and water layouts for Union Station’s Blue Route, Phases 2–6.</p>
+            <p class="panel-stat"><strong>10</strong> project scopes through IFC review</p>
+          </article>
+          <article class="stop-panel" data-panel="chevalier">
+            <p class="panel-when">09/2026 – present · Sheung Shui, Hong Kong</p>
+            <h3>Chevalier Group</h3>
+            <p class="panel-role">Envirotech Trainee</p>
+            <p>Hydraulic and process calculations for water-treatment chemical dosing: storage sizing, 4:1 turndown, pipe sizing, head loss, pump selection against Arup and WSD requirements.</p>
+            <p class="panel-stat"><strong>640</strong> MLD treatment works</p>
+          </article>
+          <article class="stop-panel" data-panel="next" hidden>
+            <p class="panel-when">From 2027</p>
+            <h3>Graduate study in building performance</h3>
+            <p class="panel-role">Next stop</p>
+            <p>Adaptive façades, natural ventilation and sensing, with one question: does the real building do what the model said?</p>
+            <p class="panel-stat"><strong>下一站</strong> next stop</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- EDIT: CONTACT -------------------------------------------->
+    <!-- EDIT: SKILLS: drag the chips --------------------------------->
+    <section class="skills" id="skills">
+      <div class="wrap">
+        <header class="sec-head sec-head-row">
+          <div>
+            <p class="label"><span class="zh">技能</span> (04) Skills</p>
+            <h2>Toolbox. <em>Grab one.</em></h2>
+          </div>
+          <ul class="skill-legend">
+            <li class="g-energy">Building energy</li>
+            <li class="g-fluid">Fluids</li>
+            <li class="g-design">Design &amp; BIM</li>
+            <li class="g-code">Code &amp; controls</li>
+            <li class="g-fab">Fabrication</li>
+          </ul>
+        </header>
+        <div class="skill-box" id="skill-box">
+          <span class="chip g-energy">Energy modelling</span><span class="chip g-energy">COMFEN</span><span class="chip g-energy">HVAC loads</span><span class="chip g-energy">ASHRAE 90.1</span><span class="chip g-energy">Envelope U-values</span><span class="chip g-energy">Lighting design</span><span class="chip g-energy">Fire protection</span>
+          <span class="chip g-fluid">Head loss</span><span class="chip g-fluid">Pipe sizing</span><span class="chip g-fluid">Pumps</span><span class="chip g-fluid">P&amp;IDs</span><span class="chip g-fluid">Hydraulics</span>
+          <span class="chip g-design">Revit</span><span class="chip g-design">Navisworks</span><span class="chip g-design">SolidWorks</span><span class="chip g-design">AutoCAD</span><span class="chip g-design">Dynamo</span><span class="chip g-design">ACC</span><span class="chip g-design">Bluebeam</span><span class="chip g-design">GD&amp;T</span><span class="chip g-design">Power BI</span>
+          <span class="chip g-code">C++</span><span class="chip g-code">MATLAB</span><span class="chip g-code">Simulink</span><span class="chip g-code">PLC</span><span class="chip g-code">Arduino</span><span class="chip g-code">Raspberry Pi</span>
+          <span class="chip g-fab">3D printing</span><span class="chip g-fab">Laser cutting</span><span class="chip g-fab">Machining</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDIT: LED TICKER (minibus destination board) -------------------->
+    <div class="ticker" aria-label="Latest">
+      <div class="ticker-track">
+        <span>NOW · ENVIROTECH TRAINEE · CHEVALIER</span><span>NEXT STOP · GRAD SCHOOL 2027</span><span>ME 572 · 17 RUNS</span><span>IEEE YEC · 3RD PLACE</span><span>PRESIDENT'S SCHOLARSHIP 2023</span>
+        <span aria-hidden="true">NOW · ENVIROTECH TRAINEE · CHEVALIER</span><span aria-hidden="true">NEXT STOP · GRAD SCHOOL 2027</span><span aria-hidden="true">ME 572 · 17 RUNS</span><span aria-hidden="true">IEEE YEC · 3RD PLACE</span><span aria-hidden="true">PRESIDENT'S SCHOLARSHIP 2023</span>
+      </div>
+    </div>
+
+    <!-- EDIT: CONTACT ---------------------------------------------->
     <section class="contact" id="contact">
-      <div class="wrap contact-inner">
-        <p class="kicker">Contact</p>
-        <h2>Working on building performance, façades or ventilation? I’d like to hear about it.</h2>
+      <div class="wrap">
+        <p class="label"><span class="zh">聯絡</span> (05) Contact</p>
+        <h2>Working on façades, ventilation or building performance? <em>Let’s talk.</em></h2>
         <div class="contact-row">
           <a class="contact-email" href="mailto:marcokingching@gmail.com">marcokingching@gmail.com</a>
-          <button class="btn btn-glass" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy email</button>
+          <button class="btn btn-neon" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy email</button>
         </div>
         <p class="contact-links">
-          <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn&nbsp;↗</a>
-          <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF)&nbsp;↗</a>
+          <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF) ↗</a>
         </p>
       </div>
     </section>
   </main>
 
-  <footer class="footer wrap">
-    <span>© <span id="year">2026</span> Marco Ching</span>
-    <span>Building drawn live with Three.js</span>
+  <footer class="footer">
+    <p class="neon-sign" aria-label="Marco Ching">MARCO CHING</p>
+    <div class="wrap footer-row">
+      <span>© <span id="year">2026</span> Marco Ching</span>
+      <span><span class="zh">下一站</span> Next stop: graduate school, 2027</span>
+    </div>
   </footer>
 </body>
 </html>
