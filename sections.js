@@ -733,6 +733,33 @@
     });
   })();
 
+  // ---------- Top bar: mark the section you're scrolling through ----------
+  (function navSpy() {
+    const nav = $(".nav-links");
+    const links = $$('.nav-links a[href^="#"]');
+    const items = links.map(a => ({ a, sec: $(a.getAttribute("href")) })).filter(it => it.sec);
+    if (!items.length) return;
+    let current = null, queued = false;
+    function mark() {
+      queued = false;
+      const line = window.innerHeight * 0.35;              // a section counts once its top passes this line
+      const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      let on = atEnd ? items[items.length - 1] : null;
+      if (!on) items.forEach(it => { const r = it.sec.getBoundingClientRect(); if (r.top <= line && r.bottom > line) on = it; });
+      if (on === current) return;
+      current = on;
+      items.forEach(it => (it === on ? it.a.setAttribute("aria-current", "true") : it.a.removeAttribute("aria-current")));
+      // On phones the links scroll sideways: keep the marked one in view.
+      if (on && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollTo({ left: on.a.offsetLeft - nav.offsetLeft - (nav.clientWidth - on.a.offsetWidth) / 2, behavior: reduceMotion ? "auto" : "smooth" });
+      }
+    }
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(mark); } };
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    mark();
+  })();
+
   // ---------- Copy email, year ----------
   const copyButton = $("#copy-email");
   copyButton?.addEventListener("click", async () => {
