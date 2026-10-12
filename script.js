@@ -1,51 +1,38 @@
 // Marco Ching portfolio interactions
 
-// Project tabs. Panels can be deep-linked as #design, #research or #ai.
-const tabs = [...document.querySelectorAll(".tab")];
-const panels = [...document.querySelectorAll(".panel")];
+// Project filter chips. Everything shows by default.
+const chips = [...document.querySelectorAll(".chip")];
+const filterables = [...document.querySelectorAll("#work [data-cat]")];
+const minor = document.querySelector(".minor");
 
-function showPanel(id, focus = false) {
-  tabs.forEach(tab => {
-    const active = tab.dataset.tab === id;
-    tab.setAttribute("aria-selected", String(active));
-    tab.tabIndex = active ? 0 : -1;
-    if (active && focus) tab.focus();
-  });
-  panels.forEach(panel => { panel.hidden = panel.id !== id; });
+function applyFilter(cat) {
+  chips.forEach(chip => chip.setAttribute("aria-pressed", String(chip.dataset.filter === cat)));
+  filterables.forEach(el => { el.hidden = cat !== "all" && el.dataset.cat !== cat; });
+  if (minor) minor.hidden = !minor.querySelector("li:not([hidden])");
 }
 
-tabs.forEach((tab, i) => {
-  tab.addEventListener("click", () => showPanel(tab.dataset.tab));
-  tab.addEventListener("keydown", event => {
-    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
-    if (!step) return;
-    event.preventDefault();
-    const next = tabs[(i + step + tabs.length) % tabs.length];
-    showPanel(next.dataset.tab, true);
-  });
-});
+chips.forEach(chip => chip.addEventListener("click", () => applyFilter(chip.dataset.filter)));
 
-function openFromHash() {
-  const id = location.hash.slice(1);
-  if (tabs.some(tab => tab.dataset.tab === id)) {
-    showPanel(id);
+// Deep links: #design, #research, #ai open the projects with that filter.
+function filterFromHash() {
+  const cat = location.hash.slice(1);
+  if (chips.some(chip => chip.dataset.filter === cat)) {
+    applyFilter(cat);
     document.querySelector("#work")?.scrollIntoView();
   }
 }
-window.addEventListener("hashchange", openFromHash);
-openFromHash();
+window.addEventListener("hashchange", filterFromHash);
+filterFromHash();
 
 // Copy email, falling back to selecting the address.
 const copyButton = document.querySelector("#copy-email");
 copyButton?.addEventListener("click", async () => {
-  const email = copyButton.dataset.email;
   try {
-    await navigator.clipboard.writeText(email);
+    await navigator.clipboard.writeText(copyButton.dataset.email);
     copyButton.textContent = "Copied";
   } catch {
-    const target = document.querySelector(".contact-email");
     const range = document.createRange();
-    range.selectNodeContents(target);
+    range.selectNodeContents(document.querySelector(".contact-email"));
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
