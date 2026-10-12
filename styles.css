@@ -199,7 +199,6 @@ em { font-style: normal; color: var(--neon); }
 .step-card { display: grid; gap: 14px; width: min(100%, 440px); padding: clamp(20px, 2.6vw, 30px); border-radius: var(--radius); pointer-events: auto; }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
 .step-card > p:not(.kicker):not(.scroll-cue) { color: var(--muted-d); }
-.step-card > .card-note { font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.5; letter-spacing: 0.02em; }
 .step-intro { align-items: stretch; padding-top: 84px; padding-bottom: 28px; }
 /* Spare height is split 3:1 above and below the name, so it sits closer to the box underneath. */
 .intro { display: grid; grid-template-rows: auto minmax(0, 3fr) auto minmax(0, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
@@ -249,9 +248,9 @@ em { font-style: normal; color: var(--neon); }
 .statement { padding-block: clamp(80px, 12vw, 160px) clamp(48px, 6vw, 72px); background: var(--night); }
 .statement .wrap { display: grid; gap: 28px; }
 .statement-text {
-  max-width: 34ch;
+  max-width: 24ch;
   font-family: var(--font-display); font-weight: 600;
-  font-size: clamp(1.6rem, 3.4vw, 2.9rem); line-height: 1.12; letter-spacing: -0.03em;
+  font-size: clamp(2rem, 5.2vw, 4.4rem); line-height: 1.04; letter-spacing: -0.035em;
 }
 .statement-text .w { opacity: 0.22; transition: opacity 300ms, color 300ms, text-shadow 300ms; }
 .statement-text .w.on { opacity: 1; }
@@ -274,7 +273,6 @@ em { font-style: normal; color: var(--neon); }
 .projects em { color: var(--neon-ink); }
 .sec-head { display: grid; gap: 14px; margin-bottom: clamp(36px, 6vw, 72px); }
 .sec-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 6.4vw, 5.4rem); line-height: 0.92; letter-spacing: -0.045em; }
-.sec-sub { max-width: 52ch; color: var(--muted-p); }
 .sec-head-row { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; }
 
 .proj {
@@ -292,7 +290,6 @@ em { font-style: normal; color: var(--neon); }
 .proj-stats div { padding-top: 10px; border-top: 2px solid var(--ink); }
 .proj-stats dt { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-p); }
 .proj-stats dd { font-family: var(--font-display); font-weight: 750; font-size: 1.4rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.stats-note { font-size: 0.8125rem; color: var(--muted-p); max-width: 52ch; }
 .proj-link { justify-self: start; font-weight: 600; color: var(--neon-ink); text-decoration: none; border-bottom: 1.5px solid currentColor; }
 
 .demo {
@@ -360,13 +357,14 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 
 .experience { background: var(--night); padding-block: clamp(72px, 10vw, 128px); }
 .experience .sec-head h2 { color: var(--text-d); }
-.route { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 28px; }
+.route { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 28px; }
 .stop { position: relative; }
 .stop::before {                       /* line segment arriving at this stop */
   content: ""; position: absolute; left: -50%; right: 50%; top: 23px; height: 10px;
   background: var(--line); border-radius: 0;
 }
 .stop:first-child::before { display: none; }
+.stop-next::before { background: repeating-linear-gradient(90deg, var(--line) 0 14px, transparent 14px 22px); }
 .stop-btn {
   position: relative; z-index: 1; display: grid; justify-items: center; gap: 4px; width: 100%;
   padding: 10px 4px; border: 0; background: none; cursor: pointer; color: var(--muted-d); text-align: center;
@@ -446,7 +444,6 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .bin h3 svg { width: 20px; height: 20px; fill: none; stroke: var(--g); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .bin h3 span { margin-left: auto; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted-d); }
 .bin ul { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
-.bin abbr { text-decoration: none; cursor: help; }
 .bin li {                            /* label-maker tape */
   padding: 4px 9px 4px 11px; border-radius: 3px; background: #0d0f13; color: #f4f4f4;
   font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
