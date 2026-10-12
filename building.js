@@ -1,14 +1,16 @@
 // Scroll-driven 3D building for the hero.
-// A tower on a green-roofed podium, wrapped in an adaptive louvre façade with planted fins,
-// set in a park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
+// A street-level tower wrapped in an adaptive louvre façade with planted fins, set in a
+// park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
 // Scroll progress q (0 → 5, one unit per story step, from story.js) drives:
 //   0 → 1  night to morning; louvres adapt to the sun
 //   1 → 2  façade pulls away; glazing tint and solar rays follow the SHGC run
-//   2 → 3  floors separate; airflow arrows follow the outdoor-air run; the sun starts to set
-//   3 → 4  ceiling lights follow the lighting-power run, at sunset
-//   4 → 5  sensors switch on
-// Cars and people keep moving the whole time. The tower is illustrative; the numbers belong
-// to the ME 572 models. Units are metres; the landmarks are scaled down to fit the frame.
+//   2 → 3  floors separate; airflow arrows follow the outdoor-air run
+//   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
+//   4 → 5  sensors switch on as the sun sets
+// Cars, people and the harbour light show all move with the scroll. The skyline is drawn by a
+// second renderer onto #backdrop-canvas, which CSS blurs, so the tower stays the one thing in focus.
+// The tower is illustrative; the numbers belong to the ME 572 models. Units are metres; the
+// landmarks are scaled down to fit the frame.
 
 (function () {
   const canvas = document.getElementById("building-canvas");
@@ -25,12 +27,26 @@
     return;
   }
 
+  // Background layer: everything across the harbour, rendered at half resolution and blurred by CSS.
+  // Without a second context the backdrop is simply drawn sharp by the main renderer.
+  const BACK = 1;
+  const backCanvas = document.getElementById("backdrop-canvas");
+  let backRenderer = null;
+  if (backCanvas) {
+    try {
+      backRenderer = new THREE.WebGLRenderer({ canvas: backCanvas, antialias: false, alpha: true });
+      backRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * 0.5);
+    } catch (err) {
+      backCanvas.hidden = true;
+    }
+  }
+
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const { clamp, lerp, smoothstep, degToRad } = THREE.MathUtils;
   const D = S.DATA;
 
-  const FLOORS = 14, FH = 3.6, W = 20;              // tower: 14 storeys, 20 m square
-  const PODIUM_H = 8, PANELS = 9;                   // 9 louvres per side per floor
+  const FLOORS = 14, FH = 3.6, W = 20;              // tower: 14 storeys, 20 m square, at street level
+  const PANELS = 9;                                 // 9 louvres per side per floor
   const GAP = 2.4;                                  // extra space per floor when exploded
   const RING = 31;                                  // ring road centreline half-size
 
@@ -39,7 +55,7 @@
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x121b28, 260, 720);
+  scene.fog = new THREE.Fog(0x121b28, 320, 900);
   const camera = new THREE.PerspectiveCamera(32, 1, 1, 1400);
   const stage = canvas.parentElement;
 
@@ -67,13 +83,12 @@
     sensor: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     lamp: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }),
     accent: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xff3d6e }),
-    lobby: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xffd8a0 }),
     headlight: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xfff2c8 }),
     brace: new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5, color: 0xffffff }),
     sun: new THREE.MeshBasicMaterial({ color: 0xffe7a8, fog: false }),
   };
   const rayMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0 });
-  const heatColor = new THREE.Color();
+  const UP = new THREE.Vector3(0, 1, 0);
 
   function cssColor(name, fallback) {
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -101,9 +116,8 @@
   function applyTheme() {
     mat.air.color.set(cssColor("--c-cool", "#2a9fd6"));
     mat.arrow.color.set(cssColor("--c-cool", "#2a9fd6"));
-    heatColor.set(cssColor("--c-heat", "#c4801a"));
     rayMat.color.set("#ffc46b");
-    mat.sensor.color.set(cssColor("--heat", "#ff9a3d"));
+    mat.sensor.color.set("#f4f8ff");                 // sensors are white so they never read as heat
     mat.lamp.color.set(cssColor("--b-lamp", "#ffd88a"));
     mat.accent.color.set(cssColor("--neon", "#ff3d6e"));
   }
@@ -123,13 +137,28 @@
     return t;
   }
   const windowTex = makeWindowTexture();
-  const cityMats = [];
-  function cityMaterial(w, h) {
+
+  // Soft orange glow with a hot core, for the heating points.
+  function makeGlowTexture() {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const g = c.getContext("2d");
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(255, 245, 220, 1)");
+    grad.addColorStop(0.18, "rgba(255, 170, 70, 1)");
+    grad.addColorStop(0.45, "rgba(255, 110, 20, 0.55)");
+    grad.addColorStop(1, "rgba(255, 90, 0, 0)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+  const cityMats = [], nearMats = [];
+  function cityMaterial(w, h, list = cityMats) {
     const tex = windowTex.clone();
     tex.needsUpdate = true;
     tex.repeat.set(Math.max(1, Math.round(w / 5)), Math.max(1, Math.round(h / 8)));
     const m = std({ emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0, roughness: 0.5, metalness: 0.2 });
-    cityMats.push(m);
+    list.push(m);
     return m;
   }
 
@@ -140,6 +169,7 @@
     parent.add(m);
     return m;
   }
+  function toBack(obj) { obj.traverse(o => o.layers.set(BACK)); return obj; }
 
   // ---------- Lights ----------
   const hemi = new THREE.HemisphereLight(0xffffff, 0x3a4a3c, 0.9);
@@ -151,14 +181,20 @@
   Object.assign(sunLight.shadow.camera, { left: -90, right: 90, top: 120, bottom: -50, near: 20, far: 450 });
   sunLight.shadow.bias = -0.0005;
   scene.add(sunLight, sunLight.target);
-  const sunDisc = new THREE.Mesh(new THREE.SphereGeometry(7, 24, 16), mat.sun);
+  hemi.layers.enable(BACK); sunLight.layers.enable(BACK);
+  const sunDisc = toBack(new THREE.Mesh(new THREE.SphereGeometry(7, 24, 16), mat.sun));
   scene.add(sunDisc);
 
   // ---------- Ground: parks, roads, harbour ----------
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(700, 72), mat.ground);
+  // In focus: the ground out to the far shore. Behind it, the backdrop gets its own full ground disc
+  // so the skyline stands on something and the blur has no gaps to bleed into.
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(255, 72), mat.ground);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
+  const farGround = toBack(new THREE.Mesh(new THREE.CircleGeometry(900, 72), mat.ground));
+  farGround.rotation.x = -Math.PI / 2;
+  scene.add(farGround);
 
   // Harbour on the far side, with the skyline beyond it. Ring theta maps to world angle −θ.
   const HARBOUR = [3.25, 6.05];
@@ -192,12 +228,13 @@
   // ---------- Hong Kong skyline across the harbour (stylised, scaled down) ----------
   const skyline = new THREE.Group();
   scene.add(skyline);
-  const braceLines = [];
-  function place(obj, angle, r) {
+  const beamSources = [];                  // rooftops the light show fires from
+  function place(obj, angle, r, top = obj.userData.top) {
     r *= 1.45;                             // across the harbour, hazed by distance
     obj.scale.setScalar(0.6);
     obj.position.set(Math.cos(angle) * r, 0, Math.sin(angle) * r);
     skyline.add(obj);
+    if (top) beamSources.push(new THREE.Vector3(obj.position.x, top * 0.6, obj.position.z));
     return obj;
   }
   function stack(levels) {                 // stepped tower from [w, h] pairs, bottom up
@@ -236,7 +273,7 @@
     boc.add(lines);
   });
   [[-3, 1], [3, -1]].forEach(([x, z], i) => box(0.7, 26 + i * 4, 0.7, mat.mullion, boc, x, 150 + 13 + i * 2, z, false));
-  place(boc, 4.55, 215);
+  place(boc, 4.55, 215, 150);
   // Central Plaza: triangular tower, pyramid top and mast, with coloured bands at night
   const cp = new THREE.Group();
   const cpBody = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 128, 3), cityMaterial(26, 128));
@@ -245,16 +282,28 @@
   cpTop.position.y = 139; cp.add(cpTop);
   box(0.8, 30, 0.8, mat.mullion, cp, 0, 165, 0, false);
   [100, 112, 124].forEach(y => { const ring = new THREE.Mesh(new THREE.CylinderGeometry(15.3, 15.3, 1.2, 3, 1, true), mat.accent); ring.position.y = y; cp.add(ring); });
-  place(cp, 5.35, 190);
+  place(cp, 5.35, 190, 150);
   // The Center: square tower with neon rings
   const center = stack([[22, 118], [18, 12]]);
   for (let y = 30; y < 118; y += 14) { const r = box(22.4, 0.8, 22.4, mat.accent, center, 0, y, 0, false); r.material = mat.accent; }
   place(center, 3.75, 198);
-  // Supporting towers to fill the skyline
-  for (let i = 0; i < 22; i++) {
-    const a = HARBOUR[0] + 0.1 + rand() * (HARBOUR[1] - HARBOUR[0] - 0.2), r = 185 + rand() * 80;
-    const w = 14 + rand() * 12, h = 40 + rand() * 80;
-    place(stack([[w, h]]), a, r);
+  // Light-show colours on the skyline: neon bands and crowns that change hue as you scroll.
+  const showMats = [0.0, 0.2, 0.45, 0.58, 0.75, 0.88].map(h => {
+    const m = new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL(h, 1, 0.6) });
+    m.userData.hue = h;
+    return m;
+  });
+  // Supporting towers to fill the skyline, all with their lights on. Every third one gets a lit crown.
+  for (let i = 0; i < 40; i++) {
+    const a = HARBOUR[0] + 0.05 + rand() * (HARBOUR[1] - HARBOUR[0] - 0.1), r = 182 + rand() * 95;
+    const w = 12 + rand() * 12, h = 36 + rand() * 90;
+    const t = stack([[w, h]]);
+    if (i % 3 === 0) {
+      const crown = showMats[i % showMats.length];
+      box(w + 0.6, 2.2, w + 0.6, crown, t, 0, h - 4, 0, false);
+      box(w + 0.6, 1.2, w + 0.6, crown, t, 0, h * 0.55, 0, false);
+    }
+    place(t, a, r, i % 2 === 0 ? h : 0);
   }
   // The Peak and the hills behind: green, not grey
   for (let i = 0; i < 9; i++) {
@@ -263,14 +312,71 @@
     hill.position.set(Math.cos(a) * (430 + rand() * 70), 30, Math.sin(a) * (430 + rand() * 70));
     hill.rotation.y = rand() * 3;
     hill.scale.y = 1.2;
-    scene.add(hill);
+    scene.add(toBack(hill));
   }
+  toBack(skyline);
+
+  // ---------- Harbour light show: coloured searchlights from the skyline rooftops ----------
+  // Each beam is an open cone that fades along its length and towards its edges. Aim and colour
+  // are functions of scroll progress, so the show sweeps as the reader scrolls.
+  const beamGeo = new THREE.CylinderGeometry(5, 0.35, 1, 18, 1, true);
+  beamGeo.translate(0, 0.5, 0);                         // base at the origin, pointing +y
+  const beamShader = {
+    uniforms: { uColor: { value: new THREE.Color() }, uOpacity: { value: 0 } },
+    vertexShader: `
+      varying float vT; varying float vEdge;
+      void main() {
+        vT = uv.y;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vEdge = abs(dot(normalize(normalMatrix * normal), normalize(-mv.xyz)));
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor; uniform float uOpacity;
+      varying float vT; varying float vEdge;
+      void main() {
+        gl_FragColor = vec4(uColor, uOpacity * pow(1.0 - vT, 1.4) * pow(vEdge, 1.6));
+      }`,
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  };
+  const beams = [];
+  beamSources.forEach((src, i) => {
+    for (let k = 0; k < (i < 5 ? 2 : 1); k++) {          // landmarks fire two beams each
+      const m = new THREE.Mesh(beamGeo, new THREE.ShaderMaterial({ ...beamShader, uniforms: THREE.UniformsUtils.clone(beamShader.uniforms) }));
+      m.position.copy(src);
+      m.scale.set(1, 300 + rand() * 120, 1);
+      m.frustumCulled = false;
+      m.userData = {
+        az: Math.atan2(src.z, src.x) + (rand() - 0.5) * 1.2,  // roughly away from the camera
+        el: degToRad(42 + rand() * 30),
+        sweep: 0.5 + rand() * 0.6, rate: 0.8 + rand() * 1.1, phase: rand() * 6.28,
+        hue: (beams.length * 0.137) % 1,
+      };
+      scene.add(toBack(m));
+      beams.push(m);
+    }
+  });
+  const beamDir = new THREE.Vector3();
+  function layoutShow(q, strength) {
+    beams.forEach(b => {
+      const u = b.userData;
+      const az = u.az + Math.sin(q * u.rate + u.phase) * u.sweep;
+      const el = u.el + Math.sin(q * u.rate * 0.7 + u.phase * 2) * 0.22;
+      beamDir.set(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
+      b.quaternion.setFromUnitVectors(UP, beamDir);
+      b.material.uniforms.uColor.value.setHSL((u.hue + q * 0.09) % 1, 1, 0.62);
+      b.material.uniforms.uOpacity.value = strength;
+    });
+    showMats.forEach((m, i) => m.color.setHSL((m.userData.hue + q * 0.09) % 1, 1, 0.6));
+    mat.accent.color.setHSL((0.92 + q * 0.09) % 1, 1, 0.6);
+  }
+
   // Low-rise neighbours on this side of the harbour, away from the camera's path
   for (let i = 0; i < 26; i++) {
     const a = (i / 26) * Math.PI * 2 + rand() * 0.15;
     if (a > 0.05 && a < 2.75) continue;
     const r = 52 + rand() * 32, h = 10 + rand() * 26, w = 9 + rand() * 7;
-    const b = box(w, h, w, cityMaterial(w, h), scene, Math.cos(a) * r, h / 2, Math.sin(a) * r);
+    const b = box(w, h, w, cityMaterial(w, h, nearMats), scene, Math.cos(a) * r, h / 2, Math.sin(a) * r);
     box(w * 0.9, 0.6, w * 0.9, mat.green, scene, b.position.x, h + 0.3, b.position.z, false);   // green roofs
   }
 
@@ -303,22 +409,27 @@
     canopies.setColorAt(i, leaf.set(LEAVES[i % LEAVES.length]));
   }
   treeSpots.forEach(([x, z], i) => addTree(i, x, 0, z, 0.8 + rand() * 0.7));
-  [[-14, -11], [-9, 12], [13, -12], [15, 10], [-15, 4], [6, 13], [-4, -13], [14, -2], [-12, 10], [2, 12], [-15, -6], [10, 13]]
-    .forEach(([x, z], k) => addTree(treeSpots.length + k, x, PODIUM_H + 0.6, z, 0.75));
+  // A ring of trees on the plaza at the tower's foot
+  [[-20, -14], [-14, 20], [20, -16], [21, 12], [-21, 5], [8, 21], [-6, -21], [21, -3], [-17, 16], [1, 21], [-21, -7], [14, 20]]
+    .forEach(([x, z], k) => addTree(treeSpots.length + k, x, 0, z, 0.75));
   scene.add(trunks, canopies);
-
-  // ---------- Podium with a planted roof and a glowing lobby ----------
-  box(36, PODIUM_H, 32, mat.concrete, scene, 0, PODIUM_H / 2, 0);
-  box(36.4, 0.6, 32.4, mat.green, scene, 0, PODIUM_H + 0.3, 0);
-  [[0, 16.05, 30, 0.1], [0, -16.05, 30, 0.1], [18.05, 0, 0.1, 26], [-18.05, 0, 0.1, 26]]
-    .forEach(([x, z, w, d]) => box(w, 3.2, d, mat.lobby, scene, x, 2.2, z, false));
+  // A lawn under the plaza trees
+  flat(46, 46, mat.green, 0, 0, 0.035);
 
   // ---------- Floors ----------
-  const floors = [], risers = [], sensors = [], streams = [];
+  const floors = [], risers = [], sensors = [], streams = [], heaters = [];
   const sensorGeo = new THREE.SphereGeometry(0.45, 12, 10);
   const lampGeo = new THREE.PlaneGeometry(W - 2, W - 2);
   const smallCanopy = new THREE.IcosahedronGeometry(1.3, 0);
   const SKY_GARDENS = [4, 9];
+  const heaterGeo = new THREE.BufferGeometry();
+  {
+    const pts = [];
+    for (let k = -1; k <= 1; k++) pts.push(k * 6.5, 0, 8.6, k * 6.5, 0, -8.6, 8.6, 0, k * 6.5, -8.6, 0, k * 6.5);
+    heaterGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+  }
+  // Drawn over the façade (no depth test) so the heat reads through the louvres.
+  const heaterMat = new THREE.PointsMaterial({ map: makeGlowTexture(), size: 9, transparent: true, opacity: 0, depthWrite: false, depthTest: false });
 
   for (let i = 0; i < FLOORS; i++) {
     const g = new THREE.Group();
@@ -346,6 +457,14 @@
 
     const riser = box(1.3, FH, 1.3, mat.air, g, 3.8, FH / 2, 3.8, false);
     risers.push(riser);
+
+    // Perimeter heaters: glowing orange points under the windows, shown once the airflow is gone.
+    const heat = new THREE.Points(heaterGeo, heaterMat);
+    heat.position.y = 1.1;
+    heat.visible = false;
+    heat.renderOrder = 5;
+    g.add(heat);
+    heaters.push(heat);
 
     [[-6.5, -6.5], [6.5, -6.5], [-6.5, 6.5], [6.5, 6.5]].forEach(([x, z]) => {
       const s = new THREE.Mesh(sensorGeo, mat.sensor);
@@ -378,13 +497,9 @@
       [[-7, 6], [7, 7], [-7, 0], [7, 0]].forEach(([x, z]) => {
         const t = new THREE.Mesh(smallCanopy, mat.canopy); t.position.set(x, FH + 2.4, z); t.castShadow = true; g.add(t);
       });
-      [[0, W / 2 + 0.8, W + 1.6, 0.25], [0, -W / 2 - 0.8, W + 1.6, 0.25], [W / 2 + 0.8, 0, 0.25, W + 1.6], [-W / 2 - 0.8, 0, 0.25, W + 1.6]]
-        .forEach(([x, z, w, d]) => box(w, 0.5, d, mat.accent, g, x, FH + 0.6, z, false));
     }
     floors.push(g);
   }
-  // Corner light strips running up the tower (follow the floors when they separate)
-  const strips = [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([sx, sz]) => box(0.3, 1, 0.3, mat.accent, scene, sx * (W / 2 + 0.85), 0, sz * (W / 2 + 0.85), false));
 
   // Airflow arrowheads: instanced cones moving along every stream
   const ARROWS_PER = 4;
@@ -392,7 +507,7 @@
   const arrows = new THREE.InstancedMesh(arrowGeo, mat.arrow, streams.length * ARROWS_PER);
   arrows.frustumCulled = false;
   scene.add(arrows);
-  const UP = new THREE.Vector3(0, 1, 0), tangent = new THREE.Vector3(), pt = new THREE.Vector3();
+  const tangent = new THREE.Vector3(), pt = new THREE.Vector3();
   let flow = 0;
   function layoutArrows() {
     let n = 0;
@@ -452,10 +567,6 @@
       });
     }
     mullions.instanceMatrix.needsUpdate = true;
-    strips.forEach(s => {
-      const top = floors[FLOORS - 1].position.y + FH;
-      s.scale.y = top - PODIUM_H; s.position.y = PODIUM_H + (top - PODIUM_H) / 2;
-    });
   }
 
   const sunDir = new THREE.Vector3(), flatSun = new THREE.Vector3();
@@ -532,7 +643,8 @@
     return [-hx, hz - (d - 4 * hx - 2 * hz), Math.PI / 2];
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
-  const cars = Array.from({ length: 22 }, (_, i) => ({ s: i / 22 + rand() * 0.02, lane: i % 2 ? 1 : -1, v: 0.010 + rand() * 0.006 }));
+  // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
+  const cars = Array.from({ length: 22 }, (_, i) => ({ s0: i / 22 + rand() * 0.02, lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07 }));
   const carBody = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), mat.car, cars.length);
   const carCab = new THREE.InstancedMesh(new THREE.BoxGeometry(2.2, 0.8, 1.7), mat.car, cars.length);
   const lights = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.3, 1.6), mat.headlight, cars.length);
@@ -543,8 +655,8 @@
   });
   scene.add(carBody, carCab, lights);
   const people = Array.from({ length: 46 }, (_, i) => {
-    const roof = i % 4 === 0;
-    return { s: rand(), v: (0.0045 + rand() * 0.004) * (rand() < 0.5 ? 1 : -1), roof, off: (rand() - 0.5) * 2 };
+    const outer = i % 3 === 0;                          // outer pavement beyond the ring road, or the plaza
+    return { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4 };
   });
   const personGeo = new THREE.CylinderGeometry(0.32, 0.38, 1.8, 6);
   personGeo.translate(0, 0.9, 0);
@@ -553,10 +665,9 @@
   people.forEach((p, i) => crowd.setColorAt(i, C(SHIRTS[i % SHIRTS.length])));
   scene.add(crowd);
 
-  function moveTraffic(dt, nightAmt) {
+  function moveTraffic(q, nightAmt) {
     cars.forEach((c, i) => {
-      c.s += c.v * dt * c.lane * 0.6;
-      const [x, z, yaw] = rectPath(c.s, RING + c.lane * 1.8, RING + c.lane * 1.8);
+      const [x, z, yaw] = rectPath(c.s0 + c.lane * c.v * q, RING + c.lane * 1.8, RING + c.lane * 1.8);
       const dir = c.lane > 0 ? yaw : yaw + Math.PI;
       dummy.position.set(x, 0.75, z); dummy.rotation.set(0, dir, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
       carBody.setMatrixAt(i, dummy.matrix);
@@ -566,9 +677,9 @@
       lights.setMatrixAt(i, dummy.matrix);
     });
     people.forEach((p, i) => {
-      p.s += p.v * dt;
-      const [x, z, yaw] = p.roof ? rectPath(p.s, 12 + p.off, 10 + p.off) : rectPath(p.s, 23 + p.off, 21 + p.off);
-      dummy.position.set(x, p.roof ? PODIUM_H + 0.6 : 0.05, z);
+      const r = (p.outer ? RING + 5.2 : 24.8) + p.off * 0.5;
+      const [x, z, yaw] = rectPath(p.s0 + p.v * q, r, r);
+      dummy.position.set(x, 0.05, z);
       dummy.rotation.set(0, yaw, 0); dummy.scale.set(1.5, 1.5, 1.5); dummy.updateMatrix();
       crowd.setMatrixAt(i, dummy.matrix);
     });
@@ -578,12 +689,12 @@
 
   // ---------- Camera path (one keyframe per step) ----------
   const KEYS = [
-    { ang: 0.62, rad: 124, h: 22, ty: 32 },
-    { ang: 0.95, rad: 118, h: 30, ty: 34 },
-    { ang: 1.25, rad: 124, h: 28, ty: 36 },
-    { ang: 1.60, rad: 172, h: 44, ty: 56 },
-    { ang: 1.90, rad: 150, h: 32, ty: 50 },
-    { ang: 2.15, rad: 160, h: 40, ty: 52 },
+    { ang: 0.62, rad: 118, h: 16, ty: 27 },
+    { ang: 0.95, rad: 112, h: 22, ty: 28 },
+    { ang: 1.25, rad: 118, h: 22, ty: 30 },
+    { ang: 1.60, rad: 166, h: 38, ty: 48 },
+    { ang: 1.90, rad: 144, h: 26, ty: 43 },
+    { ang: 2.15, rad: 154, h: 32, ty: 45 },
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
@@ -603,11 +714,9 @@
     const sh = D.shgc.runs[S.runIndex("shgc", q)];
     const vent = q < 2.5 ? D.vent.runs[D.vent.control] : D.vent.runs[S.runIndex("vent", q)];
     const lp = q < 3.5 ? D.lpd.runs[D.lpd.control] : D.lpd.runs[S.runIndex("lpd", q)];
-    let heat = 0.25;
-    if (q >= 1.5 && q < 2.5) heat = 0.15 + 0.75 * norm(sh.gas, 2902, 3393);
-    else if (q >= 2.5 && q < 3.5) heat = 0.1 + 0.8 * norm(vent.heat, 183.2, 209.6);
-    else if (q >= 3.5 && q < 4.5) heat = 0.1 + 0.8 * norm(lp.heat, 2.93, 4.42);
-    return { shgc: q < 1.5 ? 0.70 : sh.x, cfm: vent.x, lpd: lp.x, heat: heat * smoothstep(q, 1.3, 1.6) };
+    // Heating points grow as the lighting run cuts lighting power (less lamp heat, more heating).
+    const heat = 0.3 + 0.7 * norm(lp.heat, 2.93, 4.42);
+    return { shgc: q < 1.5 ? 0.70 : sh.x, cfm: vent.x, lpd: lp.x, heat };
   }
   const live = { shgc: 0.70, cfm: 20, lpd: 0.52, heat: 0 };
   const sunScreen = new THREE.Vector3();
@@ -617,7 +726,9 @@
     const st = {
       adapt: smoothstep(q, 0.25, 1.0), wave: q * 2.2,
       explode: smoothstep(q, 1.2, 2.0), spread: smoothstep(q, 2.2, 3.0),
-      air: smoothstep(q, 2.4, 2.9),
+      // Airflow has the stage to itself in step 3, then fades out as the heating points come in.
+      air: smoothstep(q, 2.4, 2.9) * (1 - smoothstep(q, 3.15, 3.4)),
+      heat: smoothstep(q, 3.4, 3.65),
       rays: smoothstep(q, 1.25, 1.6) * (1 - smoothstep(q, 2.4, 2.8)),
       lamps: smoothstep(q, 3.25, 3.6), sense: smoothstep(q, 4.35, 4.9),
     };
@@ -625,11 +736,11 @@
     const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 8);
     for (const key in live) live[key] += (tgt[key] - live[key]) * k;
 
-    // Time of day: night → morning (0.3–1.0), day, then sunset from 2.6 and it stays sunset.
-    const day = smoothstep(q, 0.3, 1.0), dusk = smoothstep(q, 2.6, 3.6), night = 1 - day;
+    // Time of day: night → morning (0.3–1.0), daylight through step 4, sunset only in the last step.
+    const day = smoothstep(q, 0.3, 1.0), dusk = smoothstep(q, 4.0, 4.85), night = 1 - day;
     const dawn = 4 * day * (1 - day);
-    const alt = q < 1.6 ? lerp(4, 46, smoothstep(q, 0.3, 1.6)) : lerp(46, 7, smoothstep(q, 2.4, 3.8));
-    const az = lerp(200, 262, smoothstep(q, 0, 4.2));
+    const alt = q < 1.6 ? lerp(4, 46, smoothstep(q, 0.3, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
+    const az = lerp(200, 262, smoothstep(q, 0, 4.8));
     sunDir.set(Math.cos(degToRad(alt)) * Math.sin(degToRad(az)), Math.sin(degToRad(alt)), Math.cos(degToRad(alt)) * Math.cos(degToRad(az)));
     flatSun.set(sunDir.x, 0, sunDir.z).normalize();
 
@@ -656,12 +767,15 @@
     mat.car.color.copy(blend("panelTint", day, dusk));
     mat.person.color.copy(mat.car.color);
     const ctx = blend("context", day, dusk);
-    cityMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = Math.pow(night, 1.6) * 0.75; });
-    mat.brace.opacity = 0.25 + night * 0.7;
-    // The tower is the star: warm windows, lobby and neon crown at night, a glow at sunset.
+    // The city keeps its lights on all day; they brighten at night and at sunset.
+    const dark = Math.max(night, dusk);
+    cityMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = lerp(0.4, 0.85, dark); });
+    nearMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = Math.pow(dark, 1.6) * 0.75; });
+    mat.brace.opacity = 0.35 + dark * 0.6;
+    mat.accent.opacity = lerp(0.75, 1, dark);
+    layoutShow(q, lerp(0.42, 0.62, dark));
+    // The tower itself is lit only by its own windows: warm at night, a glow at sunset.
     const glow = Math.max(night, dusk * 0.55);
-    mat.accent.opacity = Math.max(night, dusk * 0.8);
-    mat.lobby.opacity = glow * 0.9;
 
     sunDisc.visible = day > 0.02;
     sunDisc.scale.setScalar(lerp(0.8, 1.6, dusk));
@@ -675,7 +789,7 @@
       if (m.visible) { m.position.copy(m.userData.aim).addScaledVector(sunDir, 90); m.quaternion.setFromUnitVectors(UP, sunDir); }
     });
 
-    floors.forEach((g, i) => { g.position.y = PODIUM_H + i * (FH + st.spread * GAP); });
+    floors.forEach((g, i) => { g.position.y = i * (FH + st.spread * GAP); });
     layoutFacade(st);
     layoutMullions(st.spread);
 
@@ -689,8 +803,6 @@
     if (rays.visible) layoutRays();
     rayMat.opacity = st.rays * lerp(0.15, 0.7, norm(live.shgc, 0.30, 0.70));
 
-    mat.core.emissive.copy(heatColor).multiplyScalar(live.heat * 0.9);
-
     // Air: thicker streams with arrows; density and speed follow outdoor air.
     const airAmt = norm(live.cfm, 10, 30);
     mat.air.opacity = st.air * lerp(0.25, 0.55, airAmt);
@@ -700,13 +812,18 @@
     arrows.visible = st.air > 0.01;
     flowSpeed = lerp(0.06, 0.22, airAmt);
 
+    // Heating: orange points under the windows, sized by the lighting run's heating load.
+    heaterMat.opacity = st.heat;
+    heaterMat.size = lerp(7, 13, live.heat);
+    heaters.forEach(h => { h.visible = st.heat > 0.01; });
+
     mat.lamp.opacity = Math.max(st.lamps * lerp(0.15, 0.95, norm(live.lpd, 0.39, 0.78)), night * 0.85);
 
     const pulse = reduceMotion ? 1 : 0.85 + 0.15 * Math.sin(time * 0.004);
     mat.sensor.opacity = st.sense;
     sensors.forEach((s, i) => { s.scale.setScalar(Math.max(0.001, st.sense * pulse * (i % 4 === 0 ? 1.15 : 1))); });
 
-    moveTraffic(reduceMotion ? 0 : dt, Math.max(night, dusk * 0.7));
+    moveTraffic(q, Math.max(night, dusk * 0.7));
 
     placeCamera(q);
     camera.updateMatrixWorld();
@@ -723,16 +840,29 @@
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
+    if (backRenderer) backRenderer.setSize(w, h, false);
     camera.aspect = w / h;
     distScale = camera.aspect < 1 ? 2.1 : 1;
-    scene.fog.near = 150 * distScale;
-    scene.fog.far = 780 * distScale;
+    scene.fog.near = 300 * distScale;
+    scene.fog.far = 950 * distScale;
+    stage.style.setProperty("--focus-blur", (w > 720 ? 3 : 2) + "px");
     if (w > 720) camera.setViewOffset(w * 1.5, h, 0, 0, w, h);
     else camera.setViewOffset(w, h * 1.1, 0, h * 0.1, w, h);
     camera.updateProjectionMatrix();
   }
 
   // ---------- Loop ----------
+  // Two passes: the backdrop (layer 1) into the blurred canvas, then the tower and streets (layer 0).
+  function render() {
+    if (backRenderer) {
+      camera.layers.set(BACK);
+      backRenderer.render(scene, camera);
+      camera.layers.set(0);
+    } else {
+      camera.layers.enable(BACK);
+    }
+    renderer.render(scene, camera);
+  }
   let current = S.progress(), running = false, last = performance.now();
   function tick(now) {
     if (!running) return;
@@ -744,7 +874,7 @@
     update(current, now, dt);
     if (!reduceMotion) flow = (flow + dt * flowSpeed) % 1;
     if (arrows.visible) layoutArrows();
-    renderer.render(scene, camera);
+    render();
     requestAnimationFrame(tick);
   }
   function start() {
@@ -768,6 +898,6 @@
   Object.assign(live, dataTargets(current));
   update(current, performance.now(), 0);
   layoutArrows();
-  renderer.render(scene, camera);
+  render();
   start();
 })();

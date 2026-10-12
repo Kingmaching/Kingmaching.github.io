@@ -184,7 +184,8 @@ em { font-style: normal; color: var(--neon); }
   mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 0, #000 22%, transparent 70%);
   mix-blend-mode: screen;
 }
-#building-canvas { display: block; width: 100%; height: 100%; }
+#building-canvas, #backdrop-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+#backdrop-canvas { filter: blur(var(--focus-blur, 3px)); }   /* skyline and light show sit out of focus behind the tower */
 .stage::after {                       /* at the end of the story the sunset fades into the next section */
   content: ""; position: absolute; inset: auto 0 0 0; height: 45%; pointer-events: none;
   background: linear-gradient(180deg, transparent, #241d27 70%, var(--night));
@@ -203,17 +204,15 @@ em { font-style: normal; color: var(--neon); }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
 .step-card > p:not(.kicker):not(.scroll-cue) { color: var(--muted-d); }
 .step-intro { align-items: stretch; padding-top: 84px; padding-bottom: 28px; }
-.intro { display: grid; grid-template-rows: auto 1fr auto; gap: 12px; width: 100%; pointer-events: auto; }
+/* Spare height is split 3:1 above and below the name, so it sits closer to the box underneath. */
+.intro { display: grid; grid-template-rows: auto minmax(0, 3fr) auto minmax(0, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
+.intro > .kicker { grid-row: 1; }
+.intro > .intro-foot { grid-row: 5; }
 .giant-name {
-  align-self: center;
+  grid-row: 3;
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(5.5rem, min(24vw, 44vh), 24rem); line-height: 0.8; letter-spacing: -0.06em;
   color: var(--text-d); text-shadow: 0 10px 60px rgba(0, 0, 0, 0.45);
-}
-.giant-name { display: flex; align-items: flex-start; gap: 0.08em; }
-.name-zh {
-  font-family: var(--font-zh); font-weight: 900; font-size: 0.32em; line-height: 1.05; letter-spacing: 0.05em;
-  writing-mode: vertical-rl; color: var(--neon); text-shadow: 0 0 24px rgba(255, 61, 110, 0.55); margin-top: 0.12em;
 }
 .intro-foot { display: grid; gap: 14px; max-width: 520px; padding: 18px 20px; border-radius: var(--radius);
   background: var(--glass); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid var(--glass-edge); }

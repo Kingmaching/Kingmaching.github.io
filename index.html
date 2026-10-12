@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Marco Ching 程敬弼</title>
+  <title>Marco Ching</title>
   <meta name="description" content="Marco Ching, Mechanical Engineering at the University of Waterloo. Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
-  <meta property="og:title" content="Marco Ching 程敬弼">
+  <meta property="og:title" content="Marco Ching">
   <meta property="og:description" content="Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#0a0d12">
@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E7%A8%8B%E6%95%AC%E5%BC%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
@@ -53,6 +53,7 @@
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <div class="sun-glare"></div>
+        <canvas id="backdrop-canvas"></canvas>
         <canvas id="building-canvas"></canvas>
         <p class="stage-note">Illustrative tower · numbers from my ME 572 models</p>
       </div>
@@ -61,7 +62,7 @@
         <article class="step step-intro" data-step="0">
           <div class="intro">
             <p class="kicker"><span class="zh">香港</span> Building performance · Waterloo · 2027</p>
-            <h1 class="giant-name"><span class="name-en">Marco<br>Ching</span><span class="name-zh" lang="zh-Hant">程敬弼</span></h1>
+            <h1 class="giant-name">Marco<br>Ching</h1>
             <div class="intro-foot">
               <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
               <div class="actions">
