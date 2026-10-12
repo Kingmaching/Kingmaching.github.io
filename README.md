@@ -3,11 +3,20 @@
 Static site served by GitHub Pages at https://kingmaching.github.io.
 
 - `index.html` holds all the text. Search for `EDIT:` to find each section.
-- `styles.css` holds colours (top of file, light and dark), fonts and layout.
-- `arm.js` draws the interactive 3D robot arm in the hero with Three.js (loaded from cdnjs).
-  If WebGL is unavailable it shows `robotic-crane-photos.png` instead.
-- `script.js` runs the project filter chips (deep-linkable as `#design`, `#research`, `#ai`)
-  and the copy-email button.
+- `styles.css` holds colours (top of file, light and dark), fonts, layout and the frosted
+  "liquid glass" panels (`.glass`).
+- `building.js` draws the scroll-driven 3D building with Three.js (loaded from cdnjs). The five
+  scroll steps in `index.html` (`.step`) line up with the five camera keyframes in `KEYS`.
+- `script.js` runs the copy-email button.
+- `Marco_Ching_Resume.pdf` is an export of the Google Doc "Marco Ching's CV".
 
-To add a project image, add an `<img class="project-img" ...>` as the first child of the
-project's `<article>` (copy the one in the Robotic Crane project).
+## Adding images
+
+No project images are attached. To add one, put the file in the repo root and add an image as
+the first line inside the project's `<article class="project">`:
+
+    <img class="project-img" src="your-image.jpg" alt="What the image shows">
+
+and add this rule to `styles.css`:
+
+    .project-img { width: 100%; border-radius: 14px; margin-bottom: 6px; }
