@@ -191,10 +191,6 @@ em { font-style: normal; color: var(--neon); }
   background: linear-gradient(180deg, transparent, #241d27 70%, var(--night));
   opacity: var(--end, 0);
 }
-.stage-note {
-  position: absolute; right: var(--gutter); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-  font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: var(--muted-d);
-}
 .steps { position: relative; margin-top: -100vh; margin-top: -100svh; pointer-events: none; }
 .step {
   display: flex; align-items: center; min-height: 100vh; min-height: 100svh;
@@ -506,7 +502,6 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .step { align-items: flex-end; padding-bottom: 28px; }
   .step-card { gap: 10px; padding: 18px; }
   .step-card h2 { font-size: 1.5rem; }
-  .stage-note { display: none; }
   .route { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .stop::before { left: 34px; right: auto; top: -50%; bottom: 50%; width: 10px; height: auto; }
   .stop-btn { grid-template-columns: auto 1fr auto; justify-items: start; align-items: center; column-gap: 14px; padding: 12px 16px; text-align: left; }
@@ -520,6 +515,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .tb-top, .tb-bottom, .field-row { grid-template-columns: minmax(0, 1fr); }
   .tb-handle { width: 150px; }
   .intro-foot { padding: 14px 16px; }
+  .kicker-sep { display: block; height: 0; overflow: hidden; }   /* degree and university on their own lines */
   /* demo SVGs shrink on phones; enlarge their text in SVG units so it stays readable */
   .d-text { font-size: 14px; }
   .d-label { font-size: 16px; }
