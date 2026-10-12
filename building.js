@@ -2,8 +2,8 @@
 // A street-level tower wrapped in an adaptive louvre facade with planted fins, set in a
 // park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
 // Scroll progress q (−3 → 5, one unit per story step, from story.js) drives:
-//  −3 → 0  night prologue (intro, background, what's next, Project 01): the camera
-//          pulls back and returns while the harbour light show sweeps
+//  −3 → 0  night prologue (intro, background, what's next, Project 01): the camera holds still
+//          while traffic, people and the harbour light show keep moving
 //   0 → 1  night to morning; the harbour light show ends as day breaks; louvres adapt to the sun
 //   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
@@ -697,13 +697,10 @@
     mat.headlight.opacity = nightAmt;
   }
 
-  // ---------- Camera path (one keyframe per step, starting at q = −PRE) ----------
-  const PRE = S.PRE || 0;
+  // ---------- Camera path (one keyframe per step) ----------
+  // Through the night prologue (q < 0) the camera holds the intro shot; only traffic, people
+  // and the light show move.
   const KEYS = [
-    { ang: 0.62, rad: 118, h: 16, ty: 27 },               // intro
-    { ang: 0.62, rad: 158, h: 34, ty: 38 },               // background: rises and pulls back to show the light show
-    { ang: 0.62, rad: 140, h: 24, ty: 32 },               // what's next: drifting back in
-    // Project 01 onwards
     { ang: 0.62, rad: 118, h: 16, ty: 27 },
     { ang: 0.95, rad: 112, h: 22, ty: 28 },
     { ang: 1.25, rad: 118, h: 22, ty: 30 },
@@ -714,7 +711,7 @@
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
   function placeCamera(q) {
-    const k = clamp(q + PRE, 0, KEYS.length - 1);
+    const k = clamp(q, 0, KEYS.length - 1);
     const i = Math.min(Math.floor(k), KEYS.length - 2);
     const t = smoothstep(k - i, 0, 1);
     const a = KEYS[i], b = KEYS[i + 1];

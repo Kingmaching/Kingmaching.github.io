@@ -208,6 +208,31 @@ em { font-style: normal; color: var(--neon); }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
 .step-card > p:not(.kicker):not(.scroll-cue) { color: var(--muted-d); }
 .step-wide { width: min(100%, 560px); }
+/* Background and What's next: full-screen panels you can see the night-time tower through */
+.step-fill { align-items: stretch; }
+.panel-full {
+  width: 100%; min-height: calc(100vh - 144px); min-height: calc(100svh - 144px);
+  grid-template-rows: auto 1fr auto; align-content: stretch; gap: clamp(16px, 3vh, 32px);
+  padding: clamp(24px, 4vw, 56px);
+}
+.glass-thin {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, transparent 45%), rgba(8, 11, 16, 0.34);
+  -webkit-backdrop-filter: blur(2px) saturate(130%); backdrop-filter: blur(2px) saturate(130%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-edge);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75);
+}
+.panel-full .kicker { font-size: 0.875rem; }
+.step-card .panel-title {
+  align-self: center; max-width: 18ch;
+  font-family: var(--font-display); font-weight: 800; color: var(--text-d);
+  font-size: clamp(2.6rem, min(7vw, 11vh), 6.6rem); line-height: 0.95; letter-spacing: -0.045em;
+}
+.step-card .statement-text.panel-title { max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
+.panel-foot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: end; }
+.panel-full .panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: #d5dae3; max-width: 52ch; }
+.panel-full .about-facts dd { font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
+.panel-full .marquee span { font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: rgba(238, 240, 244, 0.42); }
 .step-card .proj-meta { color: var(--muted-d); margin-top: 6px; }
 .step-card .proj-meta span { color: var(--neon); }
 .step-title { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.4rem, 2.2vw, 1.8rem); line-height: 1.05; letter-spacing: -0.03em; }
@@ -563,6 +588,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .route-train { width: 26px; height: 50px; margin: -25px 0 0 -13px; }
   .route-train span { inset: 9px 7px; background: repeating-linear-gradient(180deg, #1c2330 0 8px, transparent 8px 11px); }
   .route-step { padding: 0 14px; font-size: 0.85rem; }
+  .panel-foot { grid-template-columns: minmax(0, 1fr); }
   .sliders { grid-template-columns: minmax(0, 1fr); }
   .brand { font-size: 0.95rem; }
   .tb-top, .tb-bottom, .field-row { grid-template-columns: minmax(0, 1fr); }
