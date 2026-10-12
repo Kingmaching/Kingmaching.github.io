@@ -118,8 +118,8 @@
       svgEl("line", { x1: x(t), x2: x(t), y1: top - 8, y2: top + rowH * 4, class: t === 0 ? "d-axis" : "d-grid" }, vBars);
       text(vBars, x(t), top + rowH * 4 + 16, (t > 0 ? "+" : t < 0 ? "−" : "") + Math.abs(t) + "%", "d-text", "middle");
     }
-    text(vBars, x(-lim) + 2, top - 12, "← better", "d-text");
-    text(vBars, x(lim) - 2, top - 12, "worse →", "d-text", "end");
+    text(vBars, x(-lim) + 2, top - 12, "← lower", "d-text");
+    text(vBars, x(lim) - 2, top - 12, "higher →", "d-text", "end");
     const bars = RUNS.map((r, i) => {
       const y = top + i * rowH + 8;
       text(vBars, 0, y + 12, r.name, "d-label");
@@ -189,12 +189,12 @@
     toggle.addEventListener("click", () => {
       const on = toggle.getAttribute("aria-pressed") !== "true";
       toggle.setAttribute("aria-pressed", String(on));
-      toggle.textContent = on ? "Back to best vs control" : "Show all 17 runs";
+      toggle.textContent = on ? "Show lowest tested values" : "Show all 17 runs";
       vBars.classList.toggle("is-off", on);
       vRuns.classList.toggle("is-off", !on);
       title.classList.add("fade-swap"); title.style.opacity = 0;
-      setTimeout(() => { title.textContent = on ? "All 17 runs · % change vs control" : "Best tested value vs control"; title.style.opacity = 1; }, 220);
-      svg.setAttribute("aria-label", on ? "Percent change for every run of each parameter" : "Percent change from the control case for the best tested value of each parameter");
+      setTimeout(() => { title.textContent = on ? "All 17 runs: change from control" : "Lowest tested value of each variable"; title.style.opacity = 1; }, 220);
+      svg.setAttribute("aria-label", on ? "Percent change from the control for every run of each variable" : "Percent change from the control for the lowest tested value of each variable");
     });
     draw(cur);
   })();
@@ -206,8 +206,8 @@
     const W = 48, D = 34, s = Math.min(460 / W, 250 / D);
     const ox = (520 - W * s) / 2, oy = 22;
     const OPTIONS = [
-      { cols: 4, rows: 4, n: 16, fc: 42, lpd: 0.41, note: "Passes, but with no illuminance margin." },
-      { cols: 5, rows: 4, n: 20, fc: 52, lpd: 0.52, note: "Chosen: 10 fc of margin, still under the power cap." },
+      { cols: 4, rows: 4, n: 16, fc: 42, lpd: 0.41, note: "Meets the illuminance requirement, with no margin above the minimum." },
+      { cols: 5, rows: 4, n: 20, fc: 52, lpd: 0.52, note: "Selected layout: 10 fc above the minimum, within the lighting power limit." },
     ];
     const defs = svgEl("defs", {}, svg);
     const grad = svgEl("radialGradient", { id: "pool" }, defs);
@@ -215,7 +215,7 @@
     svgEl("stop", { offset: "100%", "stop-color": "#ffd88a", "stop-opacity": "0" }, grad);
     svgEl("rect", { x: ox, y: oy, width: W * s, height: D * s, fill: "#131923", stroke: "#8e98a8", "stroke-width": 2 }, svg);
     svgEl("line", { x1: ox + 2 * s, x2: ox + 46 * s, y1: oy + D * s, y2: oy + D * s, stroke: "#2a9fd6", "stroke-width": 5 }, svg);
-    text(svg, ox + 24 * s, oy + D * s + 16, "South window · 44 ft", "d-text", "middle");
+    text(svg, ox + 24 * s, oy + D * s + 16, "South-facing window", "d-text", "middle");
     text(svg, ox, oy - 8, "48 ft", "d-text");
     text(svg, ox + W * s + 6, oy + 10, "34 ft", "d-text");
     // 20 luminaires; the 4 × 4 layout parks four of them, invisible, on their neighbours
@@ -242,9 +242,9 @@
       dimText.style.opacity = 0;
       setTimeout(() => { dimText.setAttribute("x", (x1 + x2) / 2); dimText.setAttribute("y", y - 4); dimText.textContent = sx.toFixed(1) + " ft"; dimText.style.opacity = 1; }, 250);
       meters.innerHTML = `
-        <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · min 42</span>
+        <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · project minimum 42 fc</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.fc / 70) * 100}"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
-        <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b> · max 0.60</span>
+        <div class="meter"><span>Lighting power density <b>${o.lpd.toFixed(2)} W/ft²</b> · project maximum 0.60 W/ft²</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.lpd / 0.8) * 100}" style="background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
         <p class="demo-note" style="grid-column:1/-1">${o.n} luminaires. ${o.note}</p>`;
       $$(".meter-fill", meters).forEach(f => { f.style.width = (render.prev?.[f.dataset.w] ?? 0) + "%"; });
@@ -275,16 +275,15 @@
     for (let gx = 10; gx < 520; gx += 20) for (let gy = 10; gy < 260; gy += 20) svgEl("circle", { cx: gx, cy: gy, r: 0.9, fill: "#2a3344" }, svg);
     const rings = svgEl("g", {}, svg);
     svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: 6, class: "d-neon" }, svg);
-    text(svg, SRC.p[0] + 10, SRC.p[1] + 4, "Cheung Chau · source", "d-label");
+    text(svg, SRC.p[0] + 10, SRC.p[1] + 4, "Cheung Chau · estimated source area", "d-label");
     const dots = STATIONS.map((st, i) => {
       const [x, y] = st.p;
       const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#2a9fd6" }, svg);
       return d;
     });
-    text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] - 4, "Pokfulam · 2 Raspberry Shakes", "d-label");
-    text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] + 10, "280 m apart", "d-text");
-    text(svg, STATIONS[2].p[0] - 10, STATIONS[2].p[1] - 10, "Sai Kung seismograph", "d-label", "end");
-    text(svg, 10, 250, "HKO catalogue: ≥ M3.0 · this project: down to ~M1", "d-text");
+    text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] - 4, "Pokfulam · two Raspberry Shakes", "d-label");
+    text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] + 10, "280 m station spacing", "d-text");
+    text(svg, STATIONS[2].p[0] - 10, STATIONS[2].p[1] - 10, "Sai Kung · seismograph", "d-label", "end");
 
     const dist = STATIONS.map(st => Math.hypot(st.p[0] - SRC.p[0], st.p[1] - SRC.p[1]));
     const ctx = canvas.getContext("2d");
@@ -373,7 +372,7 @@
       svgEl("line", { x1: SX(0), x2: SX(18.44), y1: SZ(z), y2: SZ(z), class: "d-grid" }, svg);
       text(svg, SX(0) - 4, SZ(z) + 3, z.toFixed(1), "d-text", "end");
     }
-    text(svg, SX(0), 222, "Mound", "d-text"); text(svg, SX(18.44), 222, "Plate · 18.44 m", "d-text", "end");
+    text(svg, SX(0), 222, "Mound", "d-text"); text(svg, SX(18.44), 222, "Plate at 18.44 m", "d-text", "end");
     text(svg, SX(0), 16, "Side view (m)", "d-text");
     svgEl("rect", { x: CX(-0.35), y: SZ(2.1), width: CX(0.35) - CX(-0.35), height: SZ(0) - SZ(2.1), fill: "none", class: "d-grid" }, svg);
     svgEl("line", { x1: CX(-0.35), x2: CX(0.35), y1: SZ(0), y2: SZ(0), class: "d-axis" }, svg);
@@ -381,7 +380,7 @@
     text(svg, CX(0), 16, "At the plate", "d-text", "middle");
     text(svg, CX(-0.35), 222, "← glove side", "d-text");
     const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#2a9fd6", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
-    const mlbText = text(svg, 0, 0, "MLB range", "d-text");
+    const mlbText = text(svg, 0, 0, "MLB comparison range", "d-text");
     mlbText.classList.add("fade-swap");
     const sidePath = svgEl("polyline", { fill: "none", stroke: "#ff3d6e", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
     const ball = svgEl("circle", { r: 5, fill: "#fff" }, svg);
@@ -404,14 +403,16 @@
         const [[dz0, dz1], [dy0, dy1]] = P.mlb;
         mlbBox.setAttribute("x", CX(-dy1)); mlbBox.setAttribute("width", CX(-dy0) - CX(-dy1) || 2);
         mlbBox.setAttribute("y", CZ(1.8 - dz0)); mlbBox.setAttribute("height", CZ(1.8 - dz1) - CZ(1.8 - dz0));
-        mlbText.setAttribute("x", CX(-dy1) - 4); mlbText.setAttribute("y", CZ(1.8 - dz0) - 4); mlbText.setAttribute("text-anchor", "end");
+        mlbText.setAttribute("x", (CX(-dy1) + CX(-dy0)) / 2); mlbText.setAttribute("y", CZ(1.8 - dz0) - 6); mlbText.setAttribute("text-anchor", "middle");
         mlbBox.style.display = mlbText.style.display = "";
       } else mlbBox.style.display = mlbText.style.display = "none";
       const drop = 1.8 - Math.max(0, ez), brk = Math.abs(ey);
-      const side = ey < -0.005 ? " glove side" : "";
+      const side = ey < -0.005 ? " towards glove side" : "";
       out.innerHTML = res.reached
-        ? `<strong>Drop ${drop.toFixed(2)} m · break ${brk.toFixed(2)} m${side}</strong> · ${res.t.toFixed(2)} s to the plate. Report: ${P.report[0]} m / ${P.report[1]} m.`
-        : `<strong>Hits the ground at ${ex.toFixed(1)} m.</strong> A smooth sphere has no seam forces, so the model can’t keep a knuckleball in the air.`;
+        ? `<strong>Drop ${drop.toFixed(2)} m · lateral break ${brk.toFixed(2)} m${side}</strong> · time to plate ${res.t.toFixed(2)} s. Report comparison: drop ${P.report[0].toFixed(1)} m · lateral break ${P.report[1].toFixed(2)} m.`
+        : `<strong>The simulated ball reaches the ground at ${ex.toFixed(1)} m.</strong> ` + (current === "knuckleball"
+          ? "This model does not capture the knuckleball’s seam-driven flight behaviour."
+          : "It does not reach the plate with these settings.");
       cancelAnimationFrame(anim);
       const pts = res.path, total = reduceMotion || !animate ? 0 : 1100;
       const t0 = performance.now();
@@ -466,7 +467,7 @@
     svgEl("rect", { x: COLX - 9, y: TOPY, width: 18, height: FLOOR - 16 - TOPY, fill: "#8e98a8" }, svg);  // 2040 column
     svgEl("rect", { x: COLX, y: TOPY - 10, width: ARM + 14, height: 10, fill: "#a3adb8" }, svg);          // 2020 arm
     svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#ff3d6e" }, svg);  // target pad
-    text(svg, COLX + PAD * PX, FLOOR + 18, "target ±5 mm", "d-text", "middle");
+    text(svg, COLX + PAD * PX, FLOOR + 18, "Placement target · ±5 mm", "d-text", "middle");
     for (let c = 0; c <= 40; c += 10) text(svg, COLX + c * PX, TOPY - 16, c + "", "d-text", "middle");
     text(svg, COLX + ARM, TOPY - 16, "51 cm", "d-text", "end");
     const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#ff3d6e" }, svg);
@@ -480,7 +481,7 @@
     const dial = svgEl("g", { transform: "translate(470 210)" }, svg);
     svgEl("circle", { r: 26, fill: "none", stroke: "#2a3344", "stroke-width": 2 }, dial);
     const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#ff3d6e", "stroke-width": 3, "stroke-linecap": "round" }, dial);
-    text(dial, 0, 42, "top view", "d-text", "middle");
+    text(dial, 0, 42, "Top view", "d-text", "middle");
 
     const contactDepth = () => {          // hoist depth where the jaws (or a carried Benchy) meet the floor or the stack
       const atPad = Math.abs(st.t - PAD) <= 1.5;
@@ -502,7 +503,8 @@
       stackG.replaceChildren();
       for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#f5a623", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
       dialArm.setAttribute("transform", `rotate(${st.theta})`);
-      out.innerHTML = `<strong>Reach ${st.t.toFixed(1)} cm · hoist ${st.h.toFixed(0)} cm · base ${Math.round(st.theta)}°</strong> · Stacked ${st.stacked}/3 on the ±5 mm pad${st.stacked >= 3 ? " · validated, like the real one" : ""}`;
+      out.innerHTML = `<strong>Reach ${st.t.toFixed(1)} cm · hoist position ${st.h.toFixed(0)} cm · base angle ${Math.round(st.theta)}°</strong> · ` +
+        (st.stacked >= 3 ? "Demo complete: 3/3 objects placed." : `Objects placed: ${st.stacked}/3`);
     }
     function act(cmd) {
       if (cmd === "left") st.t = clamp(st.t - 0.5, 6, 51);
@@ -594,7 +596,7 @@
       const sag = (kg * 9.81) / KW, f = Math.sqrt((KW * 1000) / kg) / (2 * Math.PI);
       const left = TRAVEL - sag, shockF = (kg * 9.81) / MR;
       drawAt(Math.min(sag, TRAVEL), kg);
-      out.innerHTML = `<strong>Sag ${sag.toFixed(1)} mm · ride frequency ${f.toFixed(1)} Hz</strong> · shock force ${Math.round(shockF)} N · ${left > 0 ? left.toFixed(0) + " mm of travel left" : "bottomed out"}. Design point: 20 kg → 15 mm, 4.1 Hz. <button type="button" class="demo-btn" id="bump-btn">Hit a bump</button>`;
+      out.innerHTML = `<strong>Static sag ${sag.toFixed(1)} mm · ride frequency ${f.toFixed(1)} Hz</strong> · shock force ${Math.round(shockF)} N · ${left > 0 ? "remaining travel " + left.toFixed(0) + " mm" : "bottomed out"}. Design point: at 20 kg, 15 mm sag and 4.1 Hz ride frequency. <button type="button" class="demo-btn" id="bump-btn">Simulate a bump</button>`;
       $("#bump-btn").addEventListener("click", () => bump(kg, sag, f));
     }
     function bump(kg, sag, f) {
@@ -648,12 +650,12 @@
         f.setAttribute("aria-invalid", String(!ok));
         if (!ok && !bad) bad = f;
       });
-      if (bad) { say(bad.type === "email" ? "Check the email address, it needs an @ and a domain." : "Fill in every field so I know who to reply to."); bad.focus(); return; }
+      if (bad) { say(bad.type === "email" && bad.value.trim() !== "" ? "Please enter a valid email address." : "Please complete all required fields."); bad.focus(); return; }
       const [first, last, email, body] = fields.map(f => f.value.trim());
       const name = `${first} ${last}`, subject = `Website message from ${name}`;
       const key = form.dataset.accessKey;
       if (key) {
-        say("Sending…");
+        say("Sending your message…");
         try {
           const res = await fetch("https://api.web3forms.com/submit", {
             method: "POST",
@@ -663,9 +665,9 @@
           const data = await res.json();
           if (!data.success) throw new Error(data.message || "Send failed");
           form.reset();
-          say(`Sent. I’ll reply to ${email}.`, "ok");
+          say("Thanks—your message has been sent.", "ok");
         } catch (err) {
-          say(`That didn’t go through (${err.message}). Email ${TO} directly instead.`, "error");
+          say(`Your message couldn’t be sent. Please try again or email ${TO} directly.`, "error");
         }
         return;
       }
@@ -703,13 +705,13 @@
   copyButton?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(copyButton.dataset.email);
-      copyButton.textContent = "Copied";
+      copyButton.textContent = "Email copied";
     } catch {
       const range = document.createRange();
       range.selectNodeContents($(".contact-email"));
       const sel = window.getSelection();
       sel.removeAllRanges(); sel.addRange(range);
-      copyButton.textContent = "Selected, press Ctrl+C";
+      copyButton.textContent = "Couldn’t copy. Select the email address to copy it manually.";
     }
     setTimeout(() => { copyButton.textContent = "Copy email"; }, 2200);
   });

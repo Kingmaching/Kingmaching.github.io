@@ -47,19 +47,19 @@
   // overall (indigo) = cost or total energy, cool (teal) = cooling, heat (amber) = heating / gas emissions.
   const SERIES = {
     shgc: [
-      { key: "cost", name: "Energy cost", tone: "overall" },
-      { key: "cool", name: "Peak cooling", tone: "cool" },
-      { key: "ghg", name: "GHG emissions", tone: "heat" },
+      { key: "cost", name: "Energy cost", short: "cost", tone: "overall" },
+      { key: "cool", name: "Peak cooling load", short: "cooling", tone: "cool" },
+      { key: "ghg", name: "GHG emissions", short: "emissions", tone: "heat" },
     ],
     vent: [
-      { key: "cost", name: "Energy cost", tone: "overall" },
-      { key: "cool", name: "Peak cooling", tone: "cool" },
-      { key: "ghg", name: "GHG emissions", tone: "heat" },
+      { key: "cost", name: "Energy cost", short: "cost", tone: "overall" },
+      { key: "cool", name: "Peak cooling load", short: "cooling", tone: "cool" },
+      { key: "ghg", name: "GHG emissions", short: "emissions", tone: "heat" },
     ],
     lpd: [
-      { key: "eui", name: "Total EUI", tone: "overall" },
-      { key: "cool", name: "Cooling", tone: "cool" },
-      { key: "heat", name: "Heating", tone: "heat" },
+      { key: "eui", name: "Total EUI", short: "EUI", tone: "overall" },
+      { key: "cool", name: "Cooling", short: "Cooling", tone: "cool" },
+      { key: "heat", name: "Heating", short: "Heating", tone: "heat" },
     ],
   };
 
@@ -69,7 +69,11 @@
 
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const pct = (v, base) => (v - base) / base;
-  const fmtPct = p => (p > 0 ? "+" : p < 0 ? "−" : "±") + Math.abs(p * 100).toFixed(1) + "%";
+  const fmtPct = p => {
+    const s = Math.abs(p * 100).toFixed(1);
+    return (s === "0.0" ? "" : p > 0 ? "+" : "−") + s + "%";
+  };
+  const lowerFirst = name => name.replace(/^[A-Z](?=[a-z])/, c => c.toLowerCase());   // "Peak cooling load" → "peak…", "GHG" stays
   const fmtInt = v => Math.round(v).toLocaleString("en-US");
 
   function runIndex(name, q) {
@@ -130,7 +134,7 @@
     for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 11) ends[i].y = ends[i - 1].y + 11;
     ends.forEach(e => {
       const t = el("text", { x: W - m.r + 6, y: e.y + 3, class: "end-label" }, svg);
-      t.textContent = `${e.s.name.split(" ").pop()} ${fmtPct(e.v)}`;
+      t.textContent = `${e.s.short} ${fmtPct(e.v)}`;
     });
 
     // Hover columns: wider than the marks.
@@ -165,33 +169,32 @@
       dot.setAttribute("cy", c.y(c.values[si][i]));
     });
     const r = d.runs[i];
-    const parts = series.map((s, si) => `${s.name} ${fmtPct(c.values[si][i])}`);
+    const parts = series.map((s, si) => `${lowerFirst(s.name)} ${fmtPct(c.values[si][i])}`);
     const tag = i === d.control ? " (control)" : "";
-    c.readout.textContent = `${d.label} ${d.fmt(r.x)}${d.unit}${tag}: ${parts.join(", ")}`;
+    c.readout.textContent = `${d.label} ${d.fmt(r.x)}${d.unit}${tag}: ${parts.join(" · ")}`;
   }
 
+  // The ENERGY STAR comparison rows (DATA.baseline.starMedian / star25) are left out until their source,
+  // year and percentile meaning are confirmed against the ME 572 report. The values stay in DATA.
   function buildBenchmarkChart(fig) {
     const b = DATA.baseline;
     const rows = [
-      { name: "My model (predicted)", v: b.eui, cls: "bar-model" },
-      { name: "ENERGY STAR median", v: b.starMedian, cls: "bar-bench" },
-      { name: "ENERGY STAR 25th pct.", v: b.star25, cls: "bar-bench" },
-      { name: "Measured", v: null, cls: "bar-empty" },
+      { name: "My model · predicted", v: b.eui, cls: "bar-model" },
+      { name: "Measured · this building", v: null },
     ];
     const W = 320, rowH = 28, m = { l: 132, r: 46 };
     const H = rows.length * rowH + 6;
     const max = 130;
     const x = v => m.l + (v / max) * (W - m.l - m.r);
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart-svg", role: "img",
-      "aria-label": "Site energy use intensity in kBtu per square foot per year: model 104.3, ENERGY STAR median 85, 25th percentile 118, measured no data yet" });
+      "aria-label": "Site energy use intensity in kBtu per square foot per year: model prediction 104.3; measured performance not available" });
     rows.forEach((r, i) => {
       const cy = i * rowH + 4;
       const lab = el("text", { x: m.l - 8, y: cy + 15, class: "bar-label", "text-anchor": "end" }, svg);
       lab.textContent = r.name;
-      if (r.v == null) {
-        el("rect", { x: m.l, y: cy + 4, width: x(b.eui) - m.l, height: 16, rx: 4, class: r.cls }, svg);
-        const t = el("text", { x: m.l + 8, y: cy + 16, class: "bar-empty-text" }, svg);
-        t.textContent = "no data yet";
+      if (r.v == null) {                  // text only: an empty bar would read as zero energy use
+        const t = el("text", { x: m.l, y: cy + 16, class: "bar-empty-text" }, svg);
+        t.textContent = "not available";
       } else {
         el("rect", { x: m.l, y: cy + 4, width: x(r.v) - m.l, height: 16, rx: 4, class: r.cls }, svg);
         const t = el("text", { x: x(r.v) + 6, y: cy + 16, class: "bar-value" }, svg);
@@ -200,7 +203,7 @@
     });
     const legend = document.createElement("p");
     legend.className = "chart-readout";
-    legend.textContent = "Site EUI, kBtu/ft²·yr. ENERGY STAR values are benchmarks from surveyed real offices.";
+    legend.textContent = "Site energy use intensity (EUI), kBtu/ft²·yr. Model prediction only; no measured data yet.";
     fig.replaceChildren(svg, legend);
   }
 
