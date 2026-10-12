@@ -1,82 +1,57 @@
-// Marco Ching Portfolio interactions
+// Marco Ching portfolio interactions
 
-const tabs = [...document.querySelectorAll(".category-tab")];
-const panels = [...document.querySelectorAll(".category-panel")];
-const navCategoryLinks = [...document.querySelectorAll("[data-category-link]")];
+// Project tabs. Panels can be deep-linked as #design, #research or #ai.
+const tabs = [...document.querySelectorAll(".tab")];
+const panels = [...document.querySelectorAll(".panel")];
 
-function showCategory(category) {
+function showPanel(id, focus = false) {
   tabs.forEach(tab => {
-    const active = tab.dataset.category === category;
-    tab.classList.toggle("active", active);
+    const active = tab.dataset.tab === id;
     tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    if (active && focus) tab.focus();
   });
-
-  panels.forEach(panel => {
-    panel.classList.toggle("active", panel.dataset.panel === category);
-  });
+  panels.forEach(panel => { panel.hidden = panel.id !== id; });
 }
 
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => showCategory(tab.dataset.category));
+tabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => showPanel(tab.dataset.tab));
+  tab.addEventListener("keydown", event => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const next = tabs[(i + step + tabs.length) % tabs.length];
+    showPanel(next.dataset.tab, true);
+  });
 });
 
-// Desktop work dropdown
-const dropdown = document.querySelector(".nav-dropdown");
-const dropdownButton = document.querySelector(".nav-dropdown-button");
-
-dropdownButton?.addEventListener("click", event => {
-  event.stopPropagation();
-  const isOpen = dropdown.classList.toggle("open");
-  dropdownButton.setAttribute("aria-expanded", String(isOpen));
-});
-
-document.addEventListener("click", event => {
-  if (dropdown && !dropdown.contains(event.target)) {
-    dropdown.classList.remove("open");
-    dropdownButton?.setAttribute("aria-expanded", "false");
+function openFromHash() {
+  const id = location.hash.slice(1);
+  if (tabs.some(tab => tab.dataset.tab === id)) {
+    showPanel(id);
+    document.querySelector("#work")?.scrollIntoView();
   }
-});
-
-navCategoryLinks.forEach(link => {
-  link.addEventListener("click", () => {
-    const category = link.dataset.categoryLink;
-    showCategory(category);
-    document.querySelector("#work")?.scrollIntoView({ behavior: "smooth" });
-    dropdown?.classList.remove("open");
-    dropdownButton?.setAttribute("aria-expanded", "false");
-    closeMobileMenu();
-  });
-});
-
-// Mobile menu
-const menuButton = document.querySelector(".menu-button");
-const navLinks = document.querySelector(".nav-links");
-
-function closeMobileMenu() {
-  navLinks?.classList.remove("open");
-  menuButton?.setAttribute("aria-expanded", "false");
-  document.body.classList.remove("menu-open");
 }
+window.addEventListener("hashchange", openFromHash);
+openFromHash();
 
-menuButton?.addEventListener("click", () => {
-  const isOpen = navLinks.classList.toggle("open");
-  menuButton.setAttribute("aria-expanded", String(isOpen));
-  document.body.classList.toggle("menu-open", isOpen);
-});
-
-document.querySelectorAll(".nav-links > a").forEach(link => {
-  link.addEventListener("click", closeMobileMenu);
-});
-
-// Automatically close other "Other projects" drawers when one is opened.
-document.querySelectorAll(".other-projects").forEach(details => {
-  details.addEventListener("toggle", () => {
-    if (details.open) {
-      document.querySelectorAll(".other-projects").forEach(other => {
-        if (other !== details) other.open = false;
-      });
-    }
-  });
+// Copy email, falling back to selecting the address.
+const copyButton = document.querySelector("#copy-email");
+copyButton?.addEventListener("click", async () => {
+  const email = copyButton.dataset.email;
+  try {
+    await navigator.clipboard.writeText(email);
+    copyButton.textContent = "Copied";
+  } catch {
+    const target = document.querySelector(".contact-email");
+    const range = document.createRange();
+    range.selectNodeContents(target);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    copyButton.textContent = "Selected, press Ctrl+C";
+  }
+  setTimeout(() => { copyButton.textContent = "Copy email"; }, 2200);
 });
 
 document.querySelector("#year").textContent = new Date().getFullYear();
