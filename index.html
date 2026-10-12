@@ -2,456 +2,481 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Marco Ching — Mechanical Engineering portfolio in design, research, BIM, building systems, robotics and AI.">
-  <meta name="theme-color" content="#ffffff">
-  <title>Marco Ching | Engineering Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Marco Ching</title>
+  <meta name="description" content="Marco Ching, Mechanical Engineering at the University of Waterloo. Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
+  <meta property="og:title" content="Marco Ching">
+  <meta property="og:description" content="Building energy modelling, adaptive façades, ventilation and building performance, from Hong Kong.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0a0d12">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
+  <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script src="story.js" defer></script>
+  <script src="building.js" defer></script>
+  <script src="sections.js" defer></script>
 </head>
 
 <body>
   <!-- =========================================================
-       EDITING NOTE:
-       Almost all visible text is inside this index.html file.
-       Search for the section comments beginning with "EDIT:".
-       See EDITING_GUIDE.md for exact instructions.
+       EDITING NOTE
+       All visible text lives in this file. Search for "EDIT:" to
+       jump to each section. Colours and fonts: top of styles.css.
+       3D tower: building.js. Hero charts + ME 572 data: story.js.
+       Project demos, route map, toolbox, contact form, smooth scrolling: sections.js.
        ========================================================= -->
 
-  <header class="site-header">
-    <nav class="nav shell" aria-label="Primary navigation">
-      <a class="brand" href="#top">Marco Ching</a>
-
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="nav-links">
-        <span></span><span></span><span></span>
-        <span class="sr-only">Open navigation</span>
-      </button>
-
-      <div class="nav-links" id="nav-links">
-        <div class="nav-dropdown">
-          <button class="nav-dropdown-button" type="button" aria-expanded="false">
-            Work <span aria-hidden="true">⌄</span>
-          </button>
-          <div class="nav-dropdown-menu">
-            <button class="nav-filter-link" data-category-link="design">Design</button>
-            <button class="nav-filter-link" data-category-link="research">Research</button>
-            <button class="nav-filter-link" data-category-link="ai">AI & Autonomy</button>
-          </div>
-        </div>
+  <header class="topbar">
+    <nav class="topbar-inner glass" aria-label="Primary">
+      <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Marco Ching</a>
+      <div class="nav-links">
+        <a href="#projects">Projects</a>
         <a href="#experience">Experience</a>
-        <a href="#recognition">Recognition</a>
-        <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a>
+        <a href="#skills">Skills</a>
+        <a href="#contact">Contact</a>
+        <a class="nav-cta" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
       </div>
     </nav>
   </header>
 
   <main id="top">
-    <!-- EDIT: HERO ------------------------------------------------>
-    <section class="hero shell">
-      <p class="hero-kicker">MECHANICAL ENGINEERING · UNIVERSITY OF WATERLOO</p>
-      <h1>Engineering across <span>design, research, and intelligent systems.</span></h1>
-      <p class="hero-copy">
-        I build physical systems, investigate how they behave, and use digital tools to make
-        engineering workflows more capable — from CAD and robotics to BIM, building systems,
-        sensors, and emerging AI applications.
-      </p>
-
-      <div class="hero-actions">
-        <a class="button button-dark" href="#work">View selected work</a>
-        <a class="button button-light" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+    <!-- EDIT: SCROLL STORY ----------------------------------------
+         Six steps, one screen each. building.js takes the tower apart
+         as the reader scrolls; story.js steps the charts through the
+         real ME 572 runs. -->
+    <section class="story" id="story" aria-label="A building taken apart, layer by layer">
+      <div class="stage" aria-hidden="true">
+        <div class="sun-glare"></div>
+        <canvas id="backdrop-canvas"></canvas>
+        <canvas id="building-canvas"></canvas>
+        <p class="stage-note">Illustrative tower · numbers from my ME 572 models</p>
       </div>
 
-      <div class="hero-meta">
-        <span>Toronto / Hong Kong</span>
-        <a href="mailto:mkbching@uwaterloo.ca">mkbching@uwaterloo.ca</a>
-        <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <div class="steps">
+        <article class="step step-intro" data-step="0">
+          <div class="intro">
+            <p class="kicker"><span class="zh">香港</span> Building performance · Waterloo · 2027</p>
+            <h1 class="giant-name">Marco<br>Ching</h1>
+            <div class="intro-foot">
+              <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
+              <div class="actions">
+                <a class="btn btn-neon" href="#projects">See projects</a>
+                <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF)&nbsp;↗</a>
+              </div>
+              <p class="scroll-cue">Scroll from night to sunset</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step" data-step="1">
+          <div class="step-card glass">
+            <p class="kicker">01 · Shading</p>
+            <h2>Façades that react to the sun.</h2>
+            <p>An adaptive skin closes against low sun and opens when the outside air helps.</p>
+          </div>
+        </article>
+
+        <article class="step" data-step="2">
+          <div class="step-card glass">
+            <p class="kicker">02 · Envelope</p>
+            <h2>One variable, <em>three answers</em>.</h2>
+            <p>Lower glazing SHGC: cooling −31.5%, emissions +10.6%.</p>
+            <figure class="chart" data-chart="shgc"></figure>
+          </div>
+        </article>
+
+        <article class="step" data-step="3">
+          <div class="step-card glass">
+            <p class="kicker">03 · Air</p>
+            <h2>Outdoor air is a <em>heating</em> load.</h2>
+            <p>30 → 10 cfm/person barely moves cooling but swings emissions 18 points.</p>
+            <figure class="chart" data-chart="vent"></figure>
+          </div>
+        </article>
+
+        <article class="step" data-step="4">
+          <div class="step-card glass">
+            <p class="kicker">04 · Lighting</p>
+            <h2>Less light, <em>more heat</em>.</h2>
+            <p>−25% lighting power: EUI −6.3%, heating +13.6%.</p>
+            <figure class="chart" data-chart="lpd"></figure>
+          </div>
+        </article>
+
+        <article class="step" data-step="5">
+          <div class="step-card glass">
+            <p class="kicker">05 · Measurement</p>
+            <h2>Predicted. <em>Not yet measured.</em></h2>
+            <p>Next: instrument real buildings and explain the gap, starting with Hong Kong.</p>
+            <figure class="chart" data-chart="benchmark"></figure>
+          </div>
+        </article>
       </div>
     </section>
 
-    <!-- Main page intentionally keeps ONE work section.
-         Category buttons swap the content instead of adding long scrolling sections. -->
-    <section class="work-section" id="work">
-      <div class="shell">
-        <div class="section-intro">
-          <div>
-            <p class="eyebrow">SELECTED WORK</p>
-            <h2>One portfolio. Three directions.</h2>
+    <!-- EDIT: STATEMENT -------------------------------------------->
+    <section class="statement" id="direction">
+      <div class="wrap">
+        <p class="label"><span class="zh">方向</span> (01) What’s next</p>
+        <p class="statement-text" data-reveal>
+          Every number above came from a model. Next, I want to <b>measure</b> buildings like this one and find out where <b>reality disagrees</b>.
+        </p>
+      </div>
+      <div class="marquee" aria-label="Research interests">
+        <div class="marquee-track">
+          <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive façades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
+          <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive façades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDIT: PROJECTS --------------------------------------------
+         Each project has a short info column and its own live demo,
+         built from the numbers in the report. -->
+    <section class="projects" id="projects">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="label"><span class="zh">項目</span> (02) Projects</p>
+          <h2>Six projects.<br><em>Try each one.</em></h2>
+        </header>
+
+        <!-- 1. ME 572 envelope study -->
+        <article class="proj">
+          <div class="proj-info">
+            <p class="proj-meta"><span>01</span>ME 572 · 2026</p>
+            <h3>Whole-building energy model</h3>
+            <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
+            <dl class="proj-stats">
+              <div><dt>Runs</dt><dd>17</dd></div>
+              <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
+              <div><dt>Emissions</dt><dd>+10.6%</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
-          <p>
-            Switch between design, research, and AI/autonomy without leaving the page.
-            The strongest projects stay visible; older work is tucked into “Other projects.”
+          <div class="demo" data-demo="envelope">
+            <div class="demo-bar">
+              <span class="demo-title" id="envelope-title">Best tested value vs control</span>
+              <div class="seg" role="group" aria-label="Metric">
+                <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
+                <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
+                <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
+              </div>
+            </div>
+            <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
+            <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
+          </div>
+        </article>
+
+        <!-- 2. Lighting design -->
+        <article class="proj proj-flip">
+          <div class="proj-info">
+            <p class="proj-meta"><span>02</span>ME 572 · 2026</p>
+            <h3>Office lighting layout</h3>
+            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
+            <dl class="proj-stats">
+              <div><dt>Illuminance</dt><dd>52 fc</dd></div>
+              <div><dt>Power</dt><dd>0.52 W/ft²</dd></div>
+              <div><dt>Luminaires</dt><dd>20</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+          </div>
+          <div class="demo" data-demo="lighting">
+            <div class="demo-bar">
+              <span class="demo-title">Plan view · 48 × 34 ft</span>
+              <div class="seg" role="group" aria-label="Layout option">
+                <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
+                <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
+              </div>
+            </div>
+            <svg class="demo-svg" id="lighting-svg" viewBox="0 0 520 300" role="img" aria-label="Office plan with luminaire grid"></svg>
+            <div class="meters" id="lighting-meters"></div>
+          </div>
+        </article>
+
+        <!-- 3. Seismic monitoring -->
+        <article class="proj">
+          <div class="proj-info">
+            <p class="proj-meta"><span>03</span>IEEE YEC · 3rd place</p>
+            <h3>Listening to Hong Kong’s old volcano</h3>
+            <p>Two Raspberry Shake geophones in Pokfulam, a seismograph in Sai Kung, and triangulated tremors near Cheung Chau too small for the Observatory’s list.</p>
+            <dl class="proj-stats">
+              <div><dt>Detects</dt><dd>~M1</dd></div>
+              <div><dt>HKO lists</dt><dd>≥M3</dd></div>
+              <div><dt>Station gap</dt><dd>280 m</dd></div>
+            </dl>
+            <a class="proj-link" href="https://docs.google.com/presentation/d/1tkdNsuMAD67OgtxQ-YM7wEmLvsL-Ea81CECaYw2BRl0/edit?usp=sharing" target="_blank" rel="noopener">See the poster ↗</a>
+          </div>
+          <div class="demo" data-demo="seismic">
+            <div class="demo-bar">
+              <span class="demo-title">Schematic · stations and source</span>
+              <button type="button" class="demo-btn" id="quake-btn">Trigger a tremor</button>
+            </div>
+            <svg class="demo-svg" id="seismic-svg" viewBox="0 0 520 260" role="img" aria-label="Schematic map of Cheung Chau, Pokfulam and Sai Kung with a wave travelling to the stations"></svg>
+            <canvas class="traces" id="seismic-traces" width="520" height="120" aria-hidden="true"></canvas>
+            <p class="demo-note">Illustrative traces. Real waveforms are on the poster (18 Aug 2021).</p>
+          </div>
+        </article>
+
+        <!-- 4. Baseball aerodynamics -->
+        <article class="proj proj-flip">
+          <div class="proj-info">
+            <p class="proj-meta"><span>04</span>ME 362 · 2025</p>
+            <h3>Pitch aerodynamics</h3>
+            <p>My MATLAB model of drag and spin-dependent Magnus lift, re-built here so you can throw it. It matches MLB Statcast for three of four pitches; the knuckleball needs seams.</p>
+            <dl class="proj-stats">
+              <div><dt>Curveball drop</dt><dd>1.5 m</dd></div>
+              <div><dt>Slider break</dt><dd>0.48 m</dd></div>
+              <div><dt>Re</dt><dd>~2×10⁵</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/170KikfBvYJqbIyHyzvZuVhXJN9q0Hq_5/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+          </div>
+          <div class="demo" data-demo="pitch">
+            <div class="demo-bar">
+              <div class="seg" role="group" aria-label="Pitch">
+                <button type="button" data-pitch="fastball" aria-pressed="false">Fastball</button>
+                <button type="button" data-pitch="curveball" aria-pressed="true">Curve</button>
+                <button type="button" data-pitch="slider" aria-pressed="false">Slider</button>
+                <button type="button" data-pitch="knuckleball" aria-pressed="false">Knuckle</button>
+              </div>
+            </div>
+            <div class="sliders">
+              <label for="pitch-v">Release speed <output id="pitch-v-out">35 m/s</output></label>
+              <input type="range" id="pitch-v" min="25" max="45" step="1" value="35">
+              <label for="pitch-rpm">Spin <output id="pitch-rpm-out">2600 rpm</output></label>
+              <input type="range" id="pitch-rpm" min="0" max="3000" step="50" value="2600">
+            </div>
+            <svg class="demo-svg" id="pitch-svg" viewBox="0 0 520 230" role="img" aria-label="Side view and catcher's view of the simulated pitch"></svg>
+            <p class="demo-readout" id="pitch-readout"></p>
+          </div>
+        </article>
+
+        <!-- 5. Robotic crane -->
+        <article class="proj">
+          <div class="proj-info">
+            <p class="proj-meta"><span>05</span>Mechatronics · 2025</p>
+            <h3>Five-axis robotic crane</h3>
+            <p>Turntable base, belt-driven arm, worm-gear hoist and a rotating gripper, driven from a game controller in C++.</p>
+            <dl class="proj-stats">
+              <div><dt>Reach</dt><dd>51 cm</dd></div>
+              <div><dt>Accuracy</dt><dd>±5 mm</dd></div>
+              <div><dt>Axes</dt><dd>5</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+          </div>
+          <div class="demo" data-demo="crane" tabindex="0" aria-label="Crane controls: arrow keys move the trolley and hoist, Q and E rotate, space closes the gripper">
+            <div class="demo-bar">
+              <span class="demo-title">Drive it like the D-pad</span>
+              <span class="keys"><kbd>←</kbd><kbd>→</kbd> trolley <kbd>↑</kbd><kbd>↓</kbd> hoist <kbd>Q</kbd><kbd>E</kbd> rotate <kbd>Space</kbd> grip</span>
+            </div>
+            <svg class="demo-svg" id="crane-svg" viewBox="0 0 520 280" role="img" aria-label="Side view of the crane"></svg>
+            <div class="pad" aria-label="On-screen controls">
+              <button type="button" data-crane="left" aria-label="Trolley in">←</button>
+              <button type="button" data-crane="right" aria-label="Trolley out">→</button>
+              <button type="button" data-crane="up" aria-label="Hoist up">↑</button>
+              <button type="button" data-crane="down" aria-label="Hoist down">↓</button>
+              <button type="button" data-crane="ccw" aria-label="Rotate left">Q</button>
+              <button type="button" data-crane="cw" aria-label="Rotate right">E</button>
+              <button type="button" data-crane="grip" aria-label="Toggle gripper">Grip</button>
+            </div>
+            <p class="demo-readout" id="crane-readout"></p>
+          </div>
+        </article>
+
+        <!-- 6. Capstone wagon -->
+        <article class="proj proj-flip">
+          <div class="proj-info">
+            <p class="proj-meta"><span>06</span>ME 481 Capstone · now</p>
+            <h3>All-terrain electric wagon</h3>
+            <p>I designed the steering, which falls back to manual if the motors fail, and the trailing-arm suspension shared by all four wheels.</p>
+            <dl class="proj-stats">
+              <div><dt>Ride frequency</dt><dd>4.1 Hz</dd></div>
+              <div><dt>Wheel travel</dt><dd>50 mm</dd></div>
+              <div><dt>Powertrain</dt><dd>36 V</dd></div>
+            </dl>
+            <a class="proj-link" href="https://drive.google.com/file/d/1iHX16wDuQlWoo2We_pLd0g6E9CP2kmpn/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+          </div>
+          <div class="demo" data-demo="suspension">
+            <div class="demo-bar">
+              <span class="demo-title">One corner · trailing arm</span>
+            </div>
+            <div class="sliders">
+              <label for="susp-load">Load on this corner <output id="susp-load-out">20 kg</output></label>
+              <input type="range" id="susp-load" min="5" max="45" step="1" value="20">
+            </div>
+            <svg class="demo-svg" id="susp-svg" viewBox="0 0 520 230" role="img" aria-label="Trailing-arm suspension compressing under load"></svg>
+            <p class="demo-readout" id="susp-readout"></p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- EDIT: EXPERIENCE: an MTR-style route ----------------------->
+    <section class="experience" id="experience">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="label"><span class="zh">經驗</span> (03) Experience</p>
+          <h2>The route <em>so far</em>.</h2>
+        </header>
+
+        <ol class="route" role="list">
+          <li class="stop" style="--line: var(--line-uw)">
+            <button type="button" class="stop-btn" data-stop="uw" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">滑鐵盧</span><span class="stop-en">Waterloo</span><span class="stop-year">2022</span>
+            </button>
+          </li>
+          <li class="stop" style="--line: var(--line-airport)">
+            <button type="button" class="stop-btn" data-stop="aahk" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">機場</span><span class="stop-en">Airport</span><span class="stop-year">2025</span>
+            </button>
+          </li>
+          <li class="stop" style="--line: var(--line-ttc)">
+            <button type="button" class="stop-btn" data-stop="wsp" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">多倫多</span><span class="stop-en">Toronto</span><span class="stop-year">2026</span>
+            </button>
+          </li>
+          <li class="stop" style="--line: var(--line-tw)">
+            <button type="button" class="stop-btn" data-stop="chevalier" aria-pressed="true">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">葵涌</span><span class="stop-en">Kwai Chung</span><span class="stop-year">Now</span>
+            </button>
+          </li>
+          <li class="stop stop-next" style="--line: var(--neon)">
+            <button type="button" class="stop-btn" data-stop="next" aria-pressed="false">
+              <span class="stop-dot" aria-hidden="true"></span>
+              <span class="stop-zh">研究院</span><span class="stop-en">Grad school</span><span class="stop-year">2027</span>
+            </button>
+          </li>
+        </ol>
+
+        <!-- EDIT: one panel per stop -->
+        <div class="stop-panels">
+          <article class="stop-panel" data-panel="uw" hidden>
+            <p class="panel-when">09/2022 – 06/2027 · Waterloo, Canada</p>
+            <h3>University of Waterloo</h3>
+            <p class="panel-role">BASc, Honours Mechanical Engineering Co-op</p>
+            <p>Building Energy Analysis, Fluid Power Control Systems. Next term: HVAC Systems, HVAC Load Analysis and Fire Safety Engineering.</p>
+            <p class="panel-stat"><strong>2023</strong> President’s Scholarship</p>
+          </article>
+          <article class="stop-panel" data-panel="aahk" hidden>
+            <p class="panel-when">06/2025 – 08/2025 · Hong Kong International Airport</p>
+            <h3>Airport Authority Hong Kong</h3>
+            <p class="panel-role">BIM Engineering Trainee</p>
+            <p>Built a Dynamo–Power BI workflow for BIM analytics during the move to Autodesk Construction Cloud, and worked on SLAM and LiDAR for a waste-sorting patrol robot.</p>
+            <p class="panel-stat"><strong>20+</strong> airport Revit models reviewed</p>
+          </article>
+          <article class="stop-panel" data-panel="wsp" hidden>
+            <p class="panel-when">01/2026 – 04/2026 · Toronto, Canada</p>
+            <h3>WSP Global Inc.</h3>
+            <p class="panel-role">BIM Co-op Student</p>
+            <p>HVAC and plumbing models for the Eglinton Crosstown West Extension, and sprinkler and water layouts for Union Station’s Blue Route, Phases 2–6.</p>
+            <p class="panel-stat"><strong>10</strong> project scopes through IFC review</p>
+          </article>
+          <article class="stop-panel" data-panel="chevalier">
+            <p class="panel-when">09/2026 – present · Kwai Chung, Hong Kong</p>
+            <h3>Chevalier Group</h3>
+            <p class="panel-role">Envirotech Trainee</p>
+            <p>Hydraulic and process calculations for water-treatment chemical dosing: storage sizing, 4:1 turndown, pipe sizing, head loss, pump selection against Arup and WSD requirements.</p>
+            <p class="panel-stat"><strong>640</strong> MLD treatment works</p>
+          </article>
+          <article class="stop-panel" data-panel="next" hidden>
+            <p class="panel-when">From 2027</p>
+            <h3>Graduate study in building performance</h3>
+            <p class="panel-role">Next stop</p>
+            <p>Adaptive façades, natural ventilation and sensing, with one question: does the real building do what the model said?</p>
+            <p class="panel-stat"><strong>下一站</strong> next stop</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDIT: SKILLS: a toolbox, one compartment per skill group ----------->
+    <section class="skills" id="skills">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="label"><span class="zh">技能</span> (04) Skills</p>
+          <h2>The <em>toolbox</em>.</h2>
+        </header>
+        <div class="toolbox" id="toolbox">
+          <div class="tb-handle" aria-hidden="true"></div>
+          <div class="tb-lid" aria-hidden="true"><span>M. CHING · TOOLS</span></div>
+          <div class="tb-body">
+            <div class="tb-tray tb-top">
+            <section class="bin g-energy">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 1 2 2v9.3a4 4 0 1 1-4 0V5a2 2 0 0 1 2-2z"/><path d="M12 9v7"/></svg>Building energy<span>7</span></h3>
+              <ul><li>Energy modelling</li><li>COMFEN</li><li>HVAC loads</li><li>ASHRAE 90.1</li><li>U-values</li><li>Lighting design</li><li>Fire protection</li></ul>
+            </section>
+            <section class="bin g-fluid">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>Fluid systems<span>6</span></h3>
+              <ul><li>Head loss</li><li>Pipe sizing</li><li>Pumps</li><li>P&amp;IDs</li><li>Hydraulics</li><li>Pneumatics</li></ul>
+            </section>
+            <section class="bin g-fab">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>Fabrication<span>3</span></h3>
+              <ul><li>3D printing</li><li>Laser cutting</li><li>Machining</li></ul>
+            </section>
+            </div>
+            <div class="tb-tray tb-bottom">
+            <section class="bin g-design">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4"/><path d="M7 17l2 2M10 14l2 2M13 11l2 2M16 8l2 2"/></svg>Design &amp; BIM<span>11</span></h3>
+              <ul><li>Revit</li><li>Navisworks</li><li>SolidWorks</li><li>AutoCAD</li><li>Dynamo</li><li>ACC</li><li>Bluebeam</li><li>Power BI</li><li>ArcGIS</li><li>GD&amp;T</li><li>DFM/A</li></ul>
+            </section>
+            <section class="bin g-code">
+              <h3><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>Code &amp; controls<span>8</span></h3>
+              <ul><li>C++</li><li>MATLAB</li><li>Simulink</li><li>PLC</li><li>Arduino</li><li>Raspberry Pi</li><li>Sensors</li><li>Motor control</li></ul>
+            </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDIT: CONTACT ----------------------------------------------
+         The form sends through Web3Forms when data-access-key is set
+         (free key from web3forms.com, tied to your Gmail). Without a key it
+         opens the visitor's email app with the message filled in. -->
+    <section class="contact" id="contact">
+      <div class="wrap contact-grid">
+        <div class="contact-side">
+          <p class="label"><span class="zh">聯絡</span> (05) Contact</p>
+          <h2>Working on façades, ventilation or building performance? <em>Let’s talk.</em></h2>
+          <div class="contact-row">
+            <a class="contact-email" href="mailto:marcokingching@gmail.com">marcokingching@gmail.com</a>
+            <button class="btn btn-glass btn-small" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy</button>
+          </div>
+          <p class="contact-links">
+            <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
+            <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV (PDF) ↗</a>
           </p>
         </div>
-
-        <div class="category-tabs" role="tablist" aria-label="Project categories">
-          <button class="category-tab active" data-category="design" role="tab" aria-selected="true">Design</button>
-          <button class="category-tab" data-category="research" role="tab" aria-selected="false">Research</button>
-          <button class="category-tab" data-category="ai" role="tab" aria-selected="false">AI & Autonomy</button>
-        </div>
-
-        <!-- ======================================================
-             DESIGN
-             EDIT: FEATURED DESIGN PROJECTS
-             ====================================================== -->
-        <div class="category-panel active" data-panel="design">
-          <div class="featured-grid">
-            <article class="project-card project-card-large">
-              <div class="project-image">
-                <img src="robotic-crane.png" alt="Robotic crane CAD, control code, electronics and prototype">
-              </div>
-              <div class="project-body">
-                <div class="project-topline">
-                  <span>01 · ROBOTICS</span>
-                  <span>2025–2026</span>
-                </div>
-                <h3>Ultra-Precise Remote-Controlled Robotic Crane</h3>
-                <p>
-                  A 5-DOF manipulator combining custom SolidWorks components, 3D printing,
-                  motor-control electronics, Arduino firmware, and real-time controller input.
-                </p>
-                <div class="project-stats">
-                  <div><strong>±5 mm</strong><span>positional accuracy</span></div>
-                  <div><strong>51 cm</strong><span>reach</span></div>
-                  <div><strong>5 DOF</strong><span>motion system</span></div>
-                </div>
-                <div class="tags">
-                  <span>SolidWorks</span><span>Arduino</span><span>C++</span><span>Motor Control</span><span>3D Printing</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="project-card project-card-large">
-              <div class="project-image">
-                <img src="capstone-wagon.png" alt="CAD models for an electronically assisted all-terrain wagon">
-              </div>
-              <div class="project-body">
-                <div class="project-topline">
-                  <span>02 · CAPSTONE</span>
-                  <span>ONGOING</span>
-                </div>
-                <h3>All-Terrain, Electronically-Assisted Collapsible Wagon</h3>
-                <p>
-                  Steering and suspension development focused on fail-safe mechanical control,
-                  low-cost parts, manufacturability, fit, clearances, and physical prototyping.
-                </p>
-                <div class="project-stats">
-                  <div><strong>4-wheel</strong><span>suspension layout</span></div>
-                  <div><strong>Fail-safe</strong><span>mechanical steering</span></div>
-                  <div><strong>STEP/STL</strong><span>prototype-ready CAD</span></div>
-                </div>
-                <div class="tags">
-                  <span>SolidWorks</span><span>Steering</span><span>Suspension</span><span>DFM</span><span>Prototyping</span>
-                </div>
-              </div>
-            </article>
+        <form class="mail-form" id="mail-form" novalidate data-access-key="0339b063-9075-45ef-893a-902152c48b8e">
+          <div class="field-row">
+            <div class="field"><label for="f-first">First name</label><input id="f-first" name="first_name" autocomplete="given-name" required></div>
+            <div class="field"><label for="f-last">Last name</label><input id="f-last" name="last_name" autocomplete="family-name" required></div>
           </div>
-
-          <details class="other-projects">
-            <summary>
-              <span>Other design projects</span>
-              <span class="summary-icon">+</span>
-            </summary>
-            <div class="other-project-grid">
-              <article>
-                <span>2025 · MANUFACTURING</span>
-                <h4>Sheet Metal Manipulation Investigation</h4>
-                <p>Experimental study of rolling velocity, reduction, bending behavior, and forming defects.</p>
-              </article>
-              <article>
-                <span>2023 · ROBOTICS</span>
-                <h4>ALARMBOT</h4>
-                <p>Mobile Lego Mindstorms alarm clock designed to move away from the user and self-dock.</p>
-              </article>
-              <article>
-                <span>2022 · PRODUCT DESIGN</span>
-                <h4>Riptide Made Real</h4>
-                <p>Team product concept translating a fictional retractable sword-to-pen object into a physical design.</p>
-              </article>
-            </div>
-          </details>
-        </div>
-
-        <!-- ======================================================
-             RESEARCH
-             EDIT: FEATURED RESEARCH PROJECTS
-             ====================================================== -->
-        <div class="category-panel" data-panel="research">
-          <div class="featured-grid featured-grid-research">
-            <article class="project-card project-card-large">
-              <div class="project-image">
-                <img src="seismometer-research.png" alt="Raspberry Pi seismometer and seismic data visualizations">
-              </div>
-              <div class="project-body">
-                <div class="project-topline">
-                  <span>01 · SENSORS & DATA</span>
-                  <span>2021</span>
-                </div>
-                <h3>Volcanic Tectonic Earthquake Research</h3>
-                <p>
-                  Built a geophone and Raspberry Pi seismic sensing system, collected months of
-                  data, developed visualization tools, and presented the investigation at an IEEE conference.
-                </p>
-                <div class="project-stats">
-                  <div><strong>4 months</strong><span>of seismic data</span></div>
-                  <div><strong>80→100 km</strong><span>detection range</span></div>
-                  <div><strong>3rd place</strong><span>IEEE conference</span></div>
-                </div>
-                <div class="tags">
-                  <span>Raspberry Pi</span><span>Geophone</span><span>JavaScript</span><span>Data Analysis</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="project-card text-project-card">
-              <div class="project-body">
-                <div class="project-topline">
-                  <span>02 · AEROSPACE EXPERIMENT</span>
-                  <span>2021–2022</span>
-                </div>
-                <h3>Simulating NASA’s Ingenuity Drone</h3>
-                <p>
-                  Investigated how air pressure influences quadcopter lift to model one of the
-                  environmental challenges of flight on Mars, supported by controlled experiments
-                  and quantitative data analysis.
-                </p>
-                <div class="tags">
-                  <span>Aerodynamics</span><span>Logger Pro</span><span>Experimental Design</span><span>Laser Cutting</span>
-                </div>
-              </div>
-            </article>
+          <div class="field"><label for="f-email">Your email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="f-body">Message</label><textarea id="f-body" name="message" rows="6" required></textarea></div>
+          <div class="form-foot">
+            <button class="btn btn-neon" type="submit">Send message</button>
+            <p class="form-status" id="form-status" role="status"></p>
           </div>
-
-          <details class="other-projects">
-            <summary>
-              <span>Other research projects</span>
-              <span class="summary-icon">+</span>
-            </summary>
-            <div class="other-project-grid">
-              <article>
-                <span>2021 · ENERGY STORAGE</span>
-                <h4>Supercapacitor Investigation</h4>
-                <p>Investigated capacitor quantity and voltage output for short-duration energy delivery.</p>
-              </article>
-              <article>
-                <span>2021 · ENVIRONMENTAL RESEARCH</span>
-                <h4>Sea Temperature & Ocean Acidification</h4>
-                <p>Experimental investigation into temperature, atmospheric CO₂, ocean acidification, and biodiversity.</p>
-              </article>
-              <article>
-                <span>2025 · MATERIALS / MANUFACTURING</span>
-                <h4>Sheet Metal Manipulation Investigation</h4>
-                <p>Studied manufacturing variables and their effect on material forming behavior and defects.</p>
-              </article>
-            </div>
-          </details>
-        </div>
-
-        <!-- ======================================================
-             AI & AUTONOMY
-             EDIT: Add future AI course projects here.
-             This section is intentionally ready for your upcoming
-             AI certificates and portfolio work.
-             ====================================================== -->
-        <div class="category-panel" data-panel="ai">
-          <div class="featured-grid">
-            <article class="project-card text-project-card ai-accent-card">
-              <div class="project-body">
-                <div class="project-topline">
-                  <span>01 · AI / AUTONOMY CONCEPT</span>
-                  <span>2025</span>
-                </div>
-                <h3>HKIA Sustainability Improvement Scheme</h3>
-                <p>
-                  Team proposal for improving airport recycling using SLAM, LiDAR, machine-learning
-                  concepts, AI sorting bins, and autonomous patrol bins. The project received
-                  “Best Presented” and “Most Creative” recognition.
-                </p>
-                <div class="tags">
-                  <span>SLAM</span><span>LiDAR</span><span>AI Systems</span><span>Autonomy</span><span>Sustainability</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="project-card future-card">
-              <div class="future-icon">AI</div>
-              <div class="project-body">
-                <div class="project-topline">
-                  <span>NEXT</span>
-                  <span>COMING SOON</span>
-                </div>
-                <h3>AI Course Projects</h3>
-                <p>
-                  This space is reserved for your upcoming AI coursework, certificates, models,
-                  applications, and engineering-focused AI projects.
-                </p>
-                <p class="future-note">
-                  Recommended format: problem → dataset/tool → model/workflow → result → what you learned.
-                </p>
-              </div>
-            </article>
-          </div>
-
-          <details class="other-projects">
-            <summary>
-              <span>AI certificates & future projects</span>
-              <span class="summary-icon">+</span>
-            </summary>
-            <div class="other-project-grid">
-              <article class="placeholder-project">
-                <span>CERTIFICATE</span>
-                <h4>Add your first AI certificate here</h4>
-                <p>Provider · Course name · Completion date · Credential link</p>
-              </article>
-              <article class="placeholder-project">
-                <span>PROJECT</span>
-                <h4>Add an AI portfolio project here</h4>
-                <p>Keep the description focused on the problem, tools used, and measurable outcome.</p>
-              </article>
-              <article class="placeholder-project">
-                <span>PROJECT</span>
-                <h4>Add an engineering + AI project here</h4>
-                <p>Examples could include computer vision, predictive maintenance, BIM automation, or energy analytics.</p>
-              </article>
-            </div>
-          </details>
-        </div>
-      </div>
-    </section>
-
-    <!-- EDIT: EXPERIENCE ----------------------------------------->
-    <section class="experience-section" id="experience">
-      <div class="shell">
-        <div class="section-intro section-intro-compact">
-          <div>
-            <p class="eyebrow">EXPERIENCE</p>
-            <h2>Engineering in real project environments.</h2>
-          </div>
-        </div>
-
-        <div class="experience-list">
-          <!-- ADD YOUR CHEVALIER ROLE ABOVE WSP WHEN READY. -->
-          <article class="experience-row">
-            <div class="experience-year">2026</div>
-            <div class="experience-company">
-              <h3>WSP Global Inc.</h3>
-              <p>BIM Co-op Student · Toronto, Canada</p>
-            </div>
-            <div class="experience-copy">
-              <p>
-                Coordinated Revit BIM models for HVAC and plumbing on the Eglinton Crosstown West Extension;
-                designed fire-protection and water-distribution layouts for Union Station expansion work;
-                and managed BIM submission milestones across 10 project scopes.
-              </p>
-              <div class="tags"><span>Revit</span><span>BIM</span><span>HVAC</span><span>Fire Protection</span></div>
-            </div>
-          </article>
-
-          <article class="experience-row">
-            <div class="experience-year">2025</div>
-            <div class="experience-company">
-              <h3>Airport Authority Hong Kong</h3>
-              <p>BIM Engineering Trainee · Hong Kong</p>
-            </div>
-            <div class="experience-copy">
-              <p>
-                Automated BIM and construction-data workflows with Dynamo, Power BI, and Autodesk
-                Construction Cloud; reviewed 20+ Revit models; and applied SLAM/LiDAR in an autonomous
-                waste-sorting patrol robot project.
-              </p>
-              <div class="tags"><span>Dynamo</span><span>Power BI</span><span>ACC</span><span>LiDAR</span></div>
-            </div>
-          </article>
-
-          <article class="experience-row">
-            <div class="experience-year">2024</div>
-            <div class="experience-company">
-              <h3>Hong Kong Broadband Network</h3>
-              <p>Engineering Intern · Hong Kong</p>
-            </div>
-            <div class="experience-copy">
-              <p>
-                Designed telecommunications infrastructure for 50+ residential projects from construction
-                drawings, mapped 100+ network components in ArcGIS, and supported allocation of $900,000
-                in infrastructure funding.
-              </p>
-              <div class="tags"><span>ArcGIS</span><span>Infrastructure</span><span>Construction Drawings</span></div>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- EDIT: AWARDS & CERTIFICATES ------------------------------->
-    <section class="recognition-section" id="recognition">
-      <div class="shell recognition-wrap">
-        <div class="recognition-heading">
-          <p class="eyebrow">RECOGNITION</p>
-          <h2>Awards & certificates.</h2>
-          <p>Kept compact on the main page. Add future AI certificates here as you complete them.</p>
-        </div>
-
-        <div class="recognition-columns">
-          <div>
-            <h3>Awards</h3>
-            <div class="recognition-item">
-              <span>2025</span>
-              <div>
-                <strong>Best Presented + Most Creative</strong>
-                <p>Hong Kong International Airport Sustainability Improvement Scheme</p>
-              </div>
-            </div>
-            <div class="recognition-item">
-              <span>2021</span>
-              <div>
-                <strong>2nd Runner-Up / 3rd Place</strong>
-                <p>IEEE Young Engineers Conference</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3>Certificates</h3>
-            <div class="recognition-item">
-              <span>2021</span>
-              <div>
-                <strong>Modern Robotics: Foundations of Robot Motion</strong>
-                <p>Northwestern University</p>
-              </div>
-            </div>
-            <div class="recognition-item">
-              <span>2021</span>
-              <div>
-                <strong>Introduction to Engineering Mechanics</strong>
-                <p>Georgia Institute of Technology</p>
-              </div>
-            </div>
-            <!-- COPY A recognition-item BLOCK HERE FOR FUTURE AI CERTIFICATES. -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="contact-strip">
-      <div class="shell contact-strip-inner">
-        <div>
-          <p class="eyebrow">CONTACT</p>
-          <h2>Interested in my work?</h2>
-        </div>
-        <div class="contact-links">
-          <a href="mailto:mkbching@uwaterloo.ca">Email</a>
-          <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
-          <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a>
-        </div>
+        </form>
       </div>
     </section>
   </main>
 
-  <footer class="footer shell">
-    <span>Marco Ching</span>
-    <span>Mechanical Engineering · Design · Research · AI</span>
-    <span id="year"></span>
+  <footer class="footer">
+    <div class="wrap footer-row">
+      <span>© <span id="year">2026</span> Marco Ching</span>
+      <span><span class="zh">下一站</span> Next stop: graduate school, 2027</span>
+    </div>
   </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>
