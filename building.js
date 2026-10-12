@@ -2,12 +2,12 @@
 // A street-level tower wrapped in an adaptive louvre façade with planted fins, set in a
 // park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
 // Scroll progress q (0 → 5, one unit per story step, from story.js) drives:
-//   0 → 1  night to morning; louvres adapt to the sun
+//   0 → 1  night to morning; the harbour light show ends as day breaks; louvres adapt to the sun
 //   1 → 2  façade pulls away; glazing tint and solar rays follow the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the sun sets
-// Cars, people and the harbour light show all move with the scroll. The skyline is drawn by a
+// Cars, people and the night-time harbour light show all move with the scroll. The skyline is drawn by a
 // second renderer onto #backdrop-canvas, which CSS blurs, so the tower stays the one thing in focus.
 // The tower is illustrative; the numbers belong to the ME 572 models. Units are metres; the
 // landmarks are scaled down to fit the frame.
@@ -357,8 +357,10 @@
     }
   });
   const beamDir = new THREE.Vector3();
-  function layoutShow(q, strength) {
+  const neon = new THREE.Color();
+  function layoutShow(q, strength, ctx) {
     beams.forEach(b => {
+      b.visible = strength > 0.005;
       const u = b.userData;
       const az = u.az + Math.sin(q * u.rate + u.phase) * u.sweep;
       const el = u.el + Math.sin(q * u.rate * 0.7 + u.phase * 2) * 0.22;
@@ -367,26 +369,32 @@
       b.material.uniforms.uColor.value.setHSL((u.hue + q * 0.09) % 1, 1, 0.62);
       b.material.uniforms.uOpacity.value = strength;
     });
-    showMats.forEach((m, i) => m.color.setHSL((m.userData.hue + q * 0.09) % 1, 1, 0.6));
+    // Off, the neon bands take the colour of the building they sit on.
+    const on = clamp(strength / 0.62, 0, 1);
+    showMats.forEach(m => m.color.copy(ctx).lerp(neon.setHSL((m.userData.hue + q * 0.09) % 1, 1, 0.6), on));
     mat.accent.color.setHSL((0.92 + q * 0.09) % 1, 1, 0.6);
+    mat.accent.opacity = on;
   }
 
   // Low-rise neighbours on this side of the harbour, away from the camera's path
+  // The three closest to the tower are left out so it has room around it.
+  const neighbours = [];
   for (let i = 0; i < 26; i++) {
     const a = (i / 26) * Math.PI * 2 + rand() * 0.15;
     if (a > 0.05 && a < 2.75) continue;
-    const r = 52 + rand() * 32, h = 10 + rand() * 26, w = 9 + rand() * 7;
+    neighbours.push({ a, r: 52 + rand() * 32, h: 10 + rand() * 26, w: 9 + rand() * 7 });
+  }
+  neighbours.sort((p, q) => p.r - q.r).slice(3).forEach(({ a, r, h, w }) => {
     const b = box(w, h, w, cityMaterial(w, h, nearMats), scene, Math.cos(a) * r, h / 2, Math.sin(a) * r);
     box(w * 0.9, 0.6, w * 0.9, mat.green, scene, b.position.x, h + 0.3, b.position.z, false);   // green roofs
-  }
+  });
 
   // ---------- Trees: street trees, parks, podium (instanced) ----------
   const treeSpots = [];
-  for (let s = -RING - 6; s <= RING + 6; s += 8) {
+  for (let s = -RING - 6; s <= RING + 6; s += 16) {       // street trees along the outside of the ring road
     treeSpots.push([s, -RING - 6], [s, RING + 6], [-RING - 6, s], [RING + 6, s]);
-    if (Math.abs(s) < RING - 8) treeSpots.push([s, -RING + 6], [s, RING - 6], [-RING + 6, s], [RING - 6, s]);
   }
-  for (let i = 0; i < 170; i++) {                         // parks between the spurs
+  for (let i = 0; i < 60; i++) {                          // parks between the spurs
     const a = rand() * Math.PI * 2, r = 44 + rand() * 60;
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
     if (Math.abs(x) < 6 || Math.abs(z) < 6) continue;      // keep the avenues clear
@@ -396,8 +404,9 @@
   const trunkGeo = new THREE.CylinderGeometry(0.25, 0.35, 3, 6);
   trunkGeo.translate(0, 1.5, 0);
   const canopyGeo = new THREE.IcosahedronGeometry(1, 0);
-  const trunks = new THREE.InstancedMesh(trunkGeo, mat.trunk, treeSpots.length + 12);
-  const canopies = new THREE.InstancedMesh(canopyGeo, mat.canopy, treeSpots.length + 12);
+  const PLAZA_TREES = [[-20, -14], [21, 12], [-21, 5], [8, 21], [-6, -21], [14, 20]];
+  const trunks = new THREE.InstancedMesh(trunkGeo, mat.trunk, treeSpots.length + PLAZA_TREES.length);
+  const canopies = new THREE.InstancedMesh(canopyGeo, mat.canopy, treeSpots.length + PLAZA_TREES.length);
   canopies.castShadow = true;
   const dummy = new THREE.Object3D(), leaf = new THREE.Color();
   const LEAVES = ["#4f8a45", "#5d9a4c", "#3f7a3f", "#6aa451", "#7aa85a"];
@@ -410,8 +419,7 @@
   }
   treeSpots.forEach(([x, z], i) => addTree(i, x, 0, z, 0.8 + rand() * 0.7));
   // A ring of trees on the plaza at the tower's foot
-  [[-20, -14], [-14, 20], [20, -16], [21, 12], [-21, 5], [8, 21], [-6, -21], [21, -3], [-17, 16], [1, 21], [-21, -7], [14, 20]]
-    .forEach(([x, z], k) => addTree(treeSpots.length + k, x, 0, z, 0.75));
+  PLAZA_TREES.forEach(([x, z], k) => addTree(treeSpots.length + k, x, 0, z, 0.75));
   scene.add(trunks, canopies);
   // A lawn under the plaza trees
   flat(46, 46, mat.green, 0, 0, 0.035);
@@ -644,7 +652,7 @@
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
   // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
-  const cars = Array.from({ length: 22 }, (_, i) => ({ s0: i / 22 + rand() * 0.02, lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07 }));
+  const cars = Array.from({ length: 8 }, (_, i) => ({ s0: i / 8 + rand() * 0.05, lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07 }));
   const carBody = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), mat.car, cars.length);
   const carCab = new THREE.InstancedMesh(new THREE.BoxGeometry(2.2, 0.8, 1.7), mat.car, cars.length);
   const lights = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.3, 1.6), mat.headlight, cars.length);
@@ -654,7 +662,7 @@
     carCab.setColorAt(i, C("#1c2430"));
   });
   scene.add(carBody, carCab, lights);
-  const people = Array.from({ length: 46 }, (_, i) => {
+  const people = Array.from({ length: 14 }, (_, i) => {
     const outer = i % 3 === 0;                          // outer pavement beyond the ring road, or the plaza
     return { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4 };
   });
@@ -772,8 +780,8 @@
     cityMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = lerp(0.4, 0.85, dark); });
     nearMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = Math.pow(dark, 1.6) * 0.75; });
     mat.brace.opacity = 0.35 + dark * 0.6;
-    mat.accent.opacity = lerp(0.75, 1, dark);
-    layoutShow(q, lerp(0.42, 0.62, dark));
+    // The harbour light show runs at night and ends as the sky starts to brighten.
+    layoutShow(q, 0.62 * (1 - smoothstep(q, 0.3, 0.65)), ctx);
     // The tower itself is lit only by its own windows: warm at night, a glow at sunset.
     const glow = Math.max(night, dusk * 0.55);
 
