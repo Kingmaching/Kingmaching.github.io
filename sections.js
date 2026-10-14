@@ -142,8 +142,8 @@
       svgEl("line", { x1: 30, x2: PW - 10, y1: py(0), y2: py(0), class: "d-axis" }, g);
       [-10, 10].forEach(t => { svgEl("line", { x1: 30, x2: PW - 10, y1: py(t), y2: py(t), class: "d-grid" }, g); text(g, 26, py(t) + 3, (t > 0 ? "+" : "−") + "10%", "d-text", "end"); });
       r.xs.forEach((v, j) => text(g, px(j), PH - 4, v, "d-text", "middle"));
-      const line = svgEl("polyline", { fill: "none", stroke: "#9aa3b3", "stroke-width": 1.6 }, g);
-      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#0a0d12", "stroke-width": 2 }, g));
+      const line = svgEl("polyline", { fill: "none", stroke: "#9fb8ab", "stroke-width": 1.6 }, g);
+      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#0b1f1a", "stroke-width": 2 }, g));
       const endLabel = text(g, 0, 0, "", "d-value");
       return { r, px, py, line, dots, endLabel };
     });
@@ -166,7 +166,7 @@
         p.line.setAttribute("points", v.map((y, j) => `${p.px(j)},${p.py(y)}`).join(" "));
         p.dots.forEach((d, j) => {
           d.setAttribute("cx", p.px(j)); d.setAttribute("cy", p.py(v[j]));
-          d.setAttribute("fill", j === p.r.ctrl ? "#eef0f4" : v[j] < 0 ? "#2a9fd6" : "#e8352a");
+          d.setAttribute("fill", j === p.r.ctrl ? "#eef4e8" : v[j] < 0 ? "#5aa9e6" : "#f5b83d");
         });
         const far = v[0] * v[0] > v[4] * v[4] ? 0 : 4;
         p.endLabel.textContent = (v[far] > 0 ? "+" : "−") + Math.abs(v[far]).toFixed(1) + "%";
@@ -214,8 +214,8 @@
     const grad = svgEl("radialGradient", { id: "pool" }, defs);
     svgEl("stop", { offset: "0%", "stop-color": "#ffd88a", "stop-opacity": "0.55" }, grad);
     svgEl("stop", { offset: "100%", "stop-color": "#ffd88a", "stop-opacity": "0" }, grad);
-    svgEl("rect", { x: ox, y: oy, width: W * s, height: D * s, fill: "#131923", stroke: "#8e98a8", "stroke-width": 2 }, svg);
-    svgEl("line", { x1: ox + 2 * s, x2: ox + 46 * s, y1: oy + D * s, y2: oy + D * s, stroke: "#2a9fd6", "stroke-width": 5 }, svg);
+    svgEl("rect", { x: ox, y: oy, width: W * s, height: D * s, fill: "#11302a", stroke: "#8e98a8", "stroke-width": 2 }, svg);
+    svgEl("line", { x1: ox + 2 * s, x2: ox + 46 * s, y1: oy + D * s, y2: oy + D * s, stroke: "#5aa9e6", "stroke-width": 5 }, svg);
     text(svg, ox + 24 * s, oy + D * s + 16, "South window · 44 ft", "d-text", "middle");
     text(svg, ox, oy - 8, "48 ft", "d-text");
     text(svg, ox + W * s + 6, oy + 10, "34 ft", "d-text");
@@ -314,7 +314,7 @@
     text(svg, SRC.p[0] - 10, SRC.p[1] + 4, "Cheung Chau · source", "d-label", "end");
     const dots = STATIONS.map((st, i) => {
       const [x, y] = st.p;
-      const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#2a9fd6" }, svg);
+      const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#5aa9e6" }, svg);
       return d;
     });
     text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] - 4, "Pokfulam · 2 Raspberry Shakes", "d-label");
@@ -342,9 +342,9 @@
         const r = quakeT * SPEED;
         [0, 26, 52].forEach((off, k) => {
           const rr = r - off;
-          if (rr > 0) svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: rr, fill: "none", stroke: "#e8352a", "stroke-opacity": Math.max(0, 0.8 - rr / 520) * (1 - k * 0.25), "stroke-width": 2 }, rings);
+          if (rr > 0) svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: rr, fill: "none", stroke: "#f5b83d", "stroke-opacity": Math.max(0, 0.8 - rr / 520) * (1 - k * 0.25), "stroke-width": 2 }, rings);
         });
-        rows.forEach((row, i) => { if (!row.hit && r >= dist[i]) { row.hit = true; row.amp = 1; dots[i].setAttribute("fill", "#e8352a"); } });
+        rows.forEach((row, i) => { if (!row.hit && r >= dist[i]) { row.hit = true; row.amp = 1; dots[i].setAttribute("fill", "#f5b83d"); } });
         if (r > 560) quakeT = -1;
       }
       // traces scroll left
@@ -356,11 +356,11 @@
         const quake = row.amp * Math.sin(now / 18) * (0.6 + Math.random() * 0.4);
         row.buf[row.buf.length - 1] = noise + quake;
         row.amp *= 0.965;
-        if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#2a9fd6");
+        if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#5aa9e6");
         const mid = rh * i + rh / 2;
-        ctx.strokeStyle = "#2a3344"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
-        ctx.fillStyle = "#9aa3b3"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
-        ctx.strokeStyle = row.amp > 0.1 ? "#e8352a" : "#2a9fd6"; ctx.lineWidth = 1.5; ctx.beginPath();
+        ctx.strokeStyle = "#2b5247"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
+        ctx.fillStyle = "#9fb8ab"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
+        ctx.strokeStyle = row.amp > 0.1 ? "#f5b83d" : "#5aa9e6"; ctx.lineWidth = 1.5; ctx.beginPath();
         for (let k = 0; k < row.buf.length; k++) {
           const px = 96 + (k / (row.buf.length - 1)) * (W - 100), py = mid - row.buf[k] * rh * 0.42;
           k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
@@ -416,12 +416,12 @@
     svgEl("line", { x1: CX(0), x2: CX(0), y1: SZ(2.1), y2: SZ(0), class: "d-grid" }, svg);
     text(svg, CX(0), 16, "At the plate", "d-text", "middle");
     text(svg, CX(-0.35), 222, "← glove side", "d-text");
-    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#2a9fd6", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
+    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#5aa9e6", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
     const mlbText = text(svg, 0, 0, "MLB range", "d-text");
     mlbText.classList.add("fade-swap");
-    const sidePath = svgEl("polyline", { fill: "none", stroke: "#e8352a", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
+    const sidePath = svgEl("polyline", { fill: "none", stroke: "#f5b83d", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
     const ball = svgEl("circle", { r: 5, fill: "#fff" }, svg);
-    const hit = svgEl("circle", { r: 6, fill: "#e8352a", stroke: "#0a0d12", "stroke-width": 2 }, svg);
+    const hit = svgEl("circle", { r: 6, fill: "#f5b83d", stroke: "#0b1f1a", "stroke-width": 2 }, svg);
     const ballC = svgEl("circle", { r: 5, fill: "#fff" }, svg);
 
     const group = svg.closest(".demo"), vIn = $("#pitch-v"), rIn = $("#pitch-rpm"), out = $("#pitch-readout");
@@ -497,25 +497,25 @@
     const st = { t: 30, h: 4, theta: 0, grip: false, carrying: false, benchy: 18, stacked: 0 };
 
     // static parts
-    svgEl("rect", { x: 20, y: FLOOR, width: 480, height: 4, fill: "#2a3344" }, svg);
+    svgEl("rect", { x: 20, y: FLOOR, width: 480, height: 4, fill: "#2b5247" }, svg);
     svgEl("rect", { x: COLX - 34, y: FLOOR - 16, width: 68, height: 16, rx: 4, fill: "#5b6776" }, svg);   // base / turntable
     svgEl("rect", { x: COLX - 9, y: TOPY, width: 18, height: FLOOR - 16 - TOPY, fill: "#8e98a8" }, svg);  // 2040 column
     svgEl("rect", { x: COLX, y: TOPY - 10, width: ARM + 14, height: 10, fill: "#a3adb8" }, svg);          // 2020 arm
-    svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#e8352a" }, svg);  // target pad
+    svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#f5b83d" }, svg);  // target pad
     text(svg, COLX + PAD * PX, FLOOR + 18, "target ±5 mm", "d-text", "middle");
     for (let c = 0; c <= 40; c += 10) text(svg, COLX + c * PX, TOPY - 16, c + "", "d-text", "middle");
     text(svg, COLX + ARM, TOPY - 16, "51 cm", "d-text", "end");
-    const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#e8352a" }, svg);
-    const wire = svgEl("line", { stroke: "#eef0f4", "stroke-width": 1.5 }, svg);
+    const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#f5b83d" }, svg);
+    const wire = svgEl("line", { stroke: "#eef4e8", "stroke-width": 1.5 }, svg);
     const head = svgEl("rect", { width: 22, height: 14, rx: 3, fill: "#5b6776" }, svg);
-    const jawL = svgEl("rect", { width: 4, height: 14, fill: "#eef0f4" }, svg);
-    const jawR = svgEl("rect", { width: 4, height: 14, fill: "#eef0f4" }, svg);
+    const jawL = svgEl("rect", { width: 4, height: 14, fill: "#eef4e8" }, svg);
+    const jawR = svgEl("rect", { width: 4, height: 14, fill: "#eef4e8" }, svg);
     const stackG = svgEl("g", {}, svg);
-    const benchy = svgEl("path", { d: BENCHY_PATH, fill: "#f5a623" }, svg);
+    const benchy = svgEl("path", { d: BENCHY_PATH, fill: "#7fd38f" }, svg);
     // top-view dial for base rotation
     const dial = svgEl("g", { transform: "translate(470 210)" }, svg);
-    svgEl("circle", { r: 26, fill: "none", stroke: "#2a3344", "stroke-width": 2 }, dial);
-    const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#e8352a", "stroke-width": 3, "stroke-linecap": "round" }, dial);
+    svgEl("circle", { r: 26, fill: "none", stroke: "#2b5247", "stroke-width": 2 }, dial);
+    const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#f5b83d", "stroke-width": 3, "stroke-linecap": "round" }, dial);
     text(dial, 0, 42, "top view", "d-text", "middle");
 
     const contactDepth = () => {          // hoist depth where the jaws (or a carried Benchy) meet the floor or the stack
@@ -536,7 +536,7 @@
       benchy.setAttribute("transform", `translate(${bx} ${by}) scale(${sc})`);
       benchy.style.display = st.stacked >= 3 && !st.carrying ? "none" : "";
       stackG.replaceChildren();
-      for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#f5a623", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
+      for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#7fd38f", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
       dialArm.setAttribute("transform", `rotate(${st.theta})`);
       out.innerHTML = `<strong>Reach ${st.t.toFixed(1)} cm · hoist ${st.h.toFixed(0)} cm · base ${Math.round(st.theta)}°</strong> · Stacked ${st.stacked}/3 on the ±5 mm pad${st.stacked >= 3 ? " · validated, like the real one" : ""}`;
     }
@@ -588,15 +588,15 @@
     const S = 0.62;                                             // px per mm
     const GROUND = 214, WX = 330, WY = GROUND - WHEEL_R * S;    // wheel centre stays on the ground
     const PIVOT_Y0 = WY - 70;                                   // unloaded pivot height
-    svgEl("rect", { x: 0, y: GROUND, width: 520, height: 3, fill: "#2a3344" }, svg);
+    svgEl("rect", { x: 0, y: GROUND, width: 520, height: 3, fill: "#2b5247" }, svg);
     const frame = svgEl("rect", { height: 14, rx: 3, fill: "#5b6776" }, svg);
     const arm = svgEl("line", { stroke: "#a3adb8", "stroke-width": 9, "stroke-linecap": "round" }, svg);
-    const coil = svgEl("polyline", { fill: "none", stroke: "#e8352a", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
-    const tyre = svgEl("circle", { cx: WX, cy: WY, r: WHEEL_R * S, fill: "#1c2330", stroke: "#8e98a8", "stroke-width": 8 }, svg);
+    const coil = svgEl("polyline", { fill: "none", stroke: "#f5b83d", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
+    const tyre = svgEl("circle", { cx: WX, cy: WY, r: WHEEL_R * S, fill: "#1a4038", stroke: "#8e98a8", "stroke-width": 8 }, svg);
     svgEl("circle", { cx: WX, cy: WY, r: 8, fill: "#a3adb8" }, svg);
-    const pivot = svgEl("circle", { r: 6, fill: "#f5a623" }, svg);
+    const pivot = svgEl("circle", { r: 6, fill: "#7fd38f" }, svg);
     const sagLabel = text(svg, 0, 0, "", "d-value");
-    const load = svgEl("rect", { width: 70, rx: 4, fill: "rgba(245,166,35,0.25)", stroke: "#f5a623" }, svg);
+    const load = svgEl("rect", { width: 70, rx: 4, fill: "rgba(127,211,143,0.25)", stroke: "#7fd38f" }, svg);
     const loadText = text(svg, 0, 0, "", "d-value", "middle");
     tyre.setAttribute("aria-hidden", "true");
 

@@ -278,12 +278,51 @@
     }
   }
 
+  // ---------- Louvres: the backdrop for Background and What's next ----------
+  // Slats swing shut (intro → Background), flip from forest to dawn (→ What's next), then open (→ Project 01).
+  // Each slat runs a little behind the one above it (below it, when opening), so the motion sweeps the screen.
+  const louvres = story.querySelector(".louvres");
+  const N = 12, LAG = 0.7;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const slats = louvres ? Array.from({ length: N }, (_, k) => {
+    const s = document.createElement("div");
+    s.className = "slat";
+    s.style.cssText = `--n: ${N}; --k: ${k / (N - 1)}`;
+    s.innerHTML = "<i></i><i></i>";
+    louvres.appendChild(s);
+    return s;
+  }) : [];
+  const ease = t => t * t * (3 - 2 * t);
+  const phase = (a, b) => clamp((q - a) / (b - a), 0, 1);
+  const lag = (t, k) => ease(clamp(t * (1 + LAG) - k * LAG, 0, 1));
+  function turnLouvres() {
+    if (!louvres) return;
+    const shut = phase(-2.95, -2.15), flip = phase(-1.9, -1.15), open = phase(-0.95, -0.2);
+    louvres.style.visibility = shut > 0 && open < 1 ? "visible" : "hidden";
+    if (reduceMotion) {                  // no turning: fade the whole screen, swap faces at the halfway point
+      louvres.style.opacity = shut * (1 - open);
+      slats.forEach(s => s.style.setProperty("--a", flip < 0.5 ? "0deg" : "180deg"));
+      return;
+    }
+    slats.forEach((s, i) => {
+      const k = i / (N - 1);
+      const a = 90 * (1 - lag(shut, k)) + 180 * lag(flip, k) + 90 * lag(open, 1 - k);
+      s.style.setProperty("--a", a.toFixed(1) + "deg");
+    });
+  }
+
   // ---------- Scroll progress ----------
-  let q = -PRE;
+  // The steps end with a tail (padding-bottom on .steps) where q holds at the last step, so the last card
+  // can scroll away over the finished scene; tail runs 0 → 1 across it and building.js fades out on it.
+  const steps = story.querySelector(".steps");
+  let q = -PRE, tail = 0;
   function readScroll() {
     const rect = story.getBoundingClientRect();
-    const range = rect.height - window.innerHeight;
+    const tailPx = steps ? parseFloat(getComputedStyle(steps).paddingBottom) || 0 : 0;
+    const range = rect.height - window.innerHeight - tailPx;
     q = (range > 0 ? clamp(-rect.top / range, 0, 1) * (STEPS - 1) : 0) - PRE;
+    tail = tailPx > 0 ? clamp((-rect.top - range) / tailPx, 0, 1) : 0;
+    turnLouvres();
     ["shgc", "vent", "lpd"].forEach(name => {
       const c = charts[name];
       if (!c) return;
@@ -302,6 +341,7 @@
     PRE,
     DATA,
     progress: () => q,
+    tail: () => tail,
     runIndex,
   };
 })();

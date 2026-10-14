@@ -84,7 +84,7 @@
     arrow: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     sensor: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     lamp: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }),
-    accent: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xe8352a }),
+    accent: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xf5b83d }),
     headlight: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xfff2c8 }),
     brace: new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5, color: 0xffffff }),
     sun: new THREE.MeshBasicMaterial({ color: 0xffe7a8, fog: false }),
@@ -100,8 +100,8 @@
   // Palettes: night (start), day, sunset (end). update() blends between them.
   const PAL = {
     night: { concrete: C("#3b4552"), slab: C("#5b6776"), panelTint: C("#7d8792"), glass: C("#ffcf86"), ground: C("#121a16"),
-      road: C("#14181e"), walk: C("#2a2f36"), water: C("#0b1826"), green: C("#26462f"), context: C("#19222d"), hill: C("#14231a"),
-      skyTop: C("#05070b"), skyLow: C("#121b28"), light: C("#8fa3c8") },
+      road: C("#14181e"), walk: C("#2a2f36"), water: C("#0b1826"), green: C("#26462f"), context: C("#16261f"), hill: C("#14231a"),
+      skyTop: C("#04110d"), skyLow: C("#10291f"), light: C("#9cbcb0") },
     day: { concrete: C("#a9b1b6"), slab: C("#d6dadc"), panelTint: C("#ffffff"), glass: C("#86b6d0"), ground: C("#7e9a6c"),
       road: C("#50565e"), walk: C("#c4c0b4"), water: C("#4f8fb3"), green: C("#6f9e5c"), context: C("#b4bec6"), hill: C("#5f8a52"),
       skyTop: C("#3d82cc"), skyLow: C("#c6e0f0"), light: C("#fff3df") },
@@ -121,7 +121,7 @@
     rayMat.color.set("#ffc46b");
     mat.sensor.color.set("#f4f8ff");                 // sensors are white so they never read as heat
     mat.lamp.color.set(cssColor("--b-lamp", "#ffd88a"));
-    mat.accent.color.set(cssColor("--neon", "#e8352a"));
+    mat.accent.color.set(cssColor("--neon", "#f5b83d"));
   }
 
   // Lit-window texture for the surrounding towers (mostly warm, a few cool and neon).
@@ -671,7 +671,7 @@
   const personGeo = new THREE.CylinderGeometry(0.32, 0.38, 1.8, 6);
   personGeo.translate(0, 0.9, 0);
   const crowd = new THREE.InstancedMesh(personGeo, mat.person, people.length);
-  const SHIRTS = ["#e8352a", "#2a9fd6", "#f5a623", "#eef0f4", "#1c2330", "#7cc46b"];
+  const SHIRTS = ["#f5b83d", "#5aa9e6", "#f5a623", "#eef0f4", "#1c2330", "#7cc46b"];
   people.forEach((p, i) => crowd.setColorAt(i, C(SHIRTS[i % SHIRTS.length])));
   scene.add(crowd);
 
@@ -843,7 +843,7 @@
     sunScreen.copy(sunDisc.position).project(camera);
     const onScreen = sunScreen.z < 1;
     stage.style.setProperty("--day", (onScreen ? day * lerp(0.7, 0.9, dusk) : 0).toFixed(3));
-    stage.style.setProperty("--end", smoothstep(q, 4.35, 5).toFixed(3));
+    stage.style.setProperty("--end", smoothstep(S.tail(), 0.35, 1).toFixed(3));   // fades over the tail after the last card
     stage.style.setProperty("--sx", clamp((sunScreen.x + 1) * 50, 4, 96).toFixed(1) + "%");
     stage.style.setProperty("--sy", clamp((1 - sunScreen.y) * 50, -10, 80).toFixed(1) + "%");
   }
