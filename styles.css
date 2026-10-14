@@ -2,8 +2,8 @@
    MARCO CHING PORTFOLIO · Hong Kong edition
    Layout: one bright, clear-water page. A 3D tower stands in the
    middle of the opening story with frosted cards either side; below
-   it, light sections float over a water surface that ripples under
-   the pointer. Palette from celestial blue, May green, yellow-green,
+   it, light sections in a faint aqua wash. Main titles stand slightly
+   off the page (a short extrusion). Palette from celestial blue, May green, yellow-green,
    pearl aqua and Cal Poly Pomona green. Interactive demos sit in
    deep-green panels (the .deep scope below re-points the tokens).
    Bilingual labels, an MTR-style route for experience.
@@ -57,10 +57,15 @@
   --glass-edge: rgba(255, 255, 255, 0.85);
   --glass-shade: rgba(20, 68, 37, 0.16);
 
+  /* Title extrusion, nearest layer first */
+  --extrude-1: #9fd0c2;
+  --extrude-2: #84bfae;
+  --extrude-3: #6aab98;
+
   --b-lamp: #fff1c9;        /* luminaire glow in the 3D room, read by building.js */
 
   /* Type */
-  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-display: "Readex Pro", "Avenir Next", "Segoe UI", Arial, sans-serif;
   --font-body: "Funnel Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --font-zh: "Noto Serif TC", "PMingLiU", "MingLiU", "Songti TC", serif;
@@ -100,10 +105,9 @@ body {
   font-size: 1.0625rem;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  font-variation-settings: "SOFT" 100, "WONK" 1;   /* Fraunces' soft, leafy cut; other faces ignore it */
 }
 main, .footer { position: relative; z-index: 1; }
-.water { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+
 img { display: block; max-width: 100%; height: auto; }
 a { color: inherit; }
 button { font: inherit; color: inherit; }
@@ -111,11 +115,7 @@ h1, h2, h3 { margin: 0; text-wrap: balance; }
 p, ul, ol, dl, dd, figure { margin: 0; }
 p { text-align: justify; -webkit-hyphens: auto; hyphens: auto; }   /* the big What's next statement opts out */
 ul, ol { padding: 0; }
-em {                                   /* sky into leaf */
-  font-style: normal; color: var(--neon);
-  background: linear-gradient(100deg, var(--neon) 15%, var(--green-ink) 85%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-}
-.deep em, .demo em, .toolbox em { background: none; -webkit-text-fill-color: currentColor; }
+em { font-style: normal; color: var(--neon); }
 ::selection { background: var(--neon); color: var(--on-neon); }
 :focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; border-radius: 6px; }
 
@@ -131,6 +131,7 @@ em {                                   /* sky into leaf */
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-d);
+  text-align: left; -webkit-hyphens: manual; hyphens: manual;
 }
 .label .zh, .kicker .zh { font-size: 1rem; color: var(--neon); letter-spacing: 0.1em; }
 
@@ -228,65 +229,60 @@ em {                                   /* sky into leaf */
 .step-right { justify-content: flex-end; }
 .step-card.glass { border-radius: 32px; }   /* the bubbles */
 .step-card { display: grid; gap: 14px; width: min(100%, clamp(300px, calc(50vw - var(--tower-half, 24vh) - var(--gutter) - 36px), 540px)); padding: clamp(20px, 2.6vw, 30px); border-radius: var(--radius); pointer-events: auto; }
-.step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.015em; }
+.step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
 .step-card > p:not(.kicker):not(.scroll-cue) { color: var(--muted-d); text-align: left; }   /* narrow columns justify badly */
-/* Background and What's next: full-screen text over the louvres (.louvres, in the stage). Scrolling in
-   from the intro, the slats swing shut like the tower's adaptive shading; between the two they flip over
-   from clear water to open sky; into Project 3.1 they open again. story.js turns each slat. */
+/* Background and What's next: two full-screen panels, each on its own frosted tint, so they read as
+   separate sections. Background fades in over the intro; What's next starts on a clean edge in a
+   different tint and fades out into Project 3.1. Each panel's content fades in gently as it arrives. */
 .step.step-fill { display: block; padding: 0; max-width: none; }
-.panel-full {
-  display: flex; min-height: 100vh; min-height: 100svh; pointer-events: auto;
-  text-shadow: 0 1px 24px rgba(255, 255, 255, 0.7);
+.panel-full { position: relative; isolation: isolate; display: flex; min-height: 100vh; min-height: 100svh; pointer-events: auto; }
+.panel-full::before {                   /* the tint, on its own layer so its fade never touches the words */
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
-.louvres { position: absolute; inset: 0; display: grid; grid-auto-rows: 1fr; perspective: 1400px; pointer-events: none; visibility: hidden; }
-.slat { position: relative; transform-style: preserve-3d; transform: rotateX(var(--a, 90deg)); }
-.slat i {
-  position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden;
-  background-size: 100% calc(var(--n) * 100%); background-position: 0 calc(var(--k) * 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(20, 68, 37, 0.14);   /* light on each slat's edge */
+#about .panel-full::before {
+  background: rgba(242, 250, 248, 0.9);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%); mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
 }
-.slat i:first-child {                   /* clear water: behind Background */
-  background-image:
-    radial-gradient(circle at 86% 10%, rgba(75, 151, 192, 0.28), transparent 40%),
-    radial-gradient(ellipse at 8% 100%, rgba(181, 217, 132, 0.42), transparent 52%),
-    linear-gradient(180deg, rgba(240, 251, 248, 0.86), rgba(204, 238, 231, 0.9));
-}
-.slat i:last-child {                    /* open sky: behind What's next */
-  transform: rotateX(180deg);
-  background-image:
-    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(181, 217, 132, 0.55), transparent 75%),
-    linear-gradient(0deg, rgba(236, 247, 252, 0.88), rgba(196, 228, 245, 0.9));
+#direction .panel-full::before {
+  background: rgba(226, 240, 250, 0.93); border-top: 1px solid var(--line-d);
+  -webkit-mask-image: linear-gradient(180deg, #000 92%, transparent 100%); mask-image: linear-gradient(180deg, #000 92%, transparent 100%);
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .panel-inner { animation: pass-through linear both; animation-timeline: view(); animation-range: cover; }
+    .panel-inner { animation: settle linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
   }
 }
-@keyframes pass-through {
-  0% { opacity: 0; transform: translateY(14vh); }
-  32%, 68% { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: translateY(-14vh); }
-}
+@keyframes settle { from { opacity: 0; transform: translateY(3vh); } }
 .panel-inner {
   display: flex; flex-direction: column; gap: 24px; width: 100%;
-  max-width: calc(var(--max) + 2 * var(--gutter)); margin-inline: auto; padding: 104px var(--gutter) 48px;
+  max-width: calc(var(--max) + 2 * var(--gutter)); margin-inline: auto; padding: 104px var(--gutter) max(48px, 9vh);
 }
 .panel-inner .kicker { font-size: 0.875rem; }
 .panel-body { display: grid; gap: clamp(20px, 3.5vh, 36px); margin-block: auto; }
 .panel-title {
   max-width: 18ch;
   font-family: var(--font-display); font-weight: 800; color: var(--text-d);
-  font-size: clamp(2.6rem, min(7vw, 11vh), 6.6rem); line-height: 0.95; letter-spacing: -0.025em;
+  font-size: clamp(2.6rem, min(7vw, 11vh), 6.6rem); line-height: 0.95; letter-spacing: -0.045em;
 }
 .statement-text.panel-title { text-align: left; max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
 .panel-foot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: end; }
 .panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--muted-d); max-width: 52ch; }
 .panel-full .about-facts dd { font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
-.panel-full .marquee span { font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: rgba(20, 68, 37, 0.36); }
+.panel-full .marquee span { font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: var(--muted-d); }
 .step-card .proj-meta { color: var(--muted-d); margin-top: 6px; }
 .step-card .proj-meta span { color: var(--neon); }
-.step-title { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.4rem, 2.2vw, 1.8rem); line-height: 1.05; letter-spacing: -0.015em; }
+.step-title { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.4rem, 2.2vw, 1.8rem); line-height: 1.05; letter-spacing: -0.03em; }
 .step-card .proj-link { color: var(--neon); }
+.proj-badge {                          /* where a new project starts: a big number and its name */
+  display: flex; align-items: center; gap: 14px; padding-block: 4px 2px;
+  font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-d); text-align: left;
+}
+.proj-badge-num {
+  display: grid; place-items: center; min-width: 2.6em; height: 2.6em; padding-inline: 0.3em; border-radius: 16px;
+  background: var(--neon); color: var(--on-neon);
+  font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.03em; text-transform: none;
+}
 .kicker-num { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; letter-spacing: 0; color: var(--neon); }
 .about-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .about-facts div { padding-top: 10px; border-top: 2px solid rgba(20, 68, 37, 0.16); }
@@ -294,14 +290,19 @@ em {                                   /* sky into leaf */
 .about-facts dd { font-family: var(--font-display); font-weight: 750; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--text-d); font-variant-numeric: tabular-nums; }
 .step-intro { align-items: stretch; padding-top: 84px; padding-bottom: 28px; }
 /* Spare height is split 3:1 above and below the name, so it sits closer to the box underneath. */
-.intro { display: grid; grid-template-rows: auto minmax(0, 3fr) auto minmax(0, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
-.intro > .kicker { grid-row: 1; }
+.intro { display: grid; grid-template-rows: auto minmax(0, 3fr) auto minmax(18px, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
+.intro > .kicker { grid-row: 1; justify-self: start; padding: 6px 12px; border-radius: 999px; color: var(--text-d);
+  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }   /* readable over the 3D scene */
 .intro > .intro-foot { grid-row: 5; }
-.giant-name { --hw: 800;
+.giant-name {
   grid-row: 3;
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(3.4rem, min(15vw, 25vh), 13rem); line-height: 0.8; letter-spacing: -0.02em;
-  color: var(--text-d); text-shadow: 0 10px 50px rgba(255, 255, 255, 0.55);
+  font-size: clamp(3.4rem, min(15vw, 23vh), 12rem); line-height: 0.92; letter-spacing: -0.06em;
+  color: var(--text-d);
+}
+/* Main titles stand slightly off the page: a short extrusion down and right, then a soft shadow */
+.giant-name, .panel-title, .sec-head h2, .contact h2, .step-card h2 {
+  text-shadow: 0.012em 0.012em 0 var(--extrude-1), 0.024em 0.024em 0 var(--extrude-2), 0.036em 0.036em 0 var(--extrude-3), 0.05em 0.09em 0.14em rgba(20, 68, 37, 0.22);
 }
 .intro-foot { display: grid; gap: 14px; max-width: 520px; padding: 18px 20px; border-radius: var(--radius);
   background: var(--glass); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid var(--glass-edge); }
@@ -340,10 +341,11 @@ em {                                   /* sky into leaf */
 
 .statement-text {
   font-family: var(--font-display); font-weight: 600; color: var(--text-d);
-  font-size: clamp(1.6rem, 2.8vw, 2.3rem); line-height: 1.06; letter-spacing: -0.02em;
+  font-size: clamp(1.6rem, 2.8vw, 2.3rem); line-height: 1.06; letter-spacing: -0.035em;
 }
-.statement-text .w { opacity: 0.22; transition: opacity 300ms, color 300ms, text-shadow 300ms; }
+.statement-text .w { opacity: 0.32; transition: opacity 300ms, color 300ms, text-shadow 300ms; }
 .statement-text .w.on { opacity: 1; }
+.statement-text .w:not(.on) { text-shadow: none; }   /* only lit words stand off the page */
 .statement-text b { font-weight: 600; }
 .statement-text b .w.on { color: var(--neon); text-shadow: none; }
 .marquee { overflow: hidden; border-block: 1px solid var(--glass-edge); padding-block: 12px; margin-top: 4px;
@@ -360,11 +362,6 @@ em {                                   /* sky into leaf */
 
 .experience, .contact { background: linear-gradient(180deg, transparent, rgba(130, 209, 197, 0.18) 18%, rgba(130, 209, 197, 0.18) 82%, transparent); }
 
-/* ---------- Titles that move like water: letters near the pointer thin out (sections.js) ---------- */
-
-[data-swell] .sw { font-weight: clamp(300, calc(var(--hw, 700) + var(--lift, 0)), 800); transition: font-weight 700ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-[data-swell]:not(.is-in) { --hw: 300; }
-
 /* ---------- Projects (light, with deep-green demos) ---------- */
 
 .projects { color: var(--ink); padding-block: clamp(24px, 4vw, 48px) clamp(72px, 10vw, 128px); }
@@ -374,7 +371,7 @@ em {                                   /* sky into leaf */
 .projects .label .zh { color: var(--neon-ink); }
 .projects em { color: var(--neon-ink); }
 .sec-head { display: grid; gap: 14px; margin-bottom: clamp(36px, 6vw, 72px); }
-.sec-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 6.4vw, 5.4rem); line-height: 0.92; letter-spacing: -0.025em; }
+.sec-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 6.4vw, 5.4rem); line-height: 0.92; letter-spacing: -0.045em; }
 .sec-head-row { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; }
 
 .proj {
@@ -387,7 +384,7 @@ em {                                   /* sky into leaf */
 .proj-info { display: grid; gap: 14px; align-content: start; min-width: 0; }
 .proj-meta { display: flex; align-items: baseline; gap: 12px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-p); }
 .proj-meta span { font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--neon-ink); }
-.proj h3 { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.6rem, 2.8vw, 2.3rem); line-height: 1; letter-spacing: -0.015em; }
+.proj h3 { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.6rem, 2.8vw, 2.3rem); line-height: 1; letter-spacing: -0.03em; }
 .proj-info > p:not(.proj-meta) { color: var(--muted-p); }
 .proj-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .proj-stats div { padding-top: 10px; border-top: 2px solid var(--ink); }
@@ -481,21 +478,6 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .stop-btn[aria-pressed="false"] .stop-dot { animation: beckon 2.6s ease-out infinite; }
 @keyframes beckon { 0% { box-shadow: 0 0 0 0 rgba(43, 119, 161, 0.35); } 70%, 100% { box-shadow: 0 0 0 12px rgba(43, 119, 161, 0); } }
 
-.route { position: relative; }
-.route-train {                        /* the train that rides between stations, wheels on the line */
-  position: absolute; left: 0; top: 0; z-index: 2; width: 110px; height: 34px; margin: -29px 0 0 -55px;
-  list-style: none; pointer-events: none;
-  transition: transform var(--ride, 800ms) cubic-bezier(0.65, 0, 0.35, 1);
-}
-.route-train svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 10px rgba(20, 68, 37, 0.3)); transition: transform 300ms; }
-.route-train.is-reversed svg { transform: scaleX(-1); }
-.t-body { fill: #eef1f5; }
-.t-glass { fill: #1c2330; }
-.t-door { stroke: #b8c0cc; stroke-width: 1; fill: none; }
-.t-stripe { fill: var(--train, var(--neon)); transition: fill 400ms; }
-.t-lamp { fill: #ffe9a8; }
-.t-under { fill: #2a3344; }
-.t-wheel { fill: #0d1015; stroke: #5b6576; stroke-width: 1.2; }
 .route-hint { display: flex; align-items: center; gap: 10px; margin: -12px 0 18px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-d); }
 .route-hint-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); animation: beckon 2s ease-out infinite; }
 .route-nav { display: flex; justify-content: space-between; gap: 12px; margin: -8px 0 22px; max-width: 760px; }
@@ -521,11 +503,11 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 }
 .stop-panel.is-active { opacity: 1; visibility: visible; transform: none; transition-delay: var(--delay, 0ms), var(--delay, 0ms), 0s; }
 .panel-when { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted-d); }
-.stop-panel h3 { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.015em; }
+.stop-panel h3 { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.03em; }
 .panel-role { color: var(--neon); font-weight: 600; }
 .stop-panel > p:not(.panel-when):not(.panel-role):not(.panel-stat) { color: var(--muted-d); max-width: 60ch; }
 .panel-stat { display: flex; align-items: baseline; gap: 10px; color: var(--muted-d); }
-.panel-stat strong { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; color: var(--text-d); letter-spacing: -0.015em; }
+.panel-stat strong { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; color: var(--text-d); letter-spacing: -0.03em; }
 
 /* ---------- Skills: the toolbox (paper) ---------- */
 
@@ -593,7 +575,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 
 .contact { padding-block: clamp(80px, 12vw, 150px) clamp(48px, 6vw, 72px); }
 
-.contact h2 { max-width: 20ch; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 5.4vw, 4.4rem); line-height: 0.98; letter-spacing: -0.025em; }
+.contact h2 { max-width: 20ch; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 5.4vw, 4.4rem); line-height: 0.98; letter-spacing: -0.04em; }
 .contact-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
 .contact-email { font-family: var(--font-mono); font-size: clamp(1.05rem, 3vw, 1.6rem); text-decoration: none; border-bottom: 2px solid var(--neon); overflow-wrap: anywhere; }
 .contact-links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-weight: 600; color: var(--muted-d); }
@@ -650,9 +632,6 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .stop-en { grid-column: 2; }
   .stop-year { grid-column: 3; grid-row: 1 / span 2; }
   .meters { grid-template-columns: minmax(0, 1fr); }
-  .route-train { width: 92px; height: 28px; margin: -14px 0 0 -46px; }
-  .route-train svg { transform: rotate(90deg); }                     /* the line runs down the page */
-  .route-train.is-reversed svg { transform: rotate(-90deg) scaleY(-1); }
   .route-step { padding: 0 14px; font-size: 0.85rem; }
   .panel-foot { grid-template-columns: minmax(0, 1fr); }
   .panel-inner { padding: 92px var(--gutter) 32px; }

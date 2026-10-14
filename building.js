@@ -11,8 +11,8 @@
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the light turns golden
 //   5 → 6  the tower closes back up (every run side by side)
-//   6 → 7  the roof lifts off and the camera looks down at ~50° into the top floor, laid out as the
-//          48 × 34 ft office of Project 3.2; the layout buttons move its luminaires
+//   6 → 7  night falls, the roof lifts off and the camera rises to look straight down into the top floor,
+//          laid out as the office of Project 3.2; the layout buttons move its luminaires
 // The skyline is drawn by a second renderer onto #backdrop-canvas, which CSS blurs, so the tower stays
 // the one thing in focus. The tower is illustrative; the numbers belong to the ME 572 models. Units are
 // metres; the landmarks are scaled down to fit the frame.
@@ -99,7 +99,8 @@
     return v || fallback;
   }
 
-  // Palettes: early morning (start, still called night), day, golden hour (end). update() blends between them.
+  // Palettes: early morning (start, still called night), day, golden hour, and real night for Project 3.2.
+  // update() blends between them; `nightfall` (0 → 1) is set at the top of each update.
   const PAL = {
     night: { concrete: C("#c3ced2"), slab: C("#e4eaeb"), panelTint: C("#eef4f4"), glass: C("#bfe0ec"), ground: C("#9cc47e"),
       road: C("#8b9497"), walk: C("#e3e6dc"), water: C("#82c3d8"), green: C("#7fbf5e"), context: C("#d3e2e8"), hill: C("#8dbf74"),
@@ -110,12 +111,16 @@
     sunset: { concrete: C("#c8bfb6"), slab: C("#e8ddd2"), panelTint: C("#fbe9da"), glass: C("#f5c49a"), ground: C("#9cb877"),
       road: C("#6d6a6c"), walk: C("#ddd0c2"), water: C("#8fb6cf"), green: C("#78a85a"), context: C("#c8c4cc"), hill: C("#7ea067"),
       skyTop: C("#6fa3cf"), skyLow: C("#ffd9a8"), light: C("#ffd2a0") },
+    dark: { concrete: C("#2c3540"), slab: C("#3a4552"), panelTint: C("#5b6672"), glass: C("#1d2a38"), ground: C("#142019"),
+      road: C("#10151b"), walk: C("#252b31"), water: C("#0b1826"), green: C("#1d3324"), context: C("#18212b"), hill: C("#13201a"),
+      skyTop: C("#050a14"), skyLow: C("#142235"), light: C("#8fa3c8") },
   };
   const WARM = C("#ffcf86");                         // window glow
   const tmp = {};
+  let nightfall = 0;
   function blend(key, day, dusk) {
     const c = tmp[key] || (tmp[key] = new THREE.Color());
-    return c.copy(PAL.night[key]).lerp(PAL.day[key], day).lerp(PAL.sunset[key], dusk);
+    return c.copy(PAL.night[key]).lerp(PAL.day[key], day).lerp(PAL.sunset[key], dusk).lerp(PAL.dark[key], nightfall);
   }
 
   function applyTheme() {
@@ -441,30 +446,28 @@
     floors.push(g);
   }
 
-  // ---------- Project 3.2: the top floor as the 48 × 34 ft office, seen from above ----------
-  // When the roof lifts off, the floor shows the ME 572 office: 2 × 4 ft luminaires hang 6.5 ft above the
-  // work plane and the floor carries their light, recomputed from the layout (point sources, E = I·h / d³) and scaled
-  // so the average matches the report: 42 fc for 4 × 4, 52 fc for 5 × 4. The layout buttons
+  // ---------- Project 3.2: the top floor as the 48 × 34 ft office, seen from above at night ----------
+  // When the roof lifts off, the whole floor becomes the ME572 office, drawn to one scale so its 48 ft
+  // run spans the floor. 2 × 4 ft luminaires hang 6.5 ft above the work plane and the floor carries
+  // their light, recomputed from the layout (point sources, E = I·h / d³) and scaled so the average over
+  // the office matches the report: 42 fc for 4 × 4, 52 fc for 5 × 4. The layout buttons
   // (sections.js, "lighting-layout") slide the luminaires to their new places.
-  const FT = 0.3048, RW = 48, RD = 34, MOUNT = 6.5, Y0 = 0.47;  // feet; lamps 6.5 ft above the desks
+  const RW = 48, RD = 34, MOUNT = 6.5, Y0 = 0.47;    // feet; lamps 6.5 ft above the desks
+  const PLATE = W - 0.6, SC = PLATE / RW, Z0 = (RD - RW) / 2;   // metres per foot; the square floor runs 7 ft past the office each side
   const room = new THREE.Group();
   room.visible = false;
   top.g.add(room);
-  const LW = 160, LD = Math.round((LW * RD) / RW);
+  const LW = 160, LD = 160;
   const lightCanvas = document.createElement("canvas");
   lightCanvas.width = LW; lightCanvas.height = LD;
   const lightCtx = lightCanvas.getContext("2d"), lightImg = lightCtx.createImageData(LW, LD);
   const lightTex = new THREE.CanvasTexture(lightCanvas);
-  const roomFloor = new THREE.Mesh(new THREE.PlaneGeometry(RW * FT, RD * FT), new THREE.MeshBasicMaterial({ map: lightTex }));
+  const roomFloor = new THREE.Mesh(new THREE.PlaneGeometry(PLATE, PLATE), new THREE.MeshBasicMaterial({ map: lightTex }));
   roomFloor.rotation.x = -Math.PI / 2;
   roomFloor.position.y = Y0;
   room.add(roomFloor);
-  const rw = RW * FT, rd = RD * FT, wallMat = std({ color: 0xf3f1ea });
-  const wall = (w, d, x, z, m = wallMat) => box(w, 1.1, d, m, room, x, Y0 + 0.55, z, false);
-  wall(rw + 0.3, 0.15, 0, -rd / 2); wall(0.15, rd, -rw / 2, 0); wall(0.15, rd, rw / 2, 0);
-  wall(rw + 0.3, 0.15, 0, rd / 2, std({ color: 0x4b97c0, roughness: 0.15, transparent: true, opacity: 0.6 }));  // south window
   const lumMat = new THREE.MeshBasicMaterial({ color: cssColor("--b-lamp", "#fff1c9") });
-  const lums = new THREE.InstancedMesh(new THREE.BoxGeometry(2 * FT, 0.08, 4 * FT), lumMat, 20);
+  const lums = new THREE.InstancedMesh(new THREE.BoxGeometry(2 * SC, 0.08, 4 * SC), lumMat, 20);
   room.add(lums);
 
   // 20 luminaires in a 5 × 4 grid; the 4 × 4 layout parks the fifth column on the fourth, hidden.
@@ -475,9 +478,9 @@
   let lamps = layoutOf({ cols: 5, rows: 4 }), from = lamps, to = lamps, fcFrom = 52, fcTo = 52, fcNow = 52, t0 = -1e9;
   const raw = new Float32Array(LW * LD);
   function paintLight() {
-    let sum = 0;
+    let sum = 0, cells = 0;
     for (let j = 0; j < LD; j++) {
-      const z = ((j + 0.5) / LD) * RD;
+      const z = Z0 + ((j + 0.5) / LD) * RW;
       for (let i = 0; i < LW; i++) {
         const x = ((i + 0.5) / LW) * RW;
         let e = 0;
@@ -486,20 +489,21 @@
           const d2 = (x - l.x) ** 2 + (z - l.z) ** 2 + MOUNT * MOUNT;
           e += (l.s * MOUNT) / (d2 * Math.sqrt(d2));
         }
-        raw[j * LW + i] = e; sum += e;
+        raw[j * LW + i] = e;
+        if (z >= 0 && z <= RD) { sum += e; cells++; }   // the report's average is over the office itself
       }
     }
-    const k = fcNow / (sum / raw.length), px = lightImg.data;
+    const k = fcNow / (sum / cells), px = lightImg.data;
     for (let n = 0; n < raw.length; n++) {
-      const v = clamp((raw[n] * k - 22) / 50, 0, 1);     // 22 fc and below is shade, 72 fc is full light
-      px[n * 4] = lerp(52, 255, v); px[n * 4 + 1] = lerp(84, 244, v); px[n * 4 + 2] = lerp(78, 200, v); px[n * 4 + 3] = 255;
+      const v = clamp((raw[n] * k - 12) / 60, 0, 1);     // 12 fc and below is dark floor, 72 fc is full light
+      px[n * 4] = lerp(18, 255, v); px[n * 4 + 1] = lerp(26, 242, v); px[n * 4 + 2] = lerp(34, 196, v); px[n * 4 + 3] = 255;
     }
     lightCtx.putImageData(lightImg, 0, 0);
     lightTex.needsUpdate = true;
   }
   function placeLums() {
     lamps.forEach((l, k) => {
-      dummy.position.set((l.x - RW / 2) * FT, Y0 + 2.9, (l.z - RD / 2) * FT);
+      dummy.position.set((l.x - RW / 2) * SC, Y0 + 2.9, (l.z - RD / 2) * SC);
       dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(Math.max(0.001, l.s)); dummy.updateMatrix();
       lums.setMatrixAt(k, dummy.matrix);
     });
@@ -712,7 +716,7 @@
   // ---------- Camera path (keyframes at given q) ----------
   // Before q = −1 the camera holds the intro shot. `side` slides the aim sideways so the tower sits to
   // one side of the screen (positive: tower to the right); from q = 0 it stands in the middle. On phones
-  // `side` is ignored and `drop` aims lower instead, lifting the subject above the card. Keys marked
+  // `side` is ignored and `drop` shifts the view the other way, lifting the subject above the card. Keys marked
   // `room` look down on a point, so on tall screens they back away along the view line instead of rising.
   const KEYS = [
     { q: -1, ang: 0.62, rad: 118, h: 16, ty: 27, side: 22 },
@@ -723,7 +727,7 @@
     { q: 4, ang: 1.90, rad: 184, h: 32, ty: 43 },
     { q: 5, ang: 2.15, rad: 190, h: 38, ty: 45 },
     { q: 6, ang: 2.25, rad: 138, h: 30, ty: 28 },                       // closed back up
-    { q: 7, ang: 2.35, rad: 33, h: 89, ty: 47.5, side: -7, drop: 10, room: true },   // ~52° down into the top floor
+    { q: 7, ang: Math.PI / 2, rad: 0.5, h: 94, ty: 47.5, side: -9, drop: 7, room: true },  // straight down, plan square to the screen
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
@@ -737,7 +741,12 @@
     camera.position.set(Math.cos(ang) * rad, lerp(keyY(a), keyY(b), t), Math.sin(ang) * rad);
     const wide = camera.aspect > 1 ? 1 : 0;
     const side = lerp(a.side || 0, b.side || 0, t) * wide, drop = lerp(a.drop || 0, b.drop || 0, t) * (1 - wide) * distScale;
-    lookTarget.set(-Math.sin(ang) * side, lerp(a.ty, b.ty, t) - drop, Math.cos(ang) * side);
+    const sx = -Math.sin(ang) * side + Math.cos(ang) * drop, sz = Math.cos(ang) * side + Math.sin(ang) * drop;
+    lookTarget.set(sx, lerp(a.ty, b.ty, t), sz);
+    // Orbit keys turn the camera to aim off-centre; looking down, the whole camera slides instead,
+    // so the plan stays square to the screen.
+    const slide = lerp(a.room ? 1 : 0, b.room ? 1 : 0, t);
+    camera.position.x += sx * slide; camera.position.z += sz * slide;
     camera.lookAt(lookTarget);
   }
 
@@ -773,6 +782,7 @@
 
     // Time of day: early morning → full day (0.3–1.0), daylight through step 4, golden hour from the measurement step.
     const day = smoothstep(q, 0.3, 1.0), dusk = smoothstep(q, 4.0, 4.85);
+    nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 3.2, so its lighting reads
     const dawn = 4 * day * (1 - day);
     const alt = q < 1.6 ? lerp(4, 46, smoothstep(q, 0.3, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
     const az = lerp(200, 262, smoothstep(q, 0, 4.8));
@@ -784,10 +794,10 @@
     stage.style.setProperty("--sky-b", "#" + skyLow.getHexString());
     scene.fog.color.copy(skyLow);
     // Soft light: strong sky fill, gentle sun
-    hemi.intensity = lerp(0.85, 0.95, day) * lerp(1, 0.85, dusk);
+    hemi.intensity = lerp(0.85, 0.95, day) * lerp(1, 0.85, dusk) * lerp(1, 0.5, nightfall);
     hemi.color.copy(blend("light", day, dusk)).lerp(new THREE.Color(0xffffff), 0.5);
     hemi.groundColor.set(0x5a6b4e);
-    sunLight.intensity = lerp(0.5, 0.72, day) * lerp(1, 0.75, dusk);
+    sunLight.intensity = lerp(0.5, 0.72, day) * lerp(1, 0.75, dusk) * (1 - nightfall * 0.85);
     sunLight.color.copy(blend("light", day, dusk));
     ["concrete", "slab", "ground", "green", "road", "walk", "water", "hill"].forEach(key => {
       const m = key === "hill" ? mat.hill : mat[key];
@@ -802,19 +812,21 @@
     mat.car.color.copy(blend("panelTint", day, dusk));
     mat.person.color.copy(mat.car.color);
     const ctx = blend("context", day, dusk);
-    // The city keeps a few lights on all day; they brighten in the golden hour.
-    cityMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = lerp(0.25, 0.7, dusk); });
-    nearMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = Math.pow(dusk, 1.6) * 0.6; });
-    mat.brace.opacity = 0.35 + dusk * 0.4;
-    // The tower's windows glow a little in the golden hour.
-    const glow = dusk * 0.55;
+    // The city keeps a few lights on all day; they brighten in the golden hour and come fully on at night.
+    const lit = Math.max(dusk * 0.6, nightfall);
+    cityMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = lerp(0.25, 0.85, lit); });
+    nearMats.forEach(m => { m.color.copy(ctx); m.emissiveIntensity = Math.pow(lit, 1.6) * 0.75; });
+    mat.brace.opacity = 0.35 + lit * 0.5;
+    // The tower's windows glow a little in the golden hour and warmly at night.
+    const glow = Math.max(dusk * 0.55, nightfall);
 
+    sunDisc.visible = nightfall < 0.5;
     sunDisc.scale.setScalar(lerp(0.8, 1.6, dusk));
     mat.sun.color.set(0xffe7a8).lerp(new THREE.Color(0xff8a4a), dusk);
     sunLight.position.copy(sunDir).multiplyScalar(240);
     sunLight.target.position.set(0, 25, 0);
     sunDisc.position.copy(sunDir).multiplyScalar(520);
-    shaftMat.opacity = day * (1 - dusk * 0.6) * smoothstep(q, 0.45, 1.0) * 0.11;
+    shaftMat.opacity = day * (1 - dusk * 0.6) * (1 - nightfall) * smoothstep(q, 0.45, 1.0) * 0.11;
     shafts.forEach(m => {
       m.visible = shaftMat.opacity > 0.004;
       if (m.visible) { m.position.copy(m.userData.aim).addScaledVector(sunDir, 90); m.quaternion.setFromUnitVectors(UP, sunDir); }
@@ -854,7 +866,7 @@
     mat.sensor.opacity = st.sense;
     sensors.forEach((s, i) => { s.scale.setScalar(Math.max(0.001, st.sense * pulse * (i % 4 === 0 ? 1.15 : 1))); });
 
-    moveTraffic(q, dusk * 0.7);
+    moveTraffic(q, Math.max(dusk * 0.7, nightfall));
 
     // Project 3.2: the roof lifts away and the top floor shows the office
     top.roof.position.y = st.roof * 40;
@@ -868,7 +880,7 @@
     camera.updateMatrixWorld();
     sunScreen.copy(sunDisc.position).project(camera);
     const onScreen = sunScreen.z < 1;
-    stage.style.setProperty("--day", (onScreen ? lerp(0.45, 0.8, day) * lerp(1, 0.9, dusk) : 0).toFixed(3));
+    stage.style.setProperty("--day", (onScreen ? lerp(0.45, 0.8, day) * lerp(1, 0.9, dusk) * (1 - nightfall) : 0).toFixed(3));
     stage.style.setProperty("--end", smoothstep(S.tail(), 0.35, 1).toFixed(3));   // fades over the tail after the last card
     stage.style.setProperty("--sx", clamp((sunScreen.x + 1) * 50, 4, 96).toFixed(1) + "%");
     stage.style.setProperty("--sy", clamp((1 - sunScreen.y) * 50, -10, 80).toFixed(1) + "%");

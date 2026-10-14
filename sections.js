@@ -619,22 +619,14 @@
   })();
 
   // ---------- Experience: MTR route ----------
-  // A train rides the line to the chosen station (longer trips take longer), then that
-  // station's panel slides in from the direction of travel.
+  // The chosen station's panel slides in from the direction of travel.
   (function route() {
-    const routeEl = $(".route"), train = $(".route-train");
+    const routeEl = $(".route");
     const btns = $$(".stop-btn"), panels = $$(".stop-panel"), steps = $$(".route-step");
     if (!routeEl || !btns.length) return;
     const names = btns.map(b => b.querySelector(".stop-en").textContent);
     let cur = Math.max(0, btns.findIndex(b => b.getAttribute("aria-pressed") === "true"));
 
-    function placeTrain(i, ms) {
-      if (!train) return;
-      const r = routeEl.getBoundingClientRect(), d = btns[i].querySelector(".stop-dot").getBoundingClientRect();
-      train.style.setProperty("--ride", ms + "ms");
-      train.style.setProperty("--train", getComputedStyle(btns[i].closest(".stop")).getPropertyValue("--line"));
-      train.style.transform = `translate(${d.left + d.width / 2 - r.left}px, ${d.top + d.height / 2 - r.top}px)`;
-    }
     function syncSteps() {
       steps.forEach(b => {
         const to = cur + Number(b.dataset.dir), ok = to >= 0 && to < btns.length;
@@ -645,23 +637,20 @@
     }
     function go(i) {
       if (i === cur || i < 0 || i >= btns.length) return;
-      const dir = i > cur ? 1 : -1, hops = Math.abs(i - cur);
-      const ride = Math.min(500 + hops * 350, 1700);
-      train?.classList.toggle("is-reversed", dir < 0);           // the cab leads the way
+      const dir = i > cur ? 1 : -1;
       btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
       const out = panels[cur], inn = panels[i];
-      // Old panel leaves against the direction of travel; the new one arrives as the train pulls in.
+      // Old panel leaves against the direction of travel; the new one follows a beat later.
       out.style.setProperty("--shift", -dir * 70 + "px");
       out.classList.remove("is-active");
       inn.style.transition = "none";
       inn.style.setProperty("--shift", dir * 70 + "px");
       void inn.offsetWidth;
       inn.style.transition = "";
-      inn.style.setProperty("--delay", Math.round(ride * 0.45) + "ms");
+      inn.style.setProperty("--delay", "250ms");
       inn.classList.add("is-active");
       panels.forEach(p => { p.inert = p !== inn; p.setAttribute("aria-hidden", String(p !== inn)); });
       cur = i;
-      placeTrain(i, ride);
       syncSteps();
     }
     panels.forEach((p, k) => { p.inert = k !== cur; p.setAttribute("aria-hidden", String(k !== cur)); });
@@ -673,10 +662,7 @@
       go(cur + (ev.key === "ArrowRight" ? 1 : -1));
       btns[cur].focus();
     });
-    placeTrain(cur, 0);
     syncSteps();
-    window.addEventListener("resize", () => placeTrain(cur, 0));
-    document.fonts?.ready.then(() => placeTrain(cur, 0));
   })();
 
   // ---------- Toolbox: the lid swings open when it comes into view ----------
@@ -806,124 +792,6 @@
       if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
     }), { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     items.forEach(el => { el.classList.add("slide-in"); io.observe(el); });
-  })();
-
-  // ---------- Water: the page surface ripples where the pointer goes ----------
-  // A fixed canvas behind the light sections (the 3D stage covers it in the story). Moving the pointer
-  // leaves expanding rings and a soft patch of light follows it; a tap or click drops a bigger ripple.
-  // Nothing moves on its own: the loop runs only while there is a ring or the light is still catching up.
-  (function water() {
-    const canvas = $("#water");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let w = 0, h = 0, dpr = 1, raf = 0, last = { x: -1e4, y: -1e4, t: 0 };
-    const rings = [], glow = { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4, a: 0, ta: 0 };
-    function size() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = canvas.clientWidth; h = canvas.clientHeight;
-      canvas.width = w * dpr; canvas.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      wake();
-    }
-    function wake() { if (!raf) raf = requestAnimationFrame(frame); }
-    function frame(now) {
-      raf = 0;
-      ctx.clearRect(0, 0, w, h);
-      glow.x += (glow.tx - glow.x) * 0.12; glow.y += (glow.ty - glow.y) * 0.12; glow.a += (glow.ta - glow.a) * 0.08;
-      if (glow.a > 0.01) {
-        const g = ctx.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, 260);
-        g.addColorStop(0, `rgba(130, 209, 197, ${0.34 * glow.a})`);
-        g.addColorStop(0.45, `rgba(75, 151, 192, ${0.12 * glow.a})`);
-        g.addColorStop(1, "rgba(75, 151, 192, 0)");
-        ctx.fillStyle = g; ctx.fillRect(glow.x - 260, glow.y - 260, 520, 520);
-      }
-      for (let i = rings.length - 1; i >= 0; i--) {
-        const r = rings[i], k = (now - r.t) / r.life;
-        if (k >= 1) { rings.splice(i, 1); continue; }
-        const e = 1 - Math.pow(1 - k, 3);
-        [0, 0.35].forEach((lag, j) => {          // a ring and a fainter one behind it
-          const kk = clamp((e - lag) / (1 - lag), 0, 1);
-          if (kk <= 0) return;
-          ctx.beginPath();
-          ctx.ellipse(r.x, r.y, r.size * kk, r.size * kk * 0.62, 0, 0, Math.PI * 2);   // seen at an angle, like a pond
-          ctx.strokeStyle = `rgba(${j ? "70, 149, 61" : "43, 119, 161"}, ${(1 - k) * (j ? 0.26 : 0.45)})`;
-          ctx.lineWidth = 1.6 - j * 0.6;
-          ctx.stroke();
-        });
-      }
-      const settling = Math.abs(glow.tx - glow.x) + Math.abs(glow.ty - glow.y) > 0.5 || Math.abs(glow.ta - glow.a) > 0.01;
-      if (rings.length || settling) wake();
-    }
-    function drop(x, y, size, life) {
-      if (calm) return;
-      rings.push({ x, y, size, life, t: performance.now() });
-      if (rings.length > 40) rings.shift();
-    }
-    window.addEventListener("pointermove", e => {
-      glow.tx = e.clientX; glow.ty = e.clientY; glow.ta = 1;
-      if (glow.x < -1000) { glow.x = e.clientX; glow.y = e.clientY; }
-      const moved = Math.hypot(e.clientX - last.x, e.clientY - last.y), now = performance.now();
-      if (moved > 36 || (moved > 6 && now - last.t > 140)) {
-        drop(e.clientX, e.clientY, 46 + Math.min(moved, 90) * 0.5, 1700);
-        last = { x: e.clientX, y: e.clientY, t: now };
-      }
-      wake();
-    }, { passive: true });
-    window.addEventListener("pointerdown", e => { drop(e.clientX, e.clientY, 140, 1800); wake(); }, { passive: true });
-    document.documentElement.addEventListener("pointerleave", () => { glow.ta = 0; wake(); });
-    window.addEventListener("resize", size);
-    size();
-  })();
-
-  // ---------- Titles: letters near the pointer thin out, like type seen through moving water ----------
-  // Each [data-swell] heading is split into letter spans (aria-hidden; the heading keeps an aria-label)
-  // and grows from light to its full weight when it first scrolls into view.
-  (function swell() {
-    const heads = $$("[data-swell]");
-    if (!heads.length) return;
-    const items = heads.map(h => {
-      h.setAttribute("aria-label", h.textContent.replace(/\s+/g, " ").trim());
-      const walk = document.createTreeWalker(h, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      while (walk.nextNode()) nodes.push(walk.currentNode);
-      nodes.forEach(n => {
-        const frag = document.createDocumentFragment();
-        [...n.textContent].forEach(ch => {
-          if (/\s/.test(ch)) { frag.appendChild(document.createTextNode(ch)); return; }
-          const sp = document.createElement("span");
-          sp.className = "sw"; sp.textContent = ch; sp.setAttribute("aria-hidden", "true");
-          frag.appendChild(sp);
-        });
-        n.replaceWith(frag);
-      });
-      return { h, letters: $$(".sw", h), centres: null };
-    });
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }), { threshold: 0.3 });
-    heads.forEach(h => io.observe(h));
-    function measure(it) {                         // letter centres relative to the heading, at rest
-      const b = it.h.getBoundingClientRect();
-      it.centres = it.letters.map(l => { const r = l.getBoundingClientRect(); return [r.left + r.width / 2 - b.left, r.top + r.height / 2 - b.top]; });
-    }
-    window.addEventListener("resize", () => items.forEach(it => { it.centres = null; }));
-    document.fonts?.ready.then(() => items.forEach(it => { it.centres = null; }));
-    let px = -1e4, py = -1e4, queued = false;
-    function apply() {
-      queued = false;
-      items.forEach(it => {
-        const b = it.h.getBoundingClientRect();
-        if (b.bottom < -200 || b.top > innerHeight + 200) return;
-        if (!it.centres) measure(it);
-        const reach = Math.max(90, b.height * 0.9);
-        it.letters.forEach((l, i) => {
-          const d = Math.hypot(px - b.left - it.centres[i][0], py - b.top - it.centres[i][1]);
-          const lift = Math.round(-380 * Math.exp(-(d * d) / (2 * reach * reach)));
-          if (l._lift !== lift) { l._lift = lift; l.style.setProperty("--lift", lift); }
-        });
-      });
-    }
-    window.addEventListener("pointermove", e => { px = e.clientX; py = e.clientY; if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
-    window.addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
   })();
 
   // ---------- Copy email, year ----------

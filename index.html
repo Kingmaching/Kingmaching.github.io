@@ -12,7 +12,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..800,0..100,0..1&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400..700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%97%9C%E6%96%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
@@ -24,12 +24,11 @@
 </head>
 
 <body>
-  <canvas class="water" id="water" aria-hidden="true"></canvas>
   <!-- =========================================================
        EDITING NOTE
        All visible text lives in this file. Search for "EDIT:" to
        jump to each section. Colours and fonts: top of styles.css.
-       3D tower: building.js. Hero charts + ME 572 data: story.js.
+       3D tower: building.js. Hero charts + ME572 data: story.js.
        Project demos, route map, toolbox, contact form, smooth scrolling: sections.js.
        ========================================================= -->
 
@@ -53,21 +52,20 @@
          Eleven steps, one screen each, around the 3D tower in the middle of the
          screen. Intro, background and what's next sit over the louvres in the early
          morning; Project 3.1 takes the tower apart (building.js) while story.js steps
-         the charts through the real ME 572 runs; then the tower closes back up and the
+         the charts through the real ME572 runs; then the tower closes back up and the
          camera looks down into its top floor for Project 3.2. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <div class="sun-glare"></div>
         <canvas id="backdrop-canvas"></canvas>
         <canvas id="building-canvas"></canvas>
-        <div class="louvres"></div>
       </div>
 
       <div class="steps">
         <article class="step step-intro" data-step="0">
           <div class="intro">
             <p class="kicker"><span class="zh">香港</span><span>Honours Mechanical Engineering Co-op<span class="kicker-sep"> · </span>University of Waterloo</span></p>
-            <h1 class="giant-name" data-swell>Marco<br>Ching</h1>
+            <h1 class="giant-name">Marco<br>Ching</h1>
             <div class="intro-foot">
               <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
               <div class="actions">
@@ -85,7 +83,7 @@
             <div class="panel-inner">
               <p class="kicker"><span class="zh">關於</span><span>(01) Background</span></p>
               <div class="panel-body">
-                <h2 class="panel-title" data-swell>Hi, I’m Marco.<br><em>Here’s the short version</em></h2>
+                <h2 class="panel-title">Hi, I’m Marco.<br><em>Here’s the short version</em></h2>
                 <div class="panel-foot">
                   <p class="panel-lede">I’m from Hong Kong and study Honours Mechanical Engineering Co-op at the University of Waterloo. My co-op terms have taken me from BIM at Hong Kong International Airport and WSP in Toronto to water-treatment engineering at Chevalier in Kwai Chung.</p>
                   <dl class="about-facts">
@@ -125,7 +123,7 @@
           <div class="step-card glass">
             <p class="kicker"><span class="zh">項目</span><span>(03) Projects</span></p>
             <h2>Six projects, <em>starting with this building</em></h2>
-            <p class="proj-meta"><span>3.1</span>ME 572 · 2026</p>
+            <p class="proj-badge"><span class="proj-badge-num">3.1</span><span>Project one<br>ME572 · 2026</span></p>
             <h3 class="step-title">Whole-Building Energy Model</h3>
             <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
             <dl class="about-facts">
@@ -208,7 +206,7 @@
              48 × 34 ft office; the layout buttons move the luminaires in 3D (building.js) and update the meters. -->
         <article class="step step-right" data-step="10" data-nav="projects">
           <div class="step-card glass" data-demo="lighting">
-            <p class="kicker"><span class="kicker-num">3.2</span><span>ME 572 · 2026</span></p>
+            <p class="proj-badge"><span class="proj-badge-num">3.2</span><span>Project two<br>ME572 · 2026</span></p>
             <h2>Office <em>lighting layout</em></h2>
             <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
             <div class="seg" role="group" aria-label="Luminaire layout">
@@ -227,11 +225,6 @@
          info column and its own live demo, built from the numbers in the report. -->
     <section class="projects" id="more-projects" data-nav="projects">
       <div class="wrap">
-        <header class="sec-head">
-          <p class="label"><span class="zh">項目</span> (03) Projects, continued</p>
-          <h2 data-swell>Four more<br><em>Try each one</em></h2>
-        </header>
-
         <!-- 3. Seismic monitoring -->
         <article class="proj proj-first">
           <div class="proj-info">
@@ -259,7 +252,7 @@
         <!-- 4. Baseball aerodynamics -->
         <article class="proj proj-flip">
           <div class="proj-info">
-            <p class="proj-meta"><span>3.4</span>ME 362 · 2025</p>
+            <p class="proj-meta"><span>3.4</span>ME362 · 2025</p>
             <h3>Pitch Aerodynamics</h3>
             <p>My MATLAB model of drag and spin-dependent Magnus lift, re-built here so you can throw it. It matches MLB Statcast for three of four pitches; the knuckleball needs seams.</p>
             <dl class="proj-stats">
@@ -324,7 +317,7 @@
         <!-- 6. Capstone wagon -->
         <article class="proj proj-flip">
           <div class="proj-info">
-            <p class="proj-meta"><span>3.6</span>ME 481 Capstone · now</p>
+            <p class="proj-meta"><span>3.6</span>ME481 Capstone · now</p>
             <h3>All-Terrain Electric Wagon</h3>
             <p>I designed the steering, which falls back to manual if the motors fail, and the trailing-arm suspension shared by all four wheels.</p>
             <dl class="proj-stats">
@@ -354,10 +347,10 @@
       <div class="wrap">
         <header class="sec-head">
           <p class="label"><span class="zh">經驗</span> (04) Experience</p>
-          <h2 data-swell>The route <em>so far</em>...</h2>
+          <h2>The route <em>so far</em>...</h2>
         </header>
 
-        <p class="route-hint"><span class="route-hint-dot" aria-hidden="true"></span>Click any station to ride there</p>
+        <p class="route-hint"><span class="route-hint-dot" aria-hidden="true"></span>Click any station to see that stop</p>
         <ol class="route" role="list">
           <li class="stop" style="--line: var(--line-uw)">
             <button type="button" class="stop-btn" data-stop="uw" aria-pressed="false">
@@ -388,21 +381,6 @@
               <span class="stop-dot" aria-hidden="true"></span>
               <span class="stop-zh">研究院</span><span class="stop-en">Grad school</span><span class="stop-year">2027</span>
             </button>
-          </li>
-          <li class="route-train" aria-hidden="true">
-            <svg viewBox="0 0 132 40">
-              <path class="t-body" d="M4 6h96c13 0 22 8 27 20v6H4z"/>
-              <path class="t-glass" d="M103 10c8 1 14 6 18 13h-18z"/>
-              <rect class="t-glass" x="10" y="11" width="16" height="9" rx="2"/>
-              <rect class="t-glass" x="32" y="11" width="16" height="9" rx="2"/>
-              <rect class="t-glass" x="54" y="11" width="16" height="9" rx="2"/>
-              <rect class="t-glass" x="76" y="11" width="16" height="9" rx="2"/>
-              <path class="t-door" d="M29.5 9v18M51.5 9v18M73.5 9v18M95.5 9v18"/>
-              <rect class="t-stripe" x="4" y="23" width="124" height="4"/>
-              <circle class="t-lamp" cx="124" cy="29" r="1.8"/>
-              <rect class="t-under" x="8" y="32" width="114" height="3" rx="1"/>
-              <g class="t-wheel"><circle cx="18" cy="36" r="3.4"/><circle cx="30" cy="36" r="3.4"/><circle cx="98" cy="36" r="3.4"/><circle cx="110" cy="36" r="3.4"/></g>
-            </svg>
           </li>
         </ol>
 
@@ -457,7 +435,7 @@
       <div class="wrap">
         <header class="sec-head">
           <p class="label"><span class="zh">技能</span> (05) Skills</p>
-          <h2 data-swell>The <em>Toolbox</em></h2>
+          <h2>The <em>Toolbox</em></h2>
         </header>
         <div class="toolbox" id="toolbox">
           <div class="tb-handle" aria-hidden="true"></div>

@@ -4,22 +4,21 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 
 - `index.html` holds all the text. Search for `EDIT:` to find each section. Page order: intro, background
   and what's next over the 3D tower in the early morning, Project 3.1's steps around the tower (morning →
-  day → golden hour, all runs side by side as it closes back up), Project 3.2 looking down into the top
-  floor, then projects 3.3 to 3.6, experience, skills, contact.
+  day → golden hour, all runs side by side as it closes back up), Project 3.2 looking straight down into
+  the top floor at night, then projects 3.3 to 3.6, experience, skills, contact.
 - `styles.css` holds the palette (top of file), fonts and layout. One bright clear-water look from five
   swatches (celestial blue, May green, yellow-green, pearl aqua, Cal Poly Pomona green); demo panels and
-  the toolbox sit in deep green (the `.deep` scope). Display face Fraunces, body Funnel Sans.
-- `story.js` holds the ME 572 data, draws the hero charts, turns the louvres between the opening panels
-  and turns scroll into story progress (−3 to 7).
+  the toolbox sit in deep green (the `.deep` scope). Display face Readex Pro with a short extrusion on
+  the main titles, body Funnel Sans.
+- `story.js` holds the ME572 data, draws the hero charts and turns scroll into story progress (−3 to 7).
 - `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the street-level tower with
   planted fins and sky gardens in the middle of the screen; parks, roads, cars and people that move with
   the scroll; a stylised Hong Kong skyline drawn on a second canvas that CSS blurs so the tower stays in
-  focus; and, for Project 3.2, the top floor as the 48 × 34 ft office with its luminaires and the light
-  they put on the floor. It also measures how wide the tower is on screen so the cards keep clear of it.
+  focus; and, for Project 3.2, night and the top floor as the 48 × 34 ft office with its luminaires and
+  the light they put on the floor. It also measures how wide the tower is on screen so the cards keep clear of it.
 - `sections.js` runs everything below the hero: statement reveal, sliding tabs, the project demos
-  (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route
-  (a train rides to the chosen station), the toolbox, the water ripples that follow the pointer, the
-  titles whose letters thin out near it, the contact form, the top-bar underline that follows the
+  (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route,
+  the toolbox, the contact form, the top-bar underline that follows the
   section you're in, slide-in reveals and Lenis smooth scrolling (jsDelivr).
 - `Marco_Ching_Resume.pdf` is an export of the Google Doc "Marco Ching's CV".
 
