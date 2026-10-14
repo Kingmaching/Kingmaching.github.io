@@ -1169,7 +1169,7 @@
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     const target = S.progress();
-    current = reduceMotion ? target : current + (target - current) * (1 - Math.exp(-dt * 6));
+    current = reduceMotion ? target : current + (target - current) * (1 - Math.exp(-dt * 10));   // the scene keeps up closely with the scroll
     if (Math.abs(target - current) < 0.0005) current = target;
     update(current, now, dt);
     if (!reduceMotion) flow = (flow + dt * flowSpeed) % 1;
