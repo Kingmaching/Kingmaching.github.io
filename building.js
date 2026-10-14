@@ -1,9 +1,9 @@
 // Scroll-driven 3D building for the hero.
 // A street-level tower wrapped in an adaptive louvre facade with planted fins, set in a
 // park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
-// Scroll progress q (−3 → 7, one unit per story step, from story.js) drives:
-//  −3 → −1 early morning (intro, background, what's next): the camera holds a shot with the tower to the
-//          right of the name; scrolling moves only the traffic and people
+// Scroll progress q (−2 → 7, one unit per story step, from story.js) drives:
+//  −2 → −1 early morning (intro, background): the camera holds a shot with the tower to the right of the
+//          name; scrolling moves only the traffic and people
 //  −1 → 0  the camera swings round until the tower stands in the middle of the screen, cards either side
 //   0 → 1  morning to full day; louvres adapt to the sun
 //   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
@@ -11,8 +11,9 @@
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the light turns golden
 //   5 → 6  the tower closes back up (every run side by side)
-//   6 → 7  night falls, the roof lifts off and the camera rises to look straight down into the top floor,
-//          laid out as the office of Project 3.2; the layout buttons move its luminaires
+//   6 → 7  night falls (street lamps, car lights, neon signs and their glow on wet roads come on), the roof
+//          lifts off and the camera rises to look almost straight down into the top floor, laid out as
+//          the office of Project 2.2; the layout buttons move its luminaires
 // The skyline is drawn by a second renderer onto #backdrop-canvas, which CSS blurs, so the tower stays
 // the one thing in focus. The tower is illustrative; the numbers belong to the ME 572 models. Units are
 // metres; the landmarks are scaled down to fit the frame.
@@ -93,6 +94,7 @@
   };
   const rayMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0 });
   const UP = new THREE.Vector3(0, 1, 0);
+  const dummy = new THREE.Object3D();                 // scratch transform for instanced meshes
 
   function cssColor(name, fallback) {
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -161,6 +163,19 @@
     g.fillRect(0, 0, 64, 64);
     return new THREE.CanvasTexture(c);
   }
+  function makeSoftTexture() {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const g = c.getContext("2d"), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+    grad.addColorStop(0.4, "rgba(255, 255, 255, 0.45)");
+    grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+  const softTex = makeSoftTexture();
+  const glowMat = (color, extra = {}) => new THREE.MeshBasicMaterial({ map: softTex, color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, ...extra });
   const cityMats = [], nearMats = [];
   function cityMaterial(w, h, list = cityMats) {
     const tex = windowTex.clone();
@@ -317,10 +332,50 @@
     if (a > 0.05 && a < 2.75) continue;
     neighbours.push({ a, r: 52 + rand() * 32, h: 10 + rand() * 26, w: 9 + rand() * 7 });
   }
-  neighbours.sort((p, q) => p.r - q.r).slice(3).forEach(({ a, r, h, w }) => {
+  const near = neighbours.sort((p, q) => p.r - q.r).slice(3);
+  near.forEach(({ a, r, h, w }) => {
     const b = box(w, h, w, cityMaterial(w, h, nearMats), scene, Math.cos(a) * r, h / 2, Math.sin(a) * r);
     box(w * 0.9, 0.6, w * 0.9, mat.green, scene, b.position.x, h + 0.3, b.position.z, false);   // green roofs
   });
+  // Hong Kong blade signs: one or two per block, sticking out of the face towards the tower.
+  const NEON = ["#ff4fa3", "#3fd0ff", "#ffb347", "#9b6bff", "#4dffb0", "#ff6b5a"];
+  const signMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const signs = new THREE.InstancedMesh(new THREE.BoxGeometry(0.35, 5, 2.4), signMat, near.length * 2);
+  near.forEach(({ a, r, h, w }, i) => [0, 1].forEach(k => {
+    const ox = -Math.cos(a), oz = -Math.sin(a), tx = -oz, tz = ox;           // out of the face, and along it
+    const along = (k ? 0.28 : -0.22) * w, d = w / 2 + 1.2;
+    dummy.position.set(Math.cos(a) * r + ox * d + tx * along, Math.min(h - 3, 5 + k * 3.5), Math.sin(a) * r + oz * d + tz * along);
+    dummy.rotation.set(0, Math.atan2(ox, oz), 0); dummy.scale.setScalar(k && h < 14 ? 0.001 : 1); dummy.updateMatrix();
+    signs.setMatrixAt(i * 2 + k, dummy.matrix);
+    signs.setColorAt(i * 2 + k, C(NEON[(i * 2 + k) % NEON.length]));
+  }));
+  scene.add(signs);
+
+  // ---------- Street lamps: posts on both kerbs of the ring road, a warm pool of light under each ----------
+  const lampSpots = [];
+  for (let s = -RING + 3; s <= RING - 3; s += 13) [RING + 5.2, RING - 5.2].forEach((o, k) => {
+    const toRoad = k ? 1 : -1;                                                  // which way the head leans
+    lampSpots.push([s, -o, 0, toRoad], [s, o, 0, -toRoad], [-o, s, toRoad, 0], [o, s, -toRoad, 0]);
+  });
+  const posts = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.1, 0.14, 6, 6), mat.mullion, lampSpots.length);
+  const LAMP_OFF = C("#9aa3a8"), LAMP_ON = C("#ffe2a8");
+  const lampHeadMat = new THREE.MeshBasicMaterial({ color: LAMP_OFF });
+  const heads = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 0.22, 0.55), lampHeadMat, lampSpots.length);
+  const poolGeo = new THREE.PlaneGeometry(12, 12); poolGeo.rotateX(-Math.PI / 2);
+  const poolMat = glowMat(0xffc977);
+  const pools = new THREE.InstancedMesh(poolGeo, poolMat, lampSpots.length);
+  lampSpots.forEach(([x, z, dx, dz], i) => {
+    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
+    dummy.position.set(x, 3, z); dummy.updateMatrix(); posts.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(x + dx * 0.7, 6, z + dz * 0.7); dummy.rotation.set(0, dx ? 0 : Math.PI / 2, 0); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
+    dummy.rotation.set(0, 0, 0); dummy.position.set(x + dx * 2.6, 0.12, z + dz * 2.6); dummy.updateMatrix(); pools.setMatrixAt(i, dummy.matrix);
+  });
+  pools.renderOrder = 2;
+  scene.add(posts, heads, pools);
+
+  // Hong Kong's coloured night light, spilling onto the streets and the tower (roads turn wet-looking at night).
+  const neonLights = [[RING + 9, RING + 9], [-RING - 9, RING + 9], [RING + 9, -RING - 9], [-RING - 9, -RING - 9], [0, RING + 14], [RING + 14, 0]]
+    .map(([x, z], i) => { const l = new THREE.PointLight(NEON[i % NEON.length], 0, 70, 1.2); l.position.set(x, 5, z); scene.add(l); return l; });
 
   // ---------- Trees: street trees, parks, podium (instanced) ----------
   const treeSpots = [];
@@ -341,7 +396,7 @@
   const trunks = new THREE.InstancedMesh(trunkGeo, mat.trunk, treeSpots.length + PLAZA_TREES.length);
   const canopies = new THREE.InstancedMesh(canopyGeo, mat.canopy, treeSpots.length + PLAZA_TREES.length);
   canopies.castShadow = true;
-  const dummy = new THREE.Object3D(), leaf = new THREE.Color();
+  const leaf = new THREE.Color();
   const LEAVES = ["#4f8a45", "#5d9a4c", "#3f7a3f", "#6aa451", "#7aa85a"];
   function addTree(i, x, y, z, s) {
     dummy.position.set(x, y, z); dummy.rotation.set(0, rand() * 3, 0); dummy.scale.set(s, s, s); dummy.updateMatrix();
@@ -679,7 +734,11 @@
     carBody.setColorAt(i, C(CAR_COLOURS[i % CAR_COLOURS.length]));
     carCab.setColorAt(i, C("#1c2430"));
   });
-  scene.add(carBody, carCab, lights);
+  const beamGeo = new THREE.PlaneGeometry(9, 3.4); beamGeo.rotateX(-Math.PI / 2);
+  const beamMat = glowMat(0xfff1cc), tailMat = new THREE.MeshBasicMaterial({ color: 0xff3b3b, transparent: true, opacity: 0 });
+  const beams = new THREE.InstancedMesh(beamGeo, beamMat, cars.length), tails = new THREE.InstancedMesh(new THREE.BoxGeometry(0.15, 0.28, 1.5), tailMat, cars.length);
+  beams.renderOrder = 2;
+  scene.add(carBody, carCab, lights, beams, tails);
   const people = Array.from({ length: 14 }, (_, i) => {
     const outer = i % 3 === 0;                          // outer pavement beyond the ring road, or the plaza
     return { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4 };
@@ -701,7 +760,12 @@
       carCab.setMatrixAt(i, dummy.matrix);
       dummy.position.set(x, 0.85, z); dummy.translateX(2.15); dummy.updateMatrix();
       lights.setMatrixAt(i, dummy.matrix);
+      dummy.position.set(x, 0.85, z); dummy.translateX(-2.15); dummy.updateMatrix();
+      tails.setMatrixAt(i, dummy.matrix);
+      dummy.position.set(x, 0.13, z); dummy.translateX(6.6); dummy.updateMatrix();
+      beams.setMatrixAt(i, dummy.matrix);
     });
+    beams.instanceMatrix.needsUpdate = tails.instanceMatrix.needsUpdate = true;
     people.forEach((p, i) => {
       const r = (p.outer ? RING + 5.2 : 24.8) + p.off * 0.5;
       const [x, z, yaw] = rectPath(p.s0 + p.v * q, r, r);
@@ -711,6 +775,8 @@
     });
     carBody.instanceMatrix.needsUpdate = carCab.instanceMatrix.needsUpdate = lights.instanceMatrix.needsUpdate = crowd.instanceMatrix.needsUpdate = true;
     mat.headlight.opacity = nightAmt;
+    beamMat.opacity = 0.45 * nightAmt;
+    tailMat.opacity = nightAmt;
   }
 
   // ---------- Camera path (keyframes at given q) ----------
@@ -727,7 +793,7 @@
     { q: 4, ang: 1.90, rad: 184, h: 32, ty: 43 },
     { q: 5, ang: 2.15, rad: 190, h: 38, ty: 45 },
     { q: 6, ang: 2.25, rad: 138, h: 30, ty: 28 },                       // closed back up
-    { q: 7, ang: Math.PI / 2, rad: 0.5, h: 94, ty: 47.5, side: -9, drop: 7, room: true },  // straight down, plan square to the screen
+    { q: 7, ang: Math.PI / 2, rad: 6.5, h: 107, ty: 47.5, drop: 7, room: true },   // ~84° bird's eye, plan square to the screen
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
@@ -860,13 +926,19 @@
     heaterMat.size = lerp(7, 13, live.heat);
     heaters.forEach(h => { h.visible = st.heat > 0.01; });
 
-    mat.lamp.opacity = st.lamps * lerp(0.15, 0.95, norm(live.lpd, 0.39, 0.78));
+    mat.lamp.opacity = Math.max(st.lamps * lerp(0.15, 0.95, norm(live.lpd, 0.39, 0.78)), nightfall * 0.7);   // offices lit at night
 
     const pulse = reduceMotion ? 1 : 0.85 + 0.15 * Math.sin(time * 0.004);
     mat.sensor.opacity = st.sense;
     sensors.forEach((s, i) => { s.scale.setScalar(Math.max(0.001, st.sense * pulse * (i % 4 === 0 ? 1.15 : 1))); });
 
     moveTraffic(q, Math.max(dusk * 0.7, nightfall));
+    // Night life: lamps, signs' glow on the street, wet roads
+    const lampsOn = Math.max(dusk * 0.5, nightfall);
+    lampHeadMat.color.copy(LAMP_OFF).lerp(LAMP_ON, lampsOn);
+    poolMat.opacity = 0.5 * lampsOn;
+    neonLights.forEach(l => { l.intensity = 3.2 * nightfall; });
+    mat.road.roughness = lerp(0.95, 0.4, nightfall); mat.road.metalness = lerp(0, 0.3, nightfall);
 
     // Project 3.2: the roof lifts away and the top floor shows the office
     top.roof.position.y = st.roof * 40;

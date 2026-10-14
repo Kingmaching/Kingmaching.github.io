@@ -64,12 +64,12 @@
   };
 
   // Where each data step sits in scroll progress q (step k is centred at q = k).
-  // Three opening steps come first (intro, background, what's next), so q runs from −PRE to 7:
-  // q = 0 is the Project 3.1 introduction, 5 its measurement chart, 6 every run side by side
-  // (the tower closes back up) and 7 Project 3.2, looking down into the lit top floor.
+  // Two opening steps come first (intro, background), so q runs from −PRE to 7: q = 0 is the
+  // Project 2.1 introduction, 5 its measurement chart, 6 every run side by side (the tower closes
+  // back up) and 7 Project 2.2, looking down into the lit top floor at night.
   const RANGES = { shgc: [1.55, 2.45], vent: [2.55, 3.45], lpd: [3.55, 4.45] };
-  const PRE = 3;
-  const STEPS = 11;
+  const PRE = 2;
+  const STEPS = 10;
 
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const pct = (v, base) => (v - base) / base;
@@ -282,14 +282,18 @@
   // ---------- Scroll progress ----------
   // The steps end with a tail (padding-bottom on .steps) where q holds at the last step, so the last card
   // can scroll away over the finished scene; tail runs 0 → 1 across it and building.js fades out on it.
-  const steps = story.querySelector(".steps");
+  const steps = story.querySelector(".steps"), stage = story.querySelector(".stage");
   let q = -PRE, tail = 0;
+  const ease = t => t * t * (3 - 2 * t);
+  const phase = (a, b) => ease(clamp((q - a) / (b - a), 0, 1));
   function readScroll() {
     const rect = story.getBoundingClientRect();
     const tailPx = steps ? parseFloat(getComputedStyle(steps).paddingBottom) || 0 : 0;
     const range = rect.height - window.innerHeight - tailPx;
     q = (range > 0 ? clamp(-rect.top / range, 0, 1) * (STEPS - 1) : 0) - PRE;
     tail = tailPx > 0 ? clamp((-rect.top - range) / tailPx, 0, 1) : 0;
+    // The veil behind Background: in from the intro, out into Project 2.1.
+    stage?.style.setProperty("--veil", (phase(-1.8, -1.2) * (1 - phase(-0.75, -0.2))).toFixed(3));
     ["shgc", "vent", "lpd"].forEach(name => {
       const c = charts[name];
       if (!c) return;

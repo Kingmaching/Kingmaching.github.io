@@ -37,9 +37,9 @@
       <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Marco Ching</a>
       <div class="nav-links">
         <a href="#about">Background</a>
-        <a href="#direction">What’s next</a>
         <a href="#projects">Projects</a>
         <a href="#experience">Experience</a>
+        <a href="#direction">What’s next</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
         <a class="nav-cta" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
@@ -59,12 +59,13 @@
         <div class="sun-glare"></div>
         <canvas id="backdrop-canvas"></canvas>
         <canvas id="building-canvas"></canvas>
+        <div class="veil"></div>
       </div>
 
       <div class="steps">
         <article class="step step-intro" data-step="0">
           <div class="intro">
-            <p class="kicker"><span class="zh">香港</span><span>Honours Mechanical Engineering Co-op<span class="kicker-sep"> · </span>University of Waterloo</span></p>
+            <p class="kicker"><span class="zh">香港</span><span>Honours Mechanical Engineering CoHonours Mechanical Engineering Co-op<span class="kicker-sep">#8209;op<span class="kicker-sep"> · </span>University of Waterloo</span></p>
             <h1 class="giant-name">Marco<br>Ching</h1>
             <div class="intro-foot">
               <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
@@ -97,138 +98,151 @@
           </div>
         </article>
 
-        <!-- EDIT: WHAT'S NEXT -->
-        <article class="step step-fill" data-step="2" id="direction" data-nav="direction">
-          <div class="panel-full">
-            <div class="panel-inner">
-              <p class="kicker"><span class="zh">方向</span><span>(02) What’s next</span></p>
-              <div class="panel-body">
-                <p class="statement-text panel-title" data-reveal>
-                  Every number in my projects came from a theoretical model. Next, I want to <b>measure</b> buildings and determine where <b>reality disagrees</b>.
-                </p>
-                <p class="panel-lede">Graduate research in building performance, from 2027.</p>
-              </div>
-              <div class="marquee" aria-label="Research interests">
-                <div class="marquee-track">
-                  <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive facades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
-                  <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive facades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
+        <!-- EDIT: PROJECTS, starting with Project 2.1 (the tower). On a computer each step splits either
+             side of the tower: the heading on the left, the detail or chart on the right. On phones the
+             two halves join into one card. -->
+        <article class="step step-split" data-step="2" id="projects" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="zh">項目</span><span>(02) Projects</span></p>
+              <h2>Six projects, <em>starting with this building</em></h2>
+              <p class="scroll-cue">Scroll through a day in the life of this building</p>
+            </div>
+            <div class="step-card glass">
+              <p class="proj-badge"><span class="proj-badge-num">2.1</span><span>Project one<br>ME572 · 2026</span></p>
+              <h3 class="step-title">Whole-Building Energy Model</h3>
+              <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
+              <dl class="about-facts">
+                <div><dt>Runs</dt><dd>17</dd></div>
+                <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
+                <div><dt>Emissions</dt><dd>+10.6%</dd></div>
+              </dl>
+              <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="step step-split" data-step="3" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>Shading</span></p>
+              <h2>Facades that <em>react to the sun</em></h2>
+            </div>
+            <div class="step-card glass">
+              <p>This tower’s adaptive shading closes against low sun and opens when the outside air helps. Responsive facades like this are what I want to research.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step step-split" data-step="4" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>Envelope</span></p>
+              <h2>One variable, <em>three answers</em></h2>
+              <p>Lower glazing SHGC: cooling −31.5%, emissions +10.6%.</p>
+            </div>
+            <div class="step-card glass">
+              <figure class="chart" data-chart="shgc"></figure>
+            </div>
+          </div>
+        </article>
+
+        <article class="step step-split" data-step="5" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>Air</span></p>
+              <h2>Outdoor air is a <em>heating</em> load</h2>
+              <p>30 → 10 cfm/person barely moves cooling but swings emissions 18 points.</p>
+            </div>
+            <div class="step-card glass">
+              <figure class="chart" data-chart="vent"></figure>
+            </div>
+          </div>
+        </article>
+
+        <article class="step step-split" data-step="6" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>Lighting</span></p>
+              <h2>Less light, <em>more heat</em></h2>
+              <p>−25% lighting power: EUI −6.3%, heating +13.6%.</p>
+            </div>
+            <div class="step-card glass">
+              <figure class="chart" data-chart="lpd"></figure>
+            </div>
+          </div>
+        </article>
+
+        <article class="step step-split" data-step="7" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>Measurement</span></p>
+              <h2>Predicted, <em>not yet measured</em></h2>
+              <p>Next: instrument real buildings and explain the gap, starting with Hong Kong.</p>
+            </div>
+            <div class="step-card glass">
+              <figure class="chart" data-chart="benchmark"></figure>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.1, continued: the tower closes back up while every run is laid side by side -->
+        <article class="step step-split" data-step="8" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>All runs</span></p>
+              <h2>Every run, <em>side by side</em></h2>
+              <p>The building changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
+              <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            </div>
+            <div class="step-card glass">
+              <div class="demo" data-demo="envelope">
+                <div class="demo-bar">
+                  <span class="demo-title" id="envelope-title">Best tested value vs control</span>
+                  <div class="seg" role="group" aria-label="Metric">
+                    <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
+                    <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
+                    <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
+                  </div>
                 </div>
+                <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
+                <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
               </div>
             </div>
           </div>
         </article>
 
-        <!-- EDIT: PROJECTS, starting with Project 01 (the tower) -->
-        <article class="step step-left" data-step="3" id="projects" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="zh">項目</span><span>(03) Projects</span></p>
-            <h2>Six projects, <em>starting with this building</em></h2>
-            <p class="proj-badge"><span class="proj-badge-num">3.1</span><span>Project one<br>ME572 · 2026</span></p>
-            <h3 class="step-title">Whole-Building Energy Model</h3>
-            <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
-            <dl class="about-facts">
-              <div><dt>Runs</dt><dd>17</dd></div>
-              <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
-              <div><dt>Emissions</dt><dd>+10.6%</dd></div>
-            </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-            <p class="scroll-cue">Scroll through a day in the life of this building</p>
-          </div>
-        </article>
-
-        <article class="step step-right" data-step="4" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">3.1</span><span>Shading</span></p>
-            <h2>Facades that <em>react to the sun</em></h2>
-            <p>This tower’s adaptive shading closes against low sun and opens when the outside air helps. Responsive facades like this are what I want to research.</p>
-          </div>
-        </article>
-
-        <article class="step step-left" data-step="5" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">3.1</span><span>Envelope</span></p>
-            <h2>One variable, <em>three answers</em></h2>
-            <p>Lower glazing SHGC: cooling −31.5%, emissions +10.6%.</p>
-            <figure class="chart" data-chart="shgc"></figure>
-          </div>
-        </article>
-
-        <article class="step step-right" data-step="6" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">3.1</span><span>Air</span></p>
-            <h2>Outdoor air is a <em>heating</em> load</h2>
-            <p>30 → 10 cfm/person barely moves cooling but swings emissions 18 points.</p>
-            <figure class="chart" data-chart="vent"></figure>
-          </div>
-        </article>
-
-        <article class="step step-left" data-step="7" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">3.1</span><span>Lighting</span></p>
-            <h2>Less light, <em>more heat</em></h2>
-            <p>−25% lighting power: EUI −6.3%, heating +13.6%.</p>
-            <figure class="chart" data-chart="lpd"></figure>
-          </div>
-        </article>
-
-        <article class="step step-right" data-step="8" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">3.1</span><span>Measurement</span></p>
-            <h2>Predicted, <em>not yet measured</em></h2>
-            <p>Next: instrument real buildings and explain the gap, starting with Hong Kong.</p>
-            <figure class="chart" data-chart="benchmark"></figure>
-          </div>
-        </article>
-
-        <!-- 3.1, continued: the tower closes back up while every run is laid side by side -->
-        <article class="step step-left" data-step="9" data-nav="projects">
-          <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">3.1</span><span>All runs</span></p>
-            <h2>Every run, <em>side by side</em></h2>
-            <p>The building changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
-            <div class="demo" data-demo="envelope">
-              <div class="demo-bar">
-                <span class="demo-title" id="envelope-title">Best tested value vs control</span>
-                <div class="seg" role="group" aria-label="Metric">
-                  <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
-                  <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
-                  <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
-                </div>
+        <!-- EDIT: PROJECT 2.2, lighting. Night falls and the camera looks down into the tower's top floor,
+             laid out as the 48 × 34 ft office; the layout buttons move the luminaires in 3D (building.js). -->
+        <article class="step step-split" data-step="9" data-nav="projects">
+          <div class="pair">
+            <div class="step-card glass">
+              <p class="proj-badge"><span class="proj-badge-num">2.2</span><span>Project two<br>ME572 · 2026</span></p>
+              <h2>Office <em>lighting layout</em></h2>
+              <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
+              <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            </div>
+            <div class="step-card glass" data-demo="lighting">
+              <div class="seg" role="group" aria-label="Luminaire layout">
+                <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
+                <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
               </div>
-              <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
-              <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
+              <div class="meters" id="lighting-meters"></div>
             </div>
-            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-          </div>
-        </article>
-
-        <!-- EDIT: PROJECT 3.2, lighting. The camera looks down into the tower's top floor, laid out as the
-             48 × 34 ft office; the layout buttons move the luminaires in 3D (building.js) and update the meters. -->
-        <article class="step step-right" data-step="10" data-nav="projects">
-          <div class="step-card glass" data-demo="lighting">
-            <p class="proj-badge"><span class="proj-badge-num">3.2</span><span>Project two<br>ME572 · 2026</span></p>
-            <h2>Office <em>lighting layout</em></h2>
-            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
-            <div class="seg" role="group" aria-label="Luminaire layout">
-              <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
-              <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
-            </div>
-            <div class="meters" id="lighting-meters"></div>
-            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
         </article>
       </div>
     </section>
 
     <!-- EDIT: PROJECTS, continued ------------------------------------
-         Projects 3.3-3.6 (3.1 and 3.2 live in the 3D story above). Each has a short
+         Projects 2.3-2.6 (2.1 and 2.2 live in the 3D story above). Each has a short
          info column and its own live demo, built from the numbers in the report. -->
     <section class="projects" id="more-projects" data-nav="projects">
       <div class="wrap">
         <!-- 3. Seismic monitoring -->
         <article class="proj proj-first">
           <div class="proj-info">
-            <p class="proj-meta"><span>3.3</span>IEEE YEC · 3rd place</p>
+            <p class="proj-meta"><span>2.3</span>IEEE YEC · 3rd place</p>
             <h3>Listening To Hong Kong’s Dormant Supervolcano</h3>
             <p>Two Raspberry Shake geophones in Pokfulam, a seismograph in Sai Kung, and triangulated tremors near Cheung Chau too small for the Observatory’s list.</p>
             <dl class="proj-stats">
@@ -252,7 +266,7 @@
         <!-- 4. Baseball aerodynamics -->
         <article class="proj proj-flip">
           <div class="proj-info">
-            <p class="proj-meta"><span>3.4</span>ME362 · 2025</p>
+            <p class="proj-meta"><span>2.4</span>ME362 · 2025</p>
             <h3>Pitch Aerodynamics</h3>
             <p>My MATLAB model of drag and spin-dependent Magnus lift, re-built here so you can throw it. It matches MLB Statcast for three of four pitches; the knuckleball needs seams.</p>
             <dl class="proj-stats">
@@ -285,7 +299,7 @@
         <!-- 5. Robotic crane -->
         <article class="proj">
           <div class="proj-info">
-            <p class="proj-meta"><span>3.5</span>Mechatronics · 2025</p>
+            <p class="proj-meta"><span>2.5</span>Mechatronics · 2025</p>
             <h3>Five-Axis Robotic Crane</h3>
             <p>Turntable base, belt-driven arm, worm-gear hoist and a rotating gripper, driven from a game controller in C++.</p>
             <dl class="proj-stats">
@@ -317,7 +331,7 @@
         <!-- 6. Capstone wagon -->
         <article class="proj proj-flip">
           <div class="proj-info">
-            <p class="proj-meta"><span>3.6</span>ME481 Capstone · now</p>
+            <p class="proj-meta"><span>2.6</span>ME481 Capstone · now</p>
             <h3>All-Terrain Electric Wagon</h3>
             <p>I designed the steering, which falls back to manual if the motors fail, and the trailing-arm suspension shared by all four wheels.</p>
             <dl class="proj-stats">
@@ -346,7 +360,7 @@
     <section class="experience" id="experience" data-nav="experience">
       <div class="wrap">
         <header class="sec-head">
-          <p class="label"><span class="zh">經驗</span> (04) Experience</p>
+          <p class="label"><span class="zh">經驗</span> (03) Experience</p>
           <h2>The route <em>so far</em>...</h2>
         </header>
 
@@ -426,6 +440,23 @@
             <p>Adaptive facades, natural ventilation and sensing, with one question: does the real building do what the model said?</p>
             <p class="panel-stat"><strong>下一站</strong> next stop</p>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDIT: WHAT'S NEXT -->
+    <section class="direction" id="direction" data-nav="direction">
+      <div class="wrap">
+        <p class="label"><span class="zh">方向</span> (04) What’s next</p>
+        <p class="statement-text panel-title" data-reveal>
+          Every number in my projects came from a theoretical model. Next, I want to <b>measure</b> buildings and determine where <b>reality disagrees</b>.
+        </p>
+        <p class="panel-lede">Graduate research in building performance, from 2027.</p>
+        <div class="marquee" aria-label="Research interests">
+          <div class="marquee-track">
+            <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive facades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
+            <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive facades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
+          </div>
         </div>
       </div>
     </section>

@@ -2,19 +2,19 @@
 
 Static site served by GitHub Pages at https://kingmaching.github.io.
 
-- `index.html` holds all the text. Search for `EDIT:` to find each section. Page order: intro, background
-  and what's next over the 3D tower in the early morning, Project 3.1's steps around the tower (morning →
-  day → golden hour, all runs side by side as it closes back up), Project 3.2 looking straight down into
-  the top floor at night, then projects 3.3 to 3.6, experience, skills, contact.
+- `index.html` holds all the text. Search for `EDIT:` to find each section. Page order: intro and background
+  over the 3D tower in the early morning, Project 2.1's steps either side of the tower (morning → day →
+  golden hour, all runs side by side as it closes back up), Project 2.2 looking down into the top floor
+  at night, then projects 2.3 to 2.6, experience, what's next, skills, contact.
 - `styles.css` holds the palette (top of file), fonts and layout. One bright clear-water look from five
   swatches (celestial blue, May green, yellow-green, pearl aqua, Cal Poly Pomona green); demo panels and
-  the toolbox sit in deep green (the `.deep` scope). Display face Readex Pro with a short extrusion on
-  the main titles, body Funnel Sans.
+  the toolbox sit in deep green (the `.deep` scope). Display face Readex Pro, body Funnel Sans.
 - `story.js` holds the ME572 data, draws the hero charts and turns scroll into story progress (−3 to 7).
 - `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the street-level tower with
   planted fins and sky gardens in the middle of the screen; parks, roads, cars and people that move with
   the scroll; a stylised Hong Kong skyline drawn on a second canvas that CSS blurs so the tower stays in
-  focus; and, for Project 3.2, night and the top floor as the 48 × 34 ft office with its luminaires and
+  focus; and, for Project 2.2, night (street lamps, car lights, neon signs and their glow on wet roads)
+  and the top floor as the 48 × 34 ft office with its luminaires and
   the light they put on the floor. It also measures how wide the tower is on screen so the cards keep clear of it.
 - `sections.js` runs everything below the hero: statement reveal, sliding tabs, the project demos
   (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route,
