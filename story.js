@@ -64,11 +64,12 @@
   };
 
   // Where each data step sits in scroll progress q (step k is centred at q = k).
-  // Four night-time steps come first (intro, background, what's next, Project 01), so q runs from
-  // −PRE to 5: q < 0 is the night prologue and q = 0 is the Project 01 introduction.
+  // Three opening steps come first (intro, background, what's next), so q runs from −PRE to 7:
+  // q = 0 is the Project 3.1 introduction, 5 its measurement chart, 6 every run side by side
+  // (the tower closes back up) and 7 Project 3.2, looking down into the lit top floor.
   const RANGES = { shgc: [1.55, 2.45], vent: [2.55, 3.45], lpd: [3.55, 4.45] };
   const PRE = 3;
-  const STEPS = 9;
+  const STEPS = 11;
 
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const pct = (v, base) => (v - base) / base;

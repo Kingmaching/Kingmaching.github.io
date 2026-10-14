@@ -2,22 +2,25 @@
 
 Static site served by GitHub Pages at https://kingmaching.github.io.
 
-- `index.html` holds all the text. Search for `EDIT:` to find each section. Page order: intro, background,
-  what's next and the Project 01 introduction (all at night over the 3D tower), Project 01's five data
-  steps (night → day → sunset), then projects 01 (all runs) to 06, experience, skills, contact.
-- `styles.css` holds the palette (top of file), fonts and layout. One fixed look: harbour-night and
-  white paper bands, Hong Kong red accent, MTR line colours for the route map.
-- `story.js` holds the ME 572 data, draws the hero charts and turns scroll into story progress
-  (−3 to 5; below 0 is the night prologue).
+- `index.html` holds all the text. Search for `EDIT:` to find each section. Page order: intro, background
+  and what's next over the 3D tower in the early morning, Project 3.1's steps around the tower (morning →
+  day → golden hour, all runs side by side as it closes back up), Project 3.2 looking down into the top
+  floor, then projects 3.3 to 3.6, experience, skills, contact.
+- `styles.css` holds the palette (top of file), fonts and layout. One bright clear-water look from five
+  swatches (celestial blue, May green, yellow-green, pearl aqua, Cal Poly Pomona green); demo panels and
+  the toolbox sit in deep green (the `.deep` scope). Display face Fraunces, body Funnel Sans.
+- `story.js` holds the ME 572 data, draws the hero charts, turns the louvres between the opening panels
+  and turns scroll into story progress (−3 to 7).
 - `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the street-level tower with
-  planted fins and sky gardens; parks, roads, cars and people that move with the scroll; a stylised
-  Hong Kong skyline with a harbour light show, drawn on a second canvas that CSS blurs so the tower
-  stays in focus; and a night → day → sunset sky (sunset only in the last step).
-- `sections.js` runs everything below the hero: statement reveal, sliding tabs, the six project demos
-  (envelope chart, lighting plan, seismic schematic, pitch model, crane, suspension), the MTR route
-  (a train rides to the chosen station), the toolbox, the contact form, the top-bar underline that
-  follows the section you're in, slide-in reveals and Lenis smooth scrolling (jsDelivr). Motion stays
-  on even when the system asks for reduced motion.
+  planted fins and sky gardens in the middle of the screen; parks, roads, cars and people that move with
+  the scroll; a stylised Hong Kong skyline drawn on a second canvas that CSS blurs so the tower stays in
+  focus; and, for Project 3.2, the top floor as the 48 × 34 ft office with its luminaires and the light
+  they put on the floor. It also measures how wide the tower is on screen so the cards keep clear of it.
+- `sections.js` runs everything below the hero: statement reveal, sliding tabs, the project demos
+  (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route
+  (a train rides to the chosen station), the toolbox, the water ripples that follow the pointer, the
+  titles whose letters thin out near it, the contact form, the top-bar underline that follows the
+  section you're in, slide-in reveals and Lenis smooth scrolling (jsDelivr).
 - `Marco_Ching_Resume.pdf` is an export of the Google Doc "Marco Ching's CV".
 
 ## Where the numbers come from
@@ -25,7 +28,7 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 | Demo | Source |
 |---|---|
 | Hero charts, envelope chart, runs table | ME572_All_Project_Data.xlsx (Project 2) |
-| Lighting plan, lighting chart | ME572_All_Project_Data.xlsx (Project 1) |
+| Lighting room (3D), lighting chart | ME572_All_Project_Data.xlsx (Project 1) |
 | Pitch model | ME 362 report: Table 1 constants, Tables 3–6 inputs, Table 7 MLB ranges |
 | Suspension | ME 481 FDR §3.4 and §4.3 (131 N/mm shock, MR 0.316, 263 mm arm, 50 mm travel) |
 | Crane | Robotic crane report + CV (51 cm reach, ±5 mm) |

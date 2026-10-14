@@ -142,8 +142,8 @@
       svgEl("line", { x1: 30, x2: PW - 10, y1: py(0), y2: py(0), class: "d-axis" }, g);
       [-10, 10].forEach(t => { svgEl("line", { x1: 30, x2: PW - 10, y1: py(t), y2: py(t), class: "d-grid" }, g); text(g, 26, py(t) + 3, (t > 0 ? "+" : "−") + "10%", "d-text", "end"); });
       r.xs.forEach((v, j) => text(g, px(j), PH - 4, v, "d-text", "middle"));
-      const line = svgEl("polyline", { fill: "none", stroke: "#9fb8ab", "stroke-width": 1.6 }, g);
-      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#0b1f1a", "stroke-width": 2 }, g));
+      const line = svgEl("polyline", { fill: "none", stroke: "#b6d0bf", "stroke-width": 1.6 }, g);
+      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#144425", "stroke-width": 2 }, g));
       const endLabel = text(g, 0, 0, "", "d-value");
       return { r, px, py, line, dots, endLabel };
     });
@@ -166,7 +166,7 @@
         p.line.setAttribute("points", v.map((y, j) => `${p.px(j)},${p.py(y)}`).join(" "));
         p.dots.forEach((d, j) => {
           d.setAttribute("cx", p.px(j)); d.setAttribute("cy", p.py(v[j]));
-          d.setAttribute("fill", j === p.r.ctrl ? "#eef4e8" : v[j] < 0 ? "#5aa9e6" : "#f5b83d");
+          d.setAttribute("fill", j === p.r.ctrl ? "#f1f8ef" : v[j] < 0 ? "#7cc3ea" : "#b5d984");
         });
         const far = v[0] * v[0] > v[4] * v[4] ? 0 : 4;
         p.endLabel.textContent = (v[far] > 0 ? "+" : "−") + Math.abs(v[far]).toFixed(1) + "%";
@@ -200,65 +200,35 @@
     draw(cur);
   })();
 
-  // ---------- 02 · Lighting plan ----------
+  // ---------- 3.2 · Lighting layout ----------
+  // The plan itself is the tower's top floor in 3D (building.js listens for "lighting-layout");
+  // this card keeps the meters and the layout buttons.
   (function lighting() {
-    const svg = $("#lighting-svg"), meters = $("#lighting-meters");
-    if (!svg) return;
-    const W = 48, D = 34, s = Math.min(460 / W, 250 / D);
-    const ox = (520 - W * s) / 2, oy = 22;
+    const meters = $("#lighting-meters");
+    if (!meters) return;
     const OPTIONS = [
       { cols: 4, rows: 4, n: 16, fc: 42, lpd: 0.41, note: "Passes, but with no illuminance margin." },
       { cols: 5, rows: 4, n: 20, fc: 52, lpd: 0.52, note: "Chosen: 10 fc of margin, still under the power cap." },
     ];
-    const defs = svgEl("defs", {}, svg);
-    const grad = svgEl("radialGradient", { id: "pool" }, defs);
-    svgEl("stop", { offset: "0%", "stop-color": "#ffd88a", "stop-opacity": "0.55" }, grad);
-    svgEl("stop", { offset: "100%", "stop-color": "#ffd88a", "stop-opacity": "0" }, grad);
-    svgEl("rect", { x: ox, y: oy, width: W * s, height: D * s, fill: "#11302a", stroke: "#8e98a8", "stroke-width": 2 }, svg);
-    svgEl("line", { x1: ox + 2 * s, x2: ox + 46 * s, y1: oy + D * s, y2: oy + D * s, stroke: "#5aa9e6", "stroke-width": 5 }, svg);
-    text(svg, ox + 24 * s, oy + D * s + 16, "South window · 44 ft", "d-text", "middle");
-    text(svg, ox, oy - 8, "48 ft", "d-text");
-    text(svg, ox + W * s + 6, oy + 10, "34 ft", "d-text");
-    // 20 luminaires; the 4 × 4 layout parks four of them, invisible, on their neighbours
-    const lums = Array.from({ length: 20 }, () => {
-      const g = svgEl("g", { class: "lum" }, svg);
-      svgEl("circle", { r: 6.5 * s, fill: "url(#pool)" }, g);
-      svgEl("rect", { x: -2 * s, y: -1 * s, width: 4 * s, height: 2 * s, rx: 2, fill: "#fff1c9" }, g);
-      return g;
-    });
-    const dimLine = svgEl("line", { class: "d-dim lum" }, svg);
-    const dimText = text(svg, 0, 0, "", "d-value", "middle");
-    dimText.classList.add("fade-swap");
     function render(i) {
-      const o = OPTIONS[i], sx = W / o.cols, sy = D / o.rows;
-      let k = 0;
-      for (let r = 0; r < o.rows; r++) for (let c = 0; c < 5; c++) {
-        const g = lums[k++], col = Math.min(c, o.cols - 1);
-        const cx = ox + (col + 0.5) * sx * s, cy = oy + (r + 0.5) * sy * s;
-        g.style.transform = `translate(${cx}px, ${cy}px)`;
-        g.style.opacity = c < o.cols ? 1 : 0;
-      }
-      const y = oy + 0.5 * sy * s - 14, x1 = ox + 0.5 * sx * s, x2 = ox + 1.5 * sx * s;
-      dimLine.setAttribute("x1", x1); dimLine.setAttribute("x2", x2); dimLine.setAttribute("y1", y); dimLine.setAttribute("y2", y);
-      dimText.style.opacity = 0;
-      setTimeout(() => { dimText.setAttribute("x", (x1 + x2) / 2); dimText.setAttribute("y", y - 4); dimText.textContent = sx.toFixed(1) + " ft"; dimText.style.opacity = 1; }, 250);
+      const o = OPTIONS[i];
+      window.lightingLayout = o;
+      window.dispatchEvent(new CustomEvent("lighting-layout", { detail: o }));
       meters.innerHTML = `
         <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · min 42</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.fc / 70) * 100}"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
         <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b> · max 0.60</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.lpd / 0.8) * 100}" style="background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
         <p class="demo-note" style="grid-column:1/-1">${o.n} luminaires. ${o.note}</p>`;
-      $$(".meter-fill", meters).forEach(f => { f.style.width = (render.prev?.[f.dataset.w] ?? 0) + "%"; });
+      $$(".meter-fill", meters).forEach(f => { f.style.width = "0%"; });
       requestAnimationFrame(() => $$(".meter-fill", meters).forEach(f => { f.style.width = f.dataset.w + "%"; }));
     }
-    const group = svg.closest(".demo");
+    const group = meters.closest("[data-demo]");
     $$("[data-layout]", group).forEach(b => b.addEventListener("click", () => {
       setPressed(group, "data-layout", b.dataset.layout);
       render(Number(b.dataset.layout));
     }));
-    lums.forEach(g => { g.style.transition = "none"; });
     render(1);
-    requestAnimationFrame(() => requestAnimationFrame(() => lums.forEach(g => { g.style.transition = ""; })));
   })();
 
   // ---------- 03 · Seismic schematic ----------
@@ -314,7 +284,7 @@
     text(svg, SRC.p[0] - 10, SRC.p[1] + 4, "Cheung Chau · source", "d-label", "end");
     const dots = STATIONS.map((st, i) => {
       const [x, y] = st.p;
-      const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#5aa9e6" }, svg);
+      const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#7cc3ea" }, svg);
       return d;
     });
     text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] - 4, "Pokfulam · 2 Raspberry Shakes", "d-label");
@@ -342,9 +312,9 @@
         const r = quakeT * SPEED;
         [0, 26, 52].forEach((off, k) => {
           const rr = r - off;
-          if (rr > 0) svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: rr, fill: "none", stroke: "#f5b83d", "stroke-opacity": Math.max(0, 0.8 - rr / 520) * (1 - k * 0.25), "stroke-width": 2 }, rings);
+          if (rr > 0) svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: rr, fill: "none", stroke: "#b5d984", "stroke-opacity": Math.max(0, 0.8 - rr / 520) * (1 - k * 0.25), "stroke-width": 2 }, rings);
         });
-        rows.forEach((row, i) => { if (!row.hit && r >= dist[i]) { row.hit = true; row.amp = 1; dots[i].setAttribute("fill", "#f5b83d"); } });
+        rows.forEach((row, i) => { if (!row.hit && r >= dist[i]) { row.hit = true; row.amp = 1; dots[i].setAttribute("fill", "#b5d984"); } });
         if (r > 560) quakeT = -1;
       }
       // traces scroll left
@@ -356,11 +326,11 @@
         const quake = row.amp * Math.sin(now / 18) * (0.6 + Math.random() * 0.4);
         row.buf[row.buf.length - 1] = noise + quake;
         row.amp *= 0.965;
-        if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#5aa9e6");
+        if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#7cc3ea");
         const mid = rh * i + rh / 2;
-        ctx.strokeStyle = "#2b5247"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
-        ctx.fillStyle = "#9fb8ab"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
-        ctx.strokeStyle = row.amp > 0.1 ? "#f5b83d" : "#5aa9e6"; ctx.lineWidth = 1.5; ctx.beginPath();
+        ctx.strokeStyle = "#2f7046"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
+        ctx.fillStyle = "#b6d0bf"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
+        ctx.strokeStyle = row.amp > 0.1 ? "#b5d984" : "#7cc3ea"; ctx.lineWidth = 1.5; ctx.beginPath();
         for (let k = 0; k < row.buf.length; k++) {
           const px = 96 + (k / (row.buf.length - 1)) * (W - 100), py = mid - row.buf[k] * rh * 0.42;
           k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
@@ -416,12 +386,12 @@
     svgEl("line", { x1: CX(0), x2: CX(0), y1: SZ(2.1), y2: SZ(0), class: "d-grid" }, svg);
     text(svg, CX(0), 16, "At the plate", "d-text", "middle");
     text(svg, CX(-0.35), 222, "← glove side", "d-text");
-    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#5aa9e6", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
+    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#7cc3ea", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
     const mlbText = text(svg, 0, 0, "MLB range", "d-text");
     mlbText.classList.add("fade-swap");
-    const sidePath = svgEl("polyline", { fill: "none", stroke: "#f5b83d", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
+    const sidePath = svgEl("polyline", { fill: "none", stroke: "#b5d984", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
     const ball = svgEl("circle", { r: 5, fill: "#fff" }, svg);
-    const hit = svgEl("circle", { r: 6, fill: "#f5b83d", stroke: "#0b1f1a", "stroke-width": 2 }, svg);
+    const hit = svgEl("circle", { r: 6, fill: "#b5d984", stroke: "#144425", "stroke-width": 2 }, svg);
     const ballC = svgEl("circle", { r: 5, fill: "#fff" }, svg);
 
     const group = svg.closest(".demo"), vIn = $("#pitch-v"), rIn = $("#pitch-rpm"), out = $("#pitch-readout");
@@ -497,25 +467,25 @@
     const st = { t: 30, h: 4, theta: 0, grip: false, carrying: false, benchy: 18, stacked: 0 };
 
     // static parts
-    svgEl("rect", { x: 20, y: FLOOR, width: 480, height: 4, fill: "#2b5247" }, svg);
+    svgEl("rect", { x: 20, y: FLOOR, width: 480, height: 4, fill: "#2f7046" }, svg);
     svgEl("rect", { x: COLX - 34, y: FLOOR - 16, width: 68, height: 16, rx: 4, fill: "#5b6776" }, svg);   // base / turntable
     svgEl("rect", { x: COLX - 9, y: TOPY, width: 18, height: FLOOR - 16 - TOPY, fill: "#8e98a8" }, svg);  // 2040 column
     svgEl("rect", { x: COLX, y: TOPY - 10, width: ARM + 14, height: 10, fill: "#a3adb8" }, svg);          // 2020 arm
-    svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#f5b83d" }, svg);  // target pad
+    svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#b5d984" }, svg);  // target pad
     text(svg, COLX + PAD * PX, FLOOR + 18, "target ±5 mm", "d-text", "middle");
     for (let c = 0; c <= 40; c += 10) text(svg, COLX + c * PX, TOPY - 16, c + "", "d-text", "middle");
     text(svg, COLX + ARM, TOPY - 16, "51 cm", "d-text", "end");
-    const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#f5b83d" }, svg);
-    const wire = svgEl("line", { stroke: "#eef4e8", "stroke-width": 1.5 }, svg);
+    const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#b5d984" }, svg);
+    const wire = svgEl("line", { stroke: "#f1f8ef", "stroke-width": 1.5 }, svg);
     const head = svgEl("rect", { width: 22, height: 14, rx: 3, fill: "#5b6776" }, svg);
-    const jawL = svgEl("rect", { width: 4, height: 14, fill: "#eef4e8" }, svg);
-    const jawR = svgEl("rect", { width: 4, height: 14, fill: "#eef4e8" }, svg);
+    const jawL = svgEl("rect", { width: 4, height: 14, fill: "#f1f8ef" }, svg);
+    const jawR = svgEl("rect", { width: 4, height: 14, fill: "#f1f8ef" }, svg);
     const stackG = svgEl("g", {}, svg);
-    const benchy = svgEl("path", { d: BENCHY_PATH, fill: "#7fd38f" }, svg);
+    const benchy = svgEl("path", { d: BENCHY_PATH, fill: "#82d1c5" }, svg);
     // top-view dial for base rotation
     const dial = svgEl("g", { transform: "translate(470 210)" }, svg);
-    svgEl("circle", { r: 26, fill: "none", stroke: "#2b5247", "stroke-width": 2 }, dial);
-    const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#f5b83d", "stroke-width": 3, "stroke-linecap": "round" }, dial);
+    svgEl("circle", { r: 26, fill: "none", stroke: "#2f7046", "stroke-width": 2 }, dial);
+    const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#b5d984", "stroke-width": 3, "stroke-linecap": "round" }, dial);
     text(dial, 0, 42, "top view", "d-text", "middle");
 
     const contactDepth = () => {          // hoist depth where the jaws (or a carried Benchy) meet the floor or the stack
@@ -536,7 +506,7 @@
       benchy.setAttribute("transform", `translate(${bx} ${by}) scale(${sc})`);
       benchy.style.display = st.stacked >= 3 && !st.carrying ? "none" : "";
       stackG.replaceChildren();
-      for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#7fd38f", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
+      for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#82d1c5", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
       dialArm.setAttribute("transform", `rotate(${st.theta})`);
       out.innerHTML = `<strong>Reach ${st.t.toFixed(1)} cm · hoist ${st.h.toFixed(0)} cm · base ${Math.round(st.theta)}°</strong> · Stacked ${st.stacked}/3 on the ±5 mm pad${st.stacked >= 3 ? " · validated, like the real one" : ""}`;
     }
@@ -588,15 +558,15 @@
     const S = 0.62;                                             // px per mm
     const GROUND = 214, WX = 330, WY = GROUND - WHEEL_R * S;    // wheel centre stays on the ground
     const PIVOT_Y0 = WY - 70;                                   // unloaded pivot height
-    svgEl("rect", { x: 0, y: GROUND, width: 520, height: 3, fill: "#2b5247" }, svg);
+    svgEl("rect", { x: 0, y: GROUND, width: 520, height: 3, fill: "#2f7046" }, svg);
     const frame = svgEl("rect", { height: 14, rx: 3, fill: "#5b6776" }, svg);
     const arm = svgEl("line", { stroke: "#a3adb8", "stroke-width": 9, "stroke-linecap": "round" }, svg);
-    const coil = svgEl("polyline", { fill: "none", stroke: "#f5b83d", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
-    const tyre = svgEl("circle", { cx: WX, cy: WY, r: WHEEL_R * S, fill: "#1a4038", stroke: "#8e98a8", "stroke-width": 8 }, svg);
+    const coil = svgEl("polyline", { fill: "none", stroke: "#b5d984", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
+    const tyre = svgEl("circle", { cx: WX, cy: WY, r: WHEEL_R * S, fill: "#22603a", stroke: "#8e98a8", "stroke-width": 8 }, svg);
     svgEl("circle", { cx: WX, cy: WY, r: 8, fill: "#a3adb8" }, svg);
-    const pivot = svgEl("circle", { r: 6, fill: "#7fd38f" }, svg);
+    const pivot = svgEl("circle", { r: 6, fill: "#82d1c5" }, svg);
     const sagLabel = text(svg, 0, 0, "", "d-value");
-    const load = svgEl("rect", { width: 70, rx: 4, fill: "rgba(127,211,143,0.25)", stroke: "#7fd38f" }, svg);
+    const load = svgEl("rect", { width: 70, rx: 4, fill: "rgba(130,209,197,0.25)", stroke: "#82d1c5" }, svg);
     const loadText = text(svg, 0, 0, "", "d-value", "middle");
     tyre.setAttribute("aria-hidden", "true");
 
@@ -836,6 +806,124 @@
       if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
     }), { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     items.forEach(el => { el.classList.add("slide-in"); io.observe(el); });
+  })();
+
+  // ---------- Water: the page surface ripples where the pointer goes ----------
+  // A fixed canvas behind the light sections (the 3D stage covers it in the story). Moving the pointer
+  // leaves expanding rings and a soft patch of light follows it; a tap or click drops a bigger ripple.
+  // Nothing moves on its own: the loop runs only while there is a ring or the light is still catching up.
+  (function water() {
+    const canvas = $("#water");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let w = 0, h = 0, dpr = 1, raf = 0, last = { x: -1e4, y: -1e4, t: 0 };
+    const rings = [], glow = { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4, a: 0, ta: 0 };
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = canvas.clientWidth; h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      wake();
+    }
+    function wake() { if (!raf) raf = requestAnimationFrame(frame); }
+    function frame(now) {
+      raf = 0;
+      ctx.clearRect(0, 0, w, h);
+      glow.x += (glow.tx - glow.x) * 0.12; glow.y += (glow.ty - glow.y) * 0.12; glow.a += (glow.ta - glow.a) * 0.08;
+      if (glow.a > 0.01) {
+        const g = ctx.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, 260);
+        g.addColorStop(0, `rgba(130, 209, 197, ${0.34 * glow.a})`);
+        g.addColorStop(0.45, `rgba(75, 151, 192, ${0.12 * glow.a})`);
+        g.addColorStop(1, "rgba(75, 151, 192, 0)");
+        ctx.fillStyle = g; ctx.fillRect(glow.x - 260, glow.y - 260, 520, 520);
+      }
+      for (let i = rings.length - 1; i >= 0; i--) {
+        const r = rings[i], k = (now - r.t) / r.life;
+        if (k >= 1) { rings.splice(i, 1); continue; }
+        const e = 1 - Math.pow(1 - k, 3);
+        [0, 0.35].forEach((lag, j) => {          // a ring and a fainter one behind it
+          const kk = clamp((e - lag) / (1 - lag), 0, 1);
+          if (kk <= 0) return;
+          ctx.beginPath();
+          ctx.ellipse(r.x, r.y, r.size * kk, r.size * kk * 0.62, 0, 0, Math.PI * 2);   // seen at an angle, like a pond
+          ctx.strokeStyle = `rgba(${j ? "70, 149, 61" : "43, 119, 161"}, ${(1 - k) * (j ? 0.26 : 0.45)})`;
+          ctx.lineWidth = 1.6 - j * 0.6;
+          ctx.stroke();
+        });
+      }
+      const settling = Math.abs(glow.tx - glow.x) + Math.abs(glow.ty - glow.y) > 0.5 || Math.abs(glow.ta - glow.a) > 0.01;
+      if (rings.length || settling) wake();
+    }
+    function drop(x, y, size, life) {
+      if (calm) return;
+      rings.push({ x, y, size, life, t: performance.now() });
+      if (rings.length > 40) rings.shift();
+    }
+    window.addEventListener("pointermove", e => {
+      glow.tx = e.clientX; glow.ty = e.clientY; glow.ta = 1;
+      if (glow.x < -1000) { glow.x = e.clientX; glow.y = e.clientY; }
+      const moved = Math.hypot(e.clientX - last.x, e.clientY - last.y), now = performance.now();
+      if (moved > 36 || (moved > 6 && now - last.t > 140)) {
+        drop(e.clientX, e.clientY, 46 + Math.min(moved, 90) * 0.5, 1700);
+        last = { x: e.clientX, y: e.clientY, t: now };
+      }
+      wake();
+    }, { passive: true });
+    window.addEventListener("pointerdown", e => { drop(e.clientX, e.clientY, 140, 1800); wake(); }, { passive: true });
+    document.documentElement.addEventListener("pointerleave", () => { glow.ta = 0; wake(); });
+    window.addEventListener("resize", size);
+    size();
+  })();
+
+  // ---------- Titles: letters near the pointer thin out, like type seen through moving water ----------
+  // Each [data-swell] heading is split into letter spans (aria-hidden; the heading keeps an aria-label)
+  // and grows from light to its full weight when it first scrolls into view.
+  (function swell() {
+    const heads = $$("[data-swell]");
+    if (!heads.length) return;
+    const items = heads.map(h => {
+      h.setAttribute("aria-label", h.textContent.replace(/\s+/g, " ").trim());
+      const walk = document.createTreeWalker(h, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walk.nextNode()) nodes.push(walk.currentNode);
+      nodes.forEach(n => {
+        const frag = document.createDocumentFragment();
+        [...n.textContent].forEach(ch => {
+          if (/\s/.test(ch)) { frag.appendChild(document.createTextNode(ch)); return; }
+          const sp = document.createElement("span");
+          sp.className = "sw"; sp.textContent = ch; sp.setAttribute("aria-hidden", "true");
+          frag.appendChild(sp);
+        });
+        n.replaceWith(frag);
+      });
+      return { h, letters: $$(".sw", h), centres: null };
+    });
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }), { threshold: 0.3 });
+    heads.forEach(h => io.observe(h));
+    function measure(it) {                         // letter centres relative to the heading, at rest
+      const b = it.h.getBoundingClientRect();
+      it.centres = it.letters.map(l => { const r = l.getBoundingClientRect(); return [r.left + r.width / 2 - b.left, r.top + r.height / 2 - b.top]; });
+    }
+    window.addEventListener("resize", () => items.forEach(it => { it.centres = null; }));
+    document.fonts?.ready.then(() => items.forEach(it => { it.centres = null; }));
+    let px = -1e4, py = -1e4, queued = false;
+    function apply() {
+      queued = false;
+      items.forEach(it => {
+        const b = it.h.getBoundingClientRect();
+        if (b.bottom < -200 || b.top > innerHeight + 200) return;
+        if (!it.centres) measure(it);
+        const reach = Math.max(90, b.height * 0.9);
+        it.letters.forEach((l, i) => {
+          const d = Math.hypot(px - b.left - it.centres[i][0], py - b.top - it.centres[i][1]);
+          const lift = Math.round(-380 * Math.exp(-(d * d) / (2 * reach * reach)));
+          if (l._lift !== lift) { l._lift = lift; l.style.setProperty("--lift", lift); }
+        });
+      });
+    }
+    window.addEventListener("pointermove", e => { px = e.clientX; py = e.clientY; if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
+    window.addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
   })();
 
   // ---------- Copy email, year ----------

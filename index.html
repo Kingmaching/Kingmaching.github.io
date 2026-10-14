@@ -8,11 +8,11 @@
   <meta property="og:title" content="Marco Ching">
   <meta property="og:description" content="Building energy modelling, adaptive facades, ventilation and building performance, from Hong Kong.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#0b1f1a">
+  <meta name="theme-color" content="#eaf7f5">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400..700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..800,0..100,0..1&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%97%9C%E6%96%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
@@ -24,6 +24,7 @@
 </head>
 
 <body>
+  <canvas class="water" id="water" aria-hidden="true"></canvas>
   <!-- =========================================================
        EDITING NOTE
        All visible text lives in this file. Search for "EDIT:" to
@@ -49,11 +50,11 @@
 
   <main id="top">
     <!-- EDIT: SCROLL STORY ----------------------------------------
-         Nine steps, one screen each, all over the 3D tower. The first
-         four stay at night with the harbour light show: intro, background,
-         what's next and the Project 01 introduction. The last five are
-         Project 01 itself: building.js takes the tower apart as the reader
-         scrolls and story.js steps the charts through the real ME 572 runs. -->
+         Eleven steps, one screen each, around the 3D tower in the middle of the
+         screen. Intro, background and what's next sit over the louvres in the early
+         morning; Project 3.1 takes the tower apart (building.js) while story.js steps
+         the charts through the real ME 572 runs; then the tower closes back up and the
+         camera looks down into its top floor for Project 3.2. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <div class="sun-glare"></div>
@@ -66,7 +67,7 @@
         <article class="step step-intro" data-step="0">
           <div class="intro">
             <p class="kicker"><span class="zh">香港</span><span>Honours Mechanical Engineering Co-op<span class="kicker-sep"> · </span>University of Waterloo</span></p>
-            <h1 class="giant-name">Marco<br>Ching</h1>
+            <h1 class="giant-name" data-swell>Marco<br>Ching</h1>
             <div class="intro-foot">
               <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
               <div class="actions">
@@ -84,7 +85,7 @@
             <div class="panel-inner">
               <p class="kicker"><span class="zh">關於</span><span>(01) Background</span></p>
               <div class="panel-body">
-                <h2 class="panel-title">Hi, I’m Marco.<br><em>Here’s the short version</em></h2>
+                <h2 class="panel-title" data-swell>Hi, I’m Marco.<br><em>Here’s the short version</em></h2>
                 <div class="panel-foot">
                   <p class="panel-lede">I’m from Hong Kong and study Honours Mechanical Engineering Co-op at the University of Waterloo. My co-op terms have taken me from BIM at Hong Kong International Airport and WSP in Toronto to water-treatment engineering at Chevalier in Kwai Chung.</p>
                   <dl class="about-facts">
@@ -120,7 +121,7 @@
         </article>
 
         <!-- EDIT: PROJECTS, starting with Project 01 (the tower) -->
-        <article class="step" data-step="3" id="projects" data-nav="projects">
+        <article class="step step-left" data-step="3" id="projects" data-nav="projects">
           <div class="step-card glass">
             <p class="kicker"><span class="zh">項目</span><span>(03) Projects</span></p>
             <h2>Six projects, <em>starting with this building</em></h2>
@@ -133,11 +134,11 @@
               <div><dt>Emissions</dt><dd>+10.6%</dd></div>
             </dl>
             <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-            <p class="scroll-cue">Scroll through 24 hours in the life of this building</p>
+            <p class="scroll-cue">Scroll through a day in the life of this building</p>
           </div>
         </article>
 
-        <article class="step" data-step="4" data-nav="projects">
+        <article class="step step-right" data-step="4" data-nav="projects">
           <div class="step-card glass">
             <p class="kicker"><span class="kicker-num">3.1</span><span>Shading</span></p>
             <h2>Facades that <em>react to the sun</em></h2>
@@ -145,7 +146,7 @@
           </div>
         </article>
 
-        <article class="step" data-step="5" data-nav="projects">
+        <article class="step step-left" data-step="5" data-nav="projects">
           <div class="step-card glass">
             <p class="kicker"><span class="kicker-num">3.1</span><span>Envelope</span></p>
             <h2>One variable, <em>three answers</em></h2>
@@ -154,7 +155,7 @@
           </div>
         </article>
 
-        <article class="step" data-step="6" data-nav="projects">
+        <article class="step step-right" data-step="6" data-nav="projects">
           <div class="step-card glass">
             <p class="kicker"><span class="kicker-num">3.1</span><span>Air</span></p>
             <h2>Outdoor air is a <em>heating</em> load</h2>
@@ -163,7 +164,7 @@
           </div>
         </article>
 
-        <article class="step" data-step="7" data-nav="projects">
+        <article class="step step-left" data-step="7" data-nav="projects">
           <div class="step-card glass">
             <p class="kicker"><span class="kicker-num">3.1</span><span>Lighting</span></p>
             <h2>Less light, <em>more heat</em></h2>
@@ -172,7 +173,7 @@
           </div>
         </article>
 
-        <article class="step" data-step="8" data-nav="projects">
+        <article class="step step-right" data-step="8" data-nav="projects">
           <div class="step-card glass">
             <p class="kicker"><span class="kicker-num">3.1</span><span>Measurement</span></p>
             <h2>Predicted, <em>not yet measured</em></h2>
@@ -180,69 +181,59 @@
             <figure class="chart" data-chart="benchmark"></figure>
           </div>
         </article>
+
+        <!-- 3.1, continued: the tower closes back up while every run is laid side by side -->
+        <article class="step step-left" data-step="9" data-nav="projects">
+          <div class="step-card glass">
+            <p class="kicker"><span class="kicker-num">3.1</span><span>All runs</span></p>
+            <h2>Every run, <em>side by side</em></h2>
+            <p>The building changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
+            <div class="demo" data-demo="envelope">
+              <div class="demo-bar">
+                <span class="demo-title" id="envelope-title">Best tested value vs control</span>
+                <div class="seg" role="group" aria-label="Metric">
+                  <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
+                  <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
+                  <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
+                </div>
+              </div>
+              <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
+              <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
+            </div>
+            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+          </div>
+        </article>
+
+        <!-- EDIT: PROJECT 3.2, lighting. The camera looks down into the tower's top floor, laid out as the
+             48 × 34 ft office; the layout buttons move the luminaires in 3D (building.js) and update the meters. -->
+        <article class="step step-right" data-step="10" data-nav="projects">
+          <div class="step-card glass" data-demo="lighting">
+            <p class="kicker"><span class="kicker-num">3.2</span><span>ME 572 · 2026</span></p>
+            <h2>Office <em>lighting layout</em></h2>
+            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
+            <div class="seg" role="group" aria-label="Luminaire layout">
+              <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
+              <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
+            </div>
+            <div class="meters" id="lighting-meters"></div>
+            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+          </div>
+        </article>
       </div>
     </section>
 
     <!-- EDIT: PROJECTS, continued ------------------------------------
-         Project 01's full run chart, then projects 02-06. Each has a short
+         Projects 3.3-3.6 (3.1 and 3.2 live in the 3D story above). Each has a short
          info column and its own live demo, built from the numbers in the report. -->
     <section class="projects" id="more-projects" data-nav="projects">
       <div class="wrap">
-        <!-- 1. ME 572, continued: every run at once -->
-        <article class="proj proj-first">
-          <div class="proj-info">
-            <p class="proj-meta"><span>3.1</span>ME 572 · 2026 · all runs</p>
-            <h3>Every Run, Side by Side</h3>
-            <p>The building above changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
-            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-          </div>
-          <div class="demo" data-demo="envelope">
-            <div class="demo-bar">
-              <span class="demo-title" id="envelope-title">Best tested value vs control</span>
-              <div class="seg" role="group" aria-label="Metric">
-                <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
-                <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
-                <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
-              </div>
-            </div>
-            <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
-            <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
-          </div>
-        </article>
-
-        <header class="sec-head sec-head-more">
+        <header class="sec-head">
           <p class="label"><span class="zh">項目</span> (03) Projects, continued</p>
-          <h2>Five more<br><em>Try each one</em></h2>
+          <h2 data-swell>Four more<br><em>Try each one</em></h2>
         </header>
 
-        <!-- 2. Lighting design -->
-        <article class="proj proj-flip">
-          <div class="proj-info">
-            <p class="proj-meta"><span>3.2</span>ME 572 · 2026</p>
-            <h3>Office Lighting Layout</h3>
-            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
-            <dl class="proj-stats">
-              <div><dt>Illuminance</dt><dd>52 fc</dd></div>
-              <div><dt>Power</dt><dd>0.52 W/ft²</dd></div>
-              <div><dt>Luminaires</dt><dd>20</dd></div>
-            </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-          </div>
-          <div class="demo" data-demo="lighting">
-            <div class="demo-bar">
-              <span class="demo-title">Plan view · 48 × 34 ft</span>
-              <div class="seg" role="group" aria-label="Layout option">
-                <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
-                <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
-              </div>
-            </div>
-            <svg class="demo-svg" id="lighting-svg" viewBox="0 0 520 300" role="img" aria-label="Office plan with luminaire grid"></svg>
-            <div class="meters" id="lighting-meters"></div>
-          </div>
-        </article>
-
         <!-- 3. Seismic monitoring -->
-        <article class="proj">
+        <article class="proj proj-first">
           <div class="proj-info">
             <p class="proj-meta"><span>3.3</span>IEEE YEC · 3rd place</p>
             <h3>Listening To Hong Kong’s Dormant Supervolcano</h3>
@@ -363,7 +354,7 @@
       <div class="wrap">
         <header class="sec-head">
           <p class="label"><span class="zh">經驗</span> (04) Experience</p>
-          <h2>The route <em>so far</em>...</h2>
+          <h2 data-swell>The route <em>so far</em>...</h2>
         </header>
 
         <p class="route-hint"><span class="route-hint-dot" aria-hidden="true"></span>Click any station to ride there</p>
@@ -466,7 +457,7 @@
       <div class="wrap">
         <header class="sec-head">
           <p class="label"><span class="zh">技能</span> (05) Skills</p>
-          <h2>The <em>Toolbox</em></h2>
+          <h2 data-swell>The <em>Toolbox</em></h2>
         </header>
         <div class="toolbox" id="toolbox">
           <div class="tb-handle" aria-hidden="true"></div>
