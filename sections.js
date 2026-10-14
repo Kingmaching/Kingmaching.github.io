@@ -810,6 +810,16 @@
     items.forEach(el => { el.classList.add("slide-in"); io.observe(el); });
   })();
 
+  // ---------- What's next: the blurred city beyond the window drifts a little as the section scrolls past ----------
+  (function windowDrift() {
+    const sec = $("#direction"), city = $(".window-city");
+    if (!sec || !city) return;
+    let queued = false;
+    const apply = () => { queued = false; const r = sec.getBoundingClientRect(); city.style.setProperty("--drift", (-(r.top + r.height / 2 - innerHeight / 2) * 0.12).toFixed(1)); };
+    window.addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
+    apply();
+  })();
+
   // ---------- Copy email, year ----------
   const copyButton = $("#copy-email");
   copyButton?.addEventListener("click", async () => {

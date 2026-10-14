@@ -767,6 +767,116 @@
     tailMat.opacity = nightAmt;
   }
 
+  // ---------- Street life: crossings, traffic lights, bins, benches with people, a dog, clouds, a plane ----------
+  // Fixed scenery, plus a few things that move on their own (lights cycle, clouds drift, the plane crosses,
+  // the dog wags) in livenStreet(), called every frame.
+  const white = new THREE.MeshBasicMaterial({ color: 0xf2f2ea, transparent: true, opacity: 0.85 });
+  // Zebra crossings where the four avenues meet the ring road
+  [[0, RING + 6.5, 0], [RING + 6.5, 0, 1], [0, -RING - 6.5, 0], [-RING - 6.5, 0, 1]].forEach(([cx, cz, across]) => {
+    for (let k = -2; k <= 2; k++) {
+      const m = flat(across ? 3 : 0.7, across ? 0.7 : 3, white, cx + (across ? 0 : k * 1.45), cz + (across ? k * 1.45 : 0), 0.08);
+      m.receiveShadow = false;
+    }
+  });
+  // Traffic lights on the corner of each crossing, cycling green → amber → red
+  const signalSets = [];
+  [[5.2, RING + 5.2, 0], [RING + 5.2, -5.2, Math.PI / 2], [-5.2, -RING - 5.2, Math.PI], [-RING - 5.2, 5.2, -Math.PI / 2]].forEach(([x, z, yaw], i) => {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z); g.rotation.y = yaw;
+    box(0.22, 4.6, 0.22, mat.mullion, g, 0, 2.3, 0);
+    box(0.6, 1.7, 0.5, std({ color: 0x1d2420 }), g, 0, 4.4, 0.1);
+    const lamps = ["#ff4a3d", "#ffb52e", "#3ddc84"].map((c, k) => {
+      const m = new THREE.MeshBasicMaterial({ color: c });
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), m);
+      b.position.set(0, 4.95 - k * 0.52, 0.37);
+      g.add(b);
+      return { m, on: C(c), off: C(c).multiplyScalar(0.18) };
+    });
+    scene.add(g);
+    signalSets.push({ lamps, offset: i % 2 ? 6 : 0 });
+  });
+  // Bins along the outer pavements
+  const binGeo = new THREE.CylinderGeometry(0.38, 0.32, 1, 10), binMat = std({ color: 0x2f6b3f });
+  [[-18, RING + 7.6], [9, RING + 7.6], [24, RING + 7.6], [RING + 7.6, -16], [RING + 7.6, 12], [RING + 7.6, 26], [-RING - 7.6, 10], [14, -RING - 7.6]]
+    .forEach(([x, z]) => { const b = new THREE.Mesh(binGeo, binMat); b.position.set(x, 0.5, z); b.castShadow = true; scene.add(b); });
+  // Benches on the plaza lawn, most with someone sitting on them
+  const benchWood = std({ color: 0x9a6b43 }), skin = std({ color: 0xd9a77c });
+  const SITTERS = ["#2b77a1", "#f2c14e", "#e0703a", "#f1f1ea", "#46953d", "#8a5bd6"].map(c => std({ color: c }));
+  [[18, 3, Math.PI / 2, 2], [3, 18, 0, 1], [-13, 18, 0, 2], [18, -11, Math.PI / 2, 1], [12, 16.5, 0.5, 0]].forEach(([x, z, yaw, n], i) => {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z); g.rotation.y = yaw;
+    box(2.6, 0.14, 0.75, benchWood, g, 0, 0.55, 0);
+    box(2.6, 0.6, 0.12, benchWood, g, 0, 0.95, -0.36);
+    [-1.1, 1.1].forEach(dx => box(0.12, 0.55, 0.6, mat.mullion, g, dx, 0.27, 0));
+    for (let k = 0; k < n; k++) {
+      const dx = n === 1 ? 0.2 : k ? 0.7 : -0.6;
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.75, 8), SITTERS[(i * 2 + k) % SITTERS.length]);
+      body.position.set(dx, 1.0, -0.12); body.castShadow = true; g.add(body);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), skin);
+      head.position.set(dx, 1.55, -0.1); g.add(head);
+      box(0.42, 0.14, 0.55, SITTERS[(i * 2 + k + 3) % SITTERS.length], g, dx, 0.66, 0.2, false);   // lap and legs
+    }
+    scene.add(g);
+  });
+  // A dog out for a walk with its owner on the pavement round the plaza
+  const dog = new THREE.Group(), fur = std({ color: 0xc58b4f }), furDark = std({ color: 0x7a5232 });
+  box(1.05, 0.42, 0.42, fur, dog, 0, 0.62, 0);
+  box(0.42, 0.38, 0.36, fur, dog, 0.62, 0.92, 0);
+  box(0.2, 0.18, 0.22, furDark, dog, 0.88, 0.86, 0, false);
+  [[-0.36, 0.15], [-0.36, -0.15], [0.36, 0.15], [0.36, -0.15]].forEach(([lx, lz]) => box(0.12, 0.42, 0.12, fur, dog, lx, 0.21, lz, false));
+  const tail = new THREE.Group(); tail.position.set(-0.52, 0.8, 0); dog.add(tail);
+  box(0.4, 0.09, 0.09, furDark, tail, -0.18, 0.08, 0, false);
+  dog.scale.setScalar(1.3);
+  const owner = new THREE.Mesh(personGeo, std({ color: 0x2b77a1 }));
+  owner.scale.setScalar(1.5); owner.castShadow = true;
+  scene.add(dog, owner);
+  // Clouds, soft and out of focus with the skyline
+  const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, transparent: true, opacity: 0.92 });   // flat white; the backdrop blur softens them
+  const clouds = new THREE.Group();
+  for (let i = 0; i < 9; i++) {
+    const c = new THREE.Group(), a = 3.05 + (i / 8) * 2.7 + rand() * 0.15, r = 430 + rand() * 160;
+    for (let k = 0; k < 5; k++) {
+      const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(14 + rand() * 12, 1), cloudMat);
+      puff.position.set((k - 2) * 16 + rand() * 6, rand() * 8, rand() * 10);
+      puff.scale.y = 0.6;
+      c.add(puff);
+    }
+    c.position.set(Math.cos(a) * r, 120 + rand() * 60, Math.sin(a) * r);
+    c.lookAt(0, c.position.y, 0);
+    clouds.add(c);
+  }
+  scene.add(toBack(clouds));
+  // A plane crossing the sky in the distance, its beacon blinking
+  const plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
+  const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.7, 12, 10), planeMat);
+  fuselage.rotation.z = Math.PI / 2; plane.add(fuselage);
+  plane.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 13), planeMat));
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(2, 2.6, 0.25), planeMat); fin.position.set(-5.2, 1.4, 0); plane.add(fin);
+  const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff3b3b, fog: false });
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), beaconMat); beacon.position.set(0, -0.9, 0); plane.add(beacon);
+  scene.add(plane);
+  const CLOUD_DAY = C("#fbfdff"), CLOUD_NIGHT = C("#1c2633");
+
+  function livenStreet(q, time, nightAmt) {
+    const t = time / 1000;
+    signalSets.forEach(({ lamps, offset }) => {
+      const p = (t + offset) % 12, state = p < 5 ? 2 : p < 6.5 ? 1 : 0;   // 0 red, 1 amber, 2 green
+      lamps.forEach((l, k) => l.m.color.copy(k === state ? l.on : l.off));
+    });
+    const [ox, oz, yaw] = rectPath(0.12 + 0.03 * q, 26.4, 26.4);
+    owner.position.set(ox, 0.05, oz); owner.rotation.y = yaw;
+    const [dx, dz, dyaw] = rectPath(0.12 + 0.03 * q + 0.012, 27.4, 27.4);
+    dog.position.set(dx, 0, dz); dog.rotation.y = dyaw;
+    tail.rotation.y = Math.sin(t * 9) * 0.6;
+    clouds.rotation.y = t * 0.0012;
+    const a = 3.0 + ((t * 0.018) % 1) * 2.9;
+    plane.position.set(Math.cos(a) * 560, 150, Math.sin(a) * 560);
+    plane.rotation.y = -a - Math.PI / 2;                                  // nose along the direction of travel
+    beacon.visible = (t % 1.2) < 0.15;
+    cloudMat.color.copy(CLOUD_DAY).lerp(CLOUD_NIGHT, nightAmt);
+    planeMat.color.set(0xe9eef2).lerp(CLOUD_NIGHT, nightAmt);
+  }
+
   // ---------- Camera path (keyframes at given q) ----------
   // Before q = −1 the camera holds the intro shot. `side` slides the aim sideways so the tower sits to
   // one side of the screen (positive: tower to the right); from q = 0 it stands in the middle. On phones
@@ -781,7 +891,7 @@
     { q: 4, ang: 1.90, rad: 184, h: 32, ty: 43 },
     { q: 5, ang: 2.15, rad: 190, h: 38, ty: 45 },
     { q: 6, ang: 2.25, rad: 138, h: 30, ty: 28 },                       // closed back up
-    { q: 7, ang: Math.PI * 1.5, rad: 9, h: 128, ty: 47.5, side: -14, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card; the camera swings on round the tower to get there
+    { q: 7, ang: Math.PI / 2, rad: 9, h: 128, ty: 47.5, side: -14, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
@@ -921,6 +1031,7 @@
     sensors.forEach((s, i) => { s.scale.setScalar(Math.max(0.001, st.sense * pulse * (i % 4 === 0 ? 1.15 : 1))); });
 
     moveTraffic(q, Math.max(dusk * 0.7, nightfall));
+    livenStreet(q, time, nightfall);
     // Night life: lamps, the city's coloured light on the street, wet roads
     const lampsOn = Math.max(dusk * 0.5, nightfall);
     lampHeadMat.color.copy(LAMP_OFF).lerp(LAMP_ON, lampsOn);
