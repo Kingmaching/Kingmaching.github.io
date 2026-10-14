@@ -734,8 +734,8 @@
     const ease = t => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2);   // ease-in-out quart: speeds up, then slows down
     let lenis = null;
     if (window.Lenis) {
-      // Quick, with just a short glide at the end of each scroll.
-      lenis = new Lenis({ lerp: 0.16, wheelMultiplier: 1.25, touchMultiplier: 1.3, smoothWheel: true });
+      // Fast: each wheel turn goes about twice as far as the browser default, with only a short glide.
+      lenis = new Lenis({ lerp: 0.22, wheelMultiplier: 2, touchMultiplier: 1.8, smoothWheel: true });
       (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(performance.now());
       document.documentElement.classList.add("lenis-on");
     }
@@ -749,7 +749,7 @@
       // Story steps fill the screen, so they line up with the top; other sections clear the top bar.
       const offset = id === "#top" || target.closest(".story") ? 0 : -76;
       const distance = Math.abs(target.getBoundingClientRect().top + offset);
-      const duration = clamp(0.45 + distance / 9000, 0.6, 1.2);
+      const duration = clamp(0.35 + distance / 12000, 0.5, 0.9);
       if (lenis) lenis.scrollTo(target, { offset, duration, easing: ease });
       else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + offset, behavior: "smooth" });
       history.replaceState(null, "", id);
