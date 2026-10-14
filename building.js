@@ -237,6 +237,9 @@
   }
   // Sidewalk apron around the podium, ring road, and four spurs (the far ones stop at the water).
   flat(2 * (RING - 4), 2 * (RING - 4), mat.walk, 0, 0, 0.03);
+  // Pavement on the far side of the ring road, so people outside it walk on paving, not grass
+  [[0, RING + 6.25, 2 * (RING + 8.5), 4.5], [0, -RING - 6.25, 2 * (RING + 8.5), 4.5], [RING + 6.25, 0, 4.5, 2 * (RING + 8.5)], [-RING - 6.25, 0, 4.5, 2 * (RING + 8.5)]]
+    .forEach(([x, z, w, d]) => flat(w, d, mat.walk, x, z, 0.032));
   [[0, -RING, 2 * RING + 8, 8], [0, RING, 2 * RING + 8, 8], [-RING, 0, 8, 2 * RING + 8], [RING, 0, 8, 2 * RING + 8]]
     .forEach(([x, z, w, d]) => flat(w, d, mat.road, x, z, 0.05));
   flat(8, 120, mat.road, 0, RING + 64, 0.05);           // +z avenue (camera side)
@@ -767,9 +770,9 @@
     tailMat.opacity = nightAmt;
   }
 
-  // ---------- Street life: crossings, traffic lights, bins, benches with people, a dog, clouds, a plane ----------
-  // Fixed scenery, plus a few things that move on their own (lights cycle, clouds drift, the plane crosses,
-  // the dog wags) in livenStreet(), called every frame.
+  // ---------- Street life: crossings, traffic lights, bins, benches with people, a dog, a plane ----------
+  // Fixed scenery, plus things that move with the scroll (people, dog, plane) or on their own (traffic
+  // lights cycle, the dog wags, the plane's beacon blinks) in livenStreet(), called every frame.
   const white = new THREE.MeshBasicMaterial({ color: 0xf2f2ea, transparent: true, opacity: 0.85 });
   // Zebra crossings where the four avenues meet the ring road
   [[0, RING + 6.5, 0], [RING + 6.5, 0, 1], [0, -RING - 6.5, 0], [-RING - 6.5, 0, 1]].forEach(([cx, cz, across]) => {
@@ -799,25 +802,66 @@
   const binGeo = new THREE.CylinderGeometry(0.38, 0.32, 1, 10), binMat = std({ color: 0x2f6b3f });
   [[-18, RING + 7.6], [9, RING + 7.6], [24, RING + 7.6], [RING + 7.6, -16], [RING + 7.6, 12], [RING + 7.6, 26], [-RING - 7.6, 10], [14, -RING - 7.6]]
     .forEach(([x, z]) => { const b = new THREE.Mesh(binGeo, binMat); b.position.set(x, 0.5, z); b.castShadow = true; scene.add(b); });
-  // Benches on the plaza lawn, most with someone sitting on them
+  // Benches on the plaza lawn. As the page scrolls, one person walks over and sits down on an empty bench
+  // while another gets up and leaves; a third stays sitting the whole time (one to three people at once).
   const benchWood = std({ color: 0x9a6b43 }), skin = std({ color: 0xd9a77c });
-  const SITTERS = ["#2b77a1", "#f2c14e", "#e0703a", "#f1f1ea", "#46953d", "#8a5bd6"].map(c => std({ color: c }));
-  [[18, 3, Math.PI / 2, 2], [3, 18, 0, 1], [-13, 18, 0, 2], [18, -11, Math.PI / 2, 1], [12, 16.5, 0.5, 0]].forEach(([x, z, yaw, n], i) => {
+  const benches = [[18, 3, Math.PI / 2], [3, 18, 0], [-13, 18, 0], [18, -11, Math.PI / 2]].map(([x, z, yaw]) => {
     const g = new THREE.Group();
     g.position.set(x, 0, z); g.rotation.y = yaw;
     box(2.6, 0.14, 0.75, benchWood, g, 0, 0.55, 0);
     box(2.6, 0.6, 0.12, benchWood, g, 0, 0.95, -0.36);
     [-1.1, 1.1].forEach(dx => box(0.12, 0.55, 0.6, mat.mullion, g, dx, 0.27, 0));
-    for (let k = 0; k < n; k++) {
-      const dx = n === 1 ? 0.2 : k ? 0.7 : -0.6;
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.75, 8), SITTERS[(i * 2 + k) % SITTERS.length]);
-      body.position.set(dx, 1.0, -0.12); body.castShadow = true; g.add(body);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), skin);
-      head.position.set(dx, 1.55, -0.1); g.add(head);
-      box(0.42, 0.14, 0.55, SITTERS[(i * 2 + k + 3) % SITTERS.length], g, dx, 0.66, 0.2, false);   // lap and legs
-    }
     scene.add(g);
+    g.updateMatrixWorld();
+    return g;
   });
+  function makeActor(shirt, legs) {                 // a simple person who can stand, walk and sit
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.8, 8), std({ color: shirt }));
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), skin);
+    const lower = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1, 0.3), std({ color: legs }));
+    body.castShadow = head.castShadow = lower.castShadow = true;
+    g.add(body, head, lower);
+    scene.add(g);
+    return { g, body, head, lower };
+  }
+  // sit 0 = standing (legs straight down), 1 = seated (legs forward along the seat); bob is the walking step
+  function pose(a, sit, bob = 0) {
+    a.body.position.set(0, lerp(1.35, 1.0, sit) + bob, lerp(0, -0.12, sit));
+    a.head.position.set(0, lerp(1.98, 1.6, sit) + bob, lerp(0, -0.1, sit));
+    a.lower.position.set(0, lerp(0.48, 0.66, sit) + bob * 0.5, lerp(0, 0.2, sit));
+    a.lower.scale.set(1, lerp(0.95, 0.14, sit), lerp(1, 1.8, sit));
+  }
+  const seatAt = (b, dx, fwd = 0) => new THREE.Vector3(dx, 0, fwd).applyMatrix4(b.matrixWorld);
+  const seated = makeActor("#2b77a1", "#2d3a40");                 // stays the whole time
+  seated.g.position.copy(seatAt(benches[0], -0.5)); seated.g.rotation.y = benches[0].rotation.y; pose(seated, 1);
+  const arriving = makeActor("#f2c14e", "#3a4a5a"), leaving = makeActor("#e0703a", "#2b2f36");
+  // Walk along waypoints by scroll progress; at the end turn to the bench and sit (or the reverse).
+  const ARRIVE = [new THREE.Vector3(-RING - 6, 0, 22), new THREE.Vector3(-RING + 2, 0, 22), new THREE.Vector3(-13, 0, 22.2), seatAt(benches[2], 0.4, 1.1)];
+  const LEAVE = [seatAt(benches[1], 0.3, 1.1), new THREE.Vector3(3, 0, 24.6), new THREE.Vector3(RING + 6, 0, 24.6), new THREE.Vector3(RING + 6, 0, RING + 20)];
+  const seatArrive = seatAt(benches[2], 0.4), seatLeave = seatAt(benches[1], 0.3);
+  const along = (pts, t) => {                       // point and heading at fraction t of a polyline
+    const seg = pts.slice(1).map((p, i) => p.distanceTo(pts[i])), total = seg.reduce((x, y) => x + y, 0);
+    let d = clamp(t, 0, 1) * total, i = 0;
+    while (i < seg.length - 1 && d > seg[i]) { d -= seg[i]; i++; }
+    const a = pts[i], b = pts[i + 1], k = seg[i] ? d / seg[i] : 0;
+    return { p: a.clone().lerp(b, k), yaw: Math.atan2(b.x - a.x, b.z - a.z), dist: clamp(t, 0, 1) * total };
+  }
+  function moveActors(q) {
+    // Arriving: walks in over q −1.8 → 0.8, then sits down by q = 1.2
+    const w = smoothstep(q, -1.8, 0.8), s1 = smoothstep(q, 0.8, 1.2);
+    const A = along(ARRIVE, w);
+    arriving.g.position.copy(A.p).lerp(seatArrive, s1);
+    arriving.g.rotation.y = s1 > 0 ? benches[2].rotation.y : A.yaw;
+    pose(arriving, s1, w > 0 && w < 1 ? Math.abs(Math.sin(A.dist * 1.6)) * 0.08 : 0);
+    // Leaving: gets up over q 1.6 → 2.0, then walks off over 2.0 → 4.2 and disappears round the corner
+    const s2 = 1 - smoothstep(q, 1.6, 2.0), w2 = smoothstep(q, 2.0, 4.2);
+    const L = along(LEAVE, w2);
+    leaving.g.position.copy(seatLeave).lerp(L.p, 1 - s2);
+    leaving.g.rotation.y = s2 > 0 ? benches[1].rotation.y : L.yaw;
+    pose(leaving, s2, w2 > 0 && w2 < 1 ? Math.abs(Math.sin(L.dist * 1.6)) * 0.08 : 0);
+    leaving.g.visible = w2 < 1;
+  }
   // A dog out for a walk with its owner on the pavement round the plaza
   const dog = new THREE.Group(), fur = std({ color: 0xc58b4f }), furDark = std({ color: 0x7a5232 });
   box(1.05, 0.42, 0.42, fur, dog, 0, 0.62, 0);
@@ -830,32 +874,30 @@
   const owner = new THREE.Mesh(personGeo, std({ color: 0x2b77a1 }));
   owner.scale.setScalar(1.5); owner.castShadow = true;
   scene.add(dog, owner);
-  // Clouds, soft and out of focus with the skyline
-  const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, transparent: true, opacity: 0.92 });   // flat white; the backdrop blur softens them
-  const clouds = new THREE.Group();
-  for (let i = 0; i < 9; i++) {
-    const c = new THREE.Group(), a = 3.05 + (i / 8) * 2.7 + rand() * 0.15, r = 430 + rand() * 160;
-    for (let k = 0; k < 5; k++) {
-      const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(14 + rand() * 12, 1), cloudMat);
-      puff.position.set((k - 2) * 16 + rand() * 6, rand() * 8, rand() * 10);
-      puff.scale.y = 0.6;
-      c.add(puff);
-    }
-    c.position.set(Math.cos(a) * r, 120 + rand() * 60, Math.sin(a) * r);
-    c.lookAt(0, c.position.y, 0);
-    clouds.add(c);
-  }
-  scene.add(toBack(clouds));
-  // A plane crossing the sky in the distance, its beacon blinking
-  const plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
+  // A plane crossing the distant sky as the page scrolls, leaving a faint contrail. It sits in a group that
+  // turns about the vertical axis, so the plane and its trail ride one arc of radius 560 m.
+  const flight = new THREE.Group(), plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
   const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.7, 12, 10), planeMat);
   fuselage.rotation.z = Math.PI / 2; plane.add(fuselage);
   plane.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 13), planeMat));
   const fin = new THREE.Mesh(new THREE.BoxGeometry(2, 2.6, 0.25), planeMat); fin.position.set(-5.2, 1.4, 0); plane.add(fin);
-  const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff3b3b, fog: false });
-  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), beaconMat); beacon.position.set(0, -0.9, 0); plane.add(beacon);
-  scene.add(plane);
-  const CLOUD_DAY = C("#fbfdff"), CLOUD_NIGHT = C("#1c2633");
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff3b3b, fog: false }));
+  beacon.position.set(0, -0.9, 0); plane.add(beacon);
+  const FLY_R = 560, FLY_H = 150, TRAIL = 0.32;                      // trail length in radians of the arc
+  plane.position.set(FLY_R, FLY_H, 0); plane.rotation.y = -Math.PI / 2;   // nose along +z, the way the arc runs
+  const trailCurve = new THREE.CatmullRomCurve3(Array.from({ length: 13 }, (_, i) => {
+    const f = -TRAIL + (i / 12) * TRAIL;
+    return new THREE.Vector3(Math.cos(f) * FLY_R, FLY_H, Math.sin(f) * FLY_R - 6);
+  }));
+  const trailMat = new THREE.ShaderMaterial({
+    uniforms: { uOpacity: { value: 0.5 } },
+    vertexShader: "varying float vU; void main() { vU = uv.x; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: "uniform float uOpacity; varying float vU; void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, uOpacity * pow(vU, 1.6)); }",
+    transparent: true, depthWrite: false,
+  });
+  flight.add(plane, new THREE.Mesh(new THREE.TubeGeometry(trailCurve, 60, 0.7, 6, false), trailMat));
+  scene.add(flight);
+  const SKY_NIGHT = C("#1c2633");
 
   function livenStreet(q, time, nightAmt) {
     const t = time / 1000;
@@ -868,13 +910,11 @@
     const [dx, dz, dyaw] = rectPath(0.12 + 0.03 * q + 0.012, 27.4, 27.4);
     dog.position.set(dx, 0, dz); dog.rotation.y = dyaw;
     tail.rotation.y = Math.sin(t * 9) * 0.6;
-    clouds.rotation.y = t * 0.0012;
-    const a = 3.0 + ((t * 0.018) % 1) * 2.9;
-    plane.position.set(Math.cos(a) * 560, 150, Math.sin(a) * 560);
-    plane.rotation.y = -a - Math.PI / 2;                                  // nose along the direction of travel
+    moveActors(q);
+    flight.rotation.y = -(3.4 + clamp((q + 2) / 9, 0, 1) * 1.9);     // the plane crosses the sky as you scroll
     beacon.visible = (t % 1.2) < 0.15;
-    cloudMat.color.copy(CLOUD_DAY).lerp(CLOUD_NIGHT, nightAmt);
-    planeMat.color.set(0xe9eef2).lerp(CLOUD_NIGHT, nightAmt);
+    planeMat.color.set(0xe9eef2).lerp(SKY_NIGHT, nightAmt);
+    trailMat.uniforms.uOpacity.value = 0.5 * (1 - nightAmt * 0.7);
   }
 
   // ---------- Camera path (keyframes at given q) ----------
