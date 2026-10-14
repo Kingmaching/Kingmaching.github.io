@@ -37,7 +37,7 @@
   --on-neon: #ffffff;       /* text on a --neon fill */
   --neon-ink: #2b77a1;
   --green-ink: #2f7d2b;     /* May green, deepened for text */
-  --name: #ffffff;          /* the name in the hero */
+  --name: #f5f0e6;          /* the name in the hero: warm off-white */
   --cyan: var(--celestial);
   --amber: #e0703a;         /* heat */
 
@@ -115,7 +115,7 @@ a { color: inherit; }
 button { font: inherit; color: inherit; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 p, ul, ol, dl, dd, figure { margin: 0; }
-p { text-align: justify; -webkit-hyphens: auto; hyphens: auto; }   /* the big What's next statement opts out */
+p { text-wrap: pretty; }   /* ragged right everywhere, no hyphen breaks; pretty avoids one-word last lines */
 ul, ol { padding: 0; }
 em { font-style: normal; color: var(--neon); }
 ::selection { background: var(--neon); color: var(--on-neon); }
@@ -133,7 +133,6 @@ em { font-style: normal; color: var(--neon); }
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-d);
-  text-align: left; -webkit-hyphens: manual; hyphens: manual;
 }
 .label .zh, .kicker .zh { font-size: 1rem; color: var(--neon); letter-spacing: 0.1em; }
 
@@ -235,7 +234,7 @@ em { font-style: normal; color: var(--neon); }
 .step-card.glass { border-radius: 32px; }   /* the bubbles */
 .step-card { display: grid; gap: 14px; width: min(100%, clamp(300px, calc(50vw - var(--tower-half, 24vh) - var(--gutter) - 36px), 540px)); padding: clamp(20px, 2.6vw, 30px); border-radius: var(--radius); pointer-events: auto; }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
-.step-card > p:not(.kicker) { color: var(--muted-d); text-align: left; }   /* narrow columns justify badly */
+.step-card > p:not(.kicker) { color: var(--muted-d); }
 /* Background: full-screen text over the veil, a translucent white layer in the stage that covers the
    whole screen and simply fades in from the intro and out into Project 2.1 (story.js sets --veil),
    so there is no edge or gradient band. The words settle in gently as the panel arrives. */
@@ -268,7 +267,7 @@ em { font-style: normal; color: var(--neon); }
   font-family: var(--font-display); font-weight: 800; color: var(--text-d);
   font-size: clamp(2.6rem, min(7vw, 11vh), 6.6rem); line-height: 0.95; letter-spacing: -0.045em;
 }
-.statement-text.panel-title { text-align: left; max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
+.statement-text.panel-title { max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
 .panel-foot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: end; }
 .panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--muted-d); max-width: 52ch; }
 .panel-full .about-facts dd { font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
@@ -279,7 +278,7 @@ em { font-style: normal; color: var(--neon); }
 .step-card .proj-link { color: var(--neon); }
 .proj-badge {                          /* where a new project starts: a big number and its name */
   display: flex; align-items: center; gap: 14px; padding-block: 4px 2px;
-  font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-d); text-align: left;
+  font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-d);
 }
 .proj-badge-num {
   display: grid; place-items: center; min-width: 2.6em; height: 2.6em; padding-inline: 0.3em; border-radius: 16px;
@@ -287,15 +286,26 @@ em { font-style: normal; color: var(--neon); }
   font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.03em; text-transform: none;
 }
 .kicker-num { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; letter-spacing: 0; color: var(--neon); }
+/* Project 2.2 carries a layout switch and two meters: keep the whole card on one screen, short laptop windows included. */
+.step-card[data-demo="lighting"] { gap: 10px; width: min(100%, clamp(440px, calc(50vw - var(--tower-half, 24vh) - var(--gutter) - 36px), 540px)); }
+.step-card[data-demo="lighting"] .meter > span { white-space: nowrap; }   /* value on line one, its limit on line two */
+.step-card[data-demo="lighting"] h2 { font-size: clamp(1.5rem, 2.4vw, 2.1rem); }
+.step-card[data-demo="lighting"] .seg { justify-self: start; }
+@media (min-width: 721px) and (max-height: 820px) {
+  .step[data-step="9"] { padding-block: 76px 12px; }
+  .step-card[data-demo="lighting"] { gap: 8px; padding: 18px 22px; }
+  .step-card[data-demo="lighting"] .proj-badge-num { font-size: 1.25rem; border-radius: 13px; }
+  .step-card[data-demo="lighting"] > p:not(.proj-badge) { font-size: 0.95rem; line-height: 1.4; }
+}
 .about-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .about-facts div { padding-top: 10px; border-top: 2px solid rgba(20, 68, 37, 0.16); }
 .about-facts dt { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-d); }
 .about-facts dd { font-family: var(--font-display); font-weight: 750; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--text-d); font-variant-numeric: tabular-nums; }
 .step-intro { align-items: stretch; padding-top: 84px; padding-bottom: 28px; }
-/* Spare height is split 3:1 above and below the name, so it sits closer to the box underneath. */
-.intro { display: grid; grid-template-rows: auto minmax(0, 3fr) auto minmax(18px, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
-.intro > .kicker { grid-row: 1; justify-self: start; padding: 6px 12px; border-radius: 999px; color: var(--text-d);
-  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }   /* readable over the 3D scene */
+/* Spare height is split evenly above and below the name. */
+.intro { display: grid; grid-template-rows: auto minmax(18px, 1fr) auto minmax(18px, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
+.intro > .kicker { grid-row: 1; justify-self: start; padding: 6px 12px; border-radius: 999px; color: var(--text-d); text-transform: none;
+  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }   /* readable over the 3D scene; keeps "BASc" as written */
 .intro > .intro-foot { grid-row: 5; }
 .giant-name {
   grid-row: 3;
@@ -304,6 +314,7 @@ em { font-style: normal; color: var(--neon); }
   color: var(--name); text-shadow: 0 3px 14px rgba(20, 68, 37, 0.35);   /* a soft drop shadow lifts the white off the sky */
 }
 
+@media (min-width: 721px) and (max-height: 640px) { .giant-name { font-size: 19vh; } }   /* short windows: the intro still fits one screen */
 .intro-foot { display: grid; gap: 14px; max-width: 520px; padding: 18px 20px; border-radius: var(--radius);
   background: var(--glass); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid var(--glass-edge); }
 .lede { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.2rem, 2vw, 1.45rem); line-height: 1.3; color: var(--text-d) !important; }
@@ -397,7 +408,7 @@ em { font-style: normal; color: var(--neon); }
 
 /* ---------- Water bands: experience and contact sit in a faint aqua wash ---------- */
 
-.experience { background: linear-gradient(180deg, transparent, rgba(130, 209, 197, 0.18) 18%, rgba(130, 209, 197, 0.18) 82%, transparent); }
+.experience { background: linear-gradient(180deg, transparent, rgba(130, 209, 197, 0.18) 18%); }   /* the wash runs on into Skills */
 
 /* ---------- Projects (light, with deep-green demos) ---------- */
 
@@ -499,12 +510,12 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .experience .sec-head h2 { color: var(--text-d); }
 .route-grid { display: grid; grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 .route { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); }
-.route-box {                           /* one card: the stop's details, with the up/down buttons along its foot */
-  display: grid; gap: 18px; min-width: 0; padding: clamp(20px, 3vw, 32px);
+.route-box {                           /* one card: the stop's details, with the up/down buttons down its right side */
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; min-width: 0; padding: clamp(20px, 3vw, 32px);
   border-radius: var(--radius); background: var(--night-2); border: 1px solid var(--line-d);
 }
-.route-box .stop-panel { padding: 0; border: 0; border-radius: 0; background: none; }
-.route-box .route-nav { padding-top: 16px; border-top: 1px solid var(--line-d); }
+.route-box .stop-panels, .route-box .stop-panel { padding: 0; border: 0; border-radius: 0; background: none; }   /* square, so the clip can't nick the corner text */
+.route-box .route-nav { flex-direction: column; justify-content: center; padding-left: 18px; border-left: 1px solid var(--line-d); }
 .stop { position: relative; }
 .stop::after {                        /* line segment arriving at this stop from the one before it (below) */
   content: ""; position: absolute; left: 29px; top: 50%; bottom: -50%; width: 10px;
@@ -547,20 +558,21 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   grid-area: 1 / 1; display: grid; align-content: start; gap: 10px; padding: clamp(20px, 3vw, 32px);
   border-radius: var(--radius); background: var(--night-2); border: 1px solid var(--line-d);
   opacity: 0; visibility: hidden; transform: translateX(var(--shift, 0));
-  transition: transform 750ms cubic-bezier(0.65, 0, 0.35, 1), opacity 600ms ease, visibility 0s linear 750ms;
 }
-.stop-panel.is-active { opacity: 1; visibility: visible; transform: none; transition-delay: var(--delay, 0ms), var(--delay, 0ms), 0s; }
+/* Only the chosen station's panel is ever on screen: the old one drops out at once, the new one slides in. */
+.stop-panel.is-active { opacity: 1; visibility: visible; transform: none; transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease; }
 .panel-when { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted-d); }
 .stop-panel h3 { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.03em; }
 .panel-role { color: var(--neon); font-weight: 600; }
-.stop-panel > p:not(.panel-when):not(.panel-role):not(.panel-stat) { color: var(--muted-d); max-width: 60ch; text-align: left; }
+.stop-panel > p:not(.panel-when):not(.panel-role):not(.panel-stat) { color: var(--muted-d); max-width: 60ch; }
 .panel-stat { display: flex; align-items: baseline; gap: 10px; color: var(--muted-d); }
 .panel-stat strong { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; color: var(--text-d); letter-spacing: -0.03em; }
 
 /* ---------- Skills: the toolbox (paper) ---------- */
 
 .skills { color: var(--ink); padding-block: clamp(72px, 10vw, 128px);
-  background: linear-gradient(180deg, var(--paper) 0%, var(--paper) 22%, #b9d6cb 58%, #3d7558 88%, #144425 100%); }   /* the page darkens into the night sections below */
+  /* the bridge between Experience and What's next: starts in Experience's aqua wash, ends in What's next's green */
+  background: linear-gradient(180deg, #def3ef 0%, #c4e2d8 30%, #86b4a2 58%, #3d7558 82%, #144425 100%); }
 .skills .label { color: var(--muted-p); }
 .skills .label .zh { color: var(--neon-ink); }
 .skills em { color: var(--neon-ink); }
@@ -682,7 +694,8 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   .pair > .step-card.glass { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .step-card h2 { font-size: 1.5rem; }
   .meters { grid-template-columns: minmax(0, 1fr); }
-  .route-step { padding: 0 14px; font-size: 0.85rem; }
+  .route-step { justify-content: center; min-width: 44px; padding: 0 14px; font-size: 0.85rem; }
+  .route-step-label { display: none; }   /* phones: arrows only (each button keeps its aria-label) */
   .panel-foot { grid-template-columns: minmax(0, 1fr); }
   .panel-inner { padding: 92px var(--gutter) 32px; }
   .sliders { grid-template-columns: minmax(0, 1fr); }

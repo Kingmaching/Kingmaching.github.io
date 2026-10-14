@@ -2,10 +2,11 @@
 // A street-level tower wrapped in an adaptive louvre facade with planted fins, set in a
 // park-filled Hong Kong neighbourhood across the harbour from a stylised skyline.
 // Scroll progress q (−2 → 7, one unit per story step, from story.js) drives:
-//  −2 → −1 early morning (intro, background): the camera holds a shot with the tower to the right of the
-//          name; scrolling moves only the traffic and people
-//  −1 → 0  the camera swings round until the tower stands in the middle of the screen, cards either side
-//   0 → 1  morning to full day; louvres adapt to the sun
+//  −2 → −1 sunrise (intro, background): the camera holds a shot with the tower to the right of the name and
+//          the sun already up between them; scrolling moves the traffic and people and lifts the sun
+//  −1 → 0  the camera swings round until the tower stands in the middle of the screen, cards either side;
+//          full day by the Project 2.1 introduction
+//   0 → 1  louvres adapt to the sun
 //   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
@@ -997,12 +998,13 @@
     const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 8);
     for (const key in live) live[key] += (tgt[key] - live[key]) * k;
 
-    // Time of day: early morning → full day (0.3–1.0), daylight through step 4, golden hour from the measurement step.
-    const day = smoothstep(q, 0.3, 1.0), dusk = smoothstep(q, 4.0, 4.85);
-    nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 3.2, so its lighting reads
+    // Time of day: sunrise from the first screen (the sun is already up on the intro and climbs as you scroll),
+    // full day by the Project 2.1 introduction, golden hour from the measurement step.
+    const day = lerp(0.35, 1, smoothstep(q, -2, 0)), dusk = smoothstep(q, 4.0, 4.85);
+    nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 2.2, so its lighting reads
     const dawn = 4 * day * (1 - day);
-    const alt = q < 1.6 ? lerp(4, 46, smoothstep(q, 0.3, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
-    const az = lerp(200, 262, smoothstep(q, 0, 4.8));
+    const alt = q < 1.6 ? lerp(14, 46, smoothstep(q, -2, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
+    const az = lerp(245, 262, smoothstep(q, -1, 4.8));   // on the intro the sun sits between the name and the tower
     sunDir.set(Math.cos(degToRad(alt)) * Math.sin(degToRad(az)), Math.sin(degToRad(alt)), Math.cos(degToRad(alt)) * Math.cos(degToRad(az)));
     flatSun.set(sunDir.x, 0, sunDir.z).normalize();
 
@@ -1042,7 +1044,7 @@
     sunLight.position.copy(sunDir).multiplyScalar(240);
     sunLight.target.position.set(0, 25, 0);
     sunDisc.position.copy(sunDir).multiplyScalar(520);
-    shaftMat.opacity = day * (1 - dusk * 0.6) * (1 - nightfall) * smoothstep(q, 0.45, 1.0) * 0.11;
+    shaftMat.opacity = day * (1 - dusk * 0.6) * (1 - nightfall) * smoothstep(day, 0.4, 0.9) * 0.11;
     shafts.forEach(m => {
       m.visible = shaftMat.opacity > 0.004;
       if (m.visible) { m.position.copy(m.userData.aim).addScaledVector(sunDir, 90); m.quaternion.setFromUnitVectors(UP, sunDir); }

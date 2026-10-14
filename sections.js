@@ -230,9 +230,9 @@
       window.lightingLayout = o;
       window.dispatchEvent(new CustomEvent("lighting-layout", { detail: o }));
       meters.innerHTML = `
-        <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · min 42</span>
+        <div class="meter"><span>Illuminance <b>${o.fc} fc</b><br>min 42</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.fc / 70) * 100}"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
-        <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b> · max 0.60</span>
+        <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b><br>max 0.60</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.lpd / 0.8) * 100}" style="background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
         <p class="demo-note" style="grid-column:1/-1">${o.n} luminaires. ${o.note}</p>`;
       $$(".meter-fill", meters).forEach(f => { f.style.width = "0%"; });
@@ -637,8 +637,10 @@
   // The chosen station's panel slides in from the direction of travel.
   (function route() {
     const routeEl = $(".route");
-    const btns = $$(".stop-btn"), panels = $$(".stop-panel"), steps = $$(".route-step");
+    const btns = $$(".stop-btn"), steps = $$(".route-step");
     if (!routeEl || !btns.length) return;
+    // Pair by name, not position: the line lists the newest stop first, the panels don't have to.
+    const panels = btns.map(b => $(`.stop-panel[data-panel="${b.dataset.stop}"]`));
     const names = btns.map(b => b.querySelector(".stop-en").textContent);
     let cur = Math.max(0, btns.findIndex(b => b.getAttribute("aria-pressed") === "true"));
 
@@ -654,15 +656,11 @@
       if (i === cur || i < 0 || i >= btns.length) return;
       const dir = i > cur ? 1 : -1;
       btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
-      const out = panels[cur], inn = panels[i];
-      // Old panel leaves against the direction of travel; the new one follows a beat later.
-      out.style.setProperty("--shift", -dir * 70 + "px");
-      out.classList.remove("is-active");
-      inn.style.transition = "none";
+      const inn = panels[i];
+      // The old panel goes at once (so a wrong station never shows); the new one slides in from the direction of travel.
+      panels[cur].classList.remove("is-active");
       inn.style.setProperty("--shift", dir * 70 + "px");
       void inn.offsetWidth;
-      inn.style.transition = "";
-      inn.style.setProperty("--delay", "250ms");
       inn.classList.add("is-active");
       panels.forEach(p => { p.inert = p !== inn; p.setAttribute("aria-hidden", String(p !== inn)); });
       cur = i;
@@ -818,6 +816,23 @@
     const apply = () => { queued = false; const r = sec.getBoundingClientRect(); city.style.setProperty("--drift", (-(r.top + r.height / 2 - innerHeight / 2) * 0.12).toFixed(1)); };
     window.addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
     apply();
+  })();
+
+  // ---------- Keep a number with its unit ("52 fc", "48 × 34 ft", "20 kg → 15 mm") on one line ----------
+  // Joins them with no-break spaces, here and in any text the charts and demos write later.
+  (function keepNumbersTogether() {
+    const UNIT = String.raw`(?:W/ft²|kBtu/ft²·yr|cfm/person|m/s|ft²|fc|ft|mm|cm|kg|Hz|rpm|MLD|m|V|N|s)`;
+    const unit = new RegExp(String.raw`(\d) (?=${UNIT}(?![A-Za-z]))`, "g");
+    const op = /(?<=\d[^ ]*) ([×→–]) (?=[−+±~]?\d|present)/g;
+    const fix = n => { const v = n.nodeValue.replace(unit, "$1\u00A0").replace(op, "\u00A0$1\u00A0"); if (v !== n.nodeValue) n.nodeValue = v; };
+    const walk = root => {
+      if (root.nodeType === 3) return fix(root);
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) fix(w.currentNode);
+    };
+    walk(document.body);
+    new MutationObserver(ms => ms.forEach(m => (m.type === "characterData" ? fix(m.target) : m.addedNodes.forEach(walk))))
+      .observe(document.body, { subtree: true, childList: true, characterData: true });
   })();
 
   // ---------- Copy email, year ----------
