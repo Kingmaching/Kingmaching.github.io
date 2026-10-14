@@ -84,7 +84,7 @@
     arrow: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     sensor: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     lamp: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }),
-    accent: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xff3d6e }),
+    accent: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xe8352a }),
     headlight: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, color: 0xfff2c8 }),
     brace: new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5, color: 0xffffff }),
     sun: new THREE.MeshBasicMaterial({ color: 0xffe7a8, fog: false }),
@@ -121,7 +121,7 @@
     rayMat.color.set("#ffc46b");
     mat.sensor.color.set("#f4f8ff");                 // sensors are white so they never read as heat
     mat.lamp.color.set(cssColor("--b-lamp", "#ffd88a"));
-    mat.accent.color.set(cssColor("--neon", "#ff3d6e"));
+    mat.accent.color.set(cssColor("--neon", "#e8352a"));
   }
 
   // Lit-window texture for the surrounding towers (mostly warm, a few cool and neon).
@@ -671,7 +671,7 @@
   const personGeo = new THREE.CylinderGeometry(0.32, 0.38, 1.8, 6);
   personGeo.translate(0, 0.9, 0);
   const crowd = new THREE.InstancedMesh(personGeo, mat.person, people.length);
-  const SHIRTS = ["#ff3d6e", "#2a9fd6", "#f5a623", "#eef0f4", "#1c2330", "#7cc46b"];
+  const SHIRTS = ["#e8352a", "#2a9fd6", "#f5a623", "#eef0f4", "#1c2330", "#7cc46b"];
   people.forEach((p, i) => crowd.setColorAt(i, C(SHIRTS[i % SHIRTS.length])));
   scene.add(crowd);
 

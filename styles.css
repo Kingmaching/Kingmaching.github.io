@@ -1,7 +1,7 @@
 /* =========================================================
    MARCO CHING PORTFOLIO · Hong Kong edition
    Layout: alternating harbour-night and white paper bands, each
-   with one interactive idea. Neon pink is the signature colour
+   with one interactive idea. Hong Kong red is the signature colour
    (Hong Kong signage at night); cyan and amber carry meaning in
    charts (cooling / heating). Bilingual labels, an MTR-style
    route for experience, a minibus LED ticker, a neon footer.
@@ -25,15 +25,15 @@
   --line-p: #dde0e5;
 
   /* Signature + meaning */
-  --neon: #ff3d6e;          /* Hong Kong neon, the one loud colour */
-  --neon-ink: #c4174b;      /* neon dark enough for text on paper */
+  --neon: #e8352a;          /* Hong Kong red (flag red lifted a touch to read on night) */
+  --neon-ink: #de2910;      /* Hong Kong flag red, dark enough for text on paper */
   --cyan: #2a9fd6;          /* harbour / cooling / air */
   --amber: #f5a623;         /* LED board / heat */
 
   /* Charts on dark (validated for colour-blind separation on --night-2) */
-  --c-overall: #e8457a;
+  --c-overall: #e8352a;
   --c-cool: #2a9fd6;
-  --c-heat: #c4801a;
+  --c-heat: #f5c542;
 
   /* MTR line colours for the route map */
   --line-uw: #8a93a3;
@@ -64,7 +64,7 @@
   --b-lamp: #ffd88a;
 
   /* Type */
-  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  --font-display: "Readex Pro", "Avenir Next", "Segoe UI", Arial, sans-serif;
   --font-body: "Funnel Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --font-led: "Doto", "Geist Mono", ui-monospace, monospace;
@@ -205,17 +205,38 @@ em { font-style: normal; color: var(--neon); }
   display: flex; align-items: center; min-height: 100vh; min-height: 100svh;
   padding: 96px var(--gutter) 48px; max-width: calc(var(--max) + 2 * var(--gutter)); margin-inline: auto;
 }
-.step-card { display: grid; gap: 14px; width: min(100%, 440px); padding: clamp(20px, 2.6vw, 30px); border-radius: var(--radius); pointer-events: auto; }
+.step-card { display: grid; gap: 14px; width: min(100%, 520px); padding: clamp(20px, 2.6vw, 30px); border-radius: var(--radius); pointer-events: auto; }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
 .step-card > p:not(.kicker):not(.scroll-cue) { color: var(--muted-d); }
-.step-wide { width: min(100%, 560px); }
-/* Background and What's next: a tinted layer across the whole screen, edge to edge, that you can see
-   the night-time tower through. The tint fades out at the top and bottom so the two run into each other. */
+/* Background and What's next: one near-solid night band, edge to edge, with the tower still showing
+   through. It fades in above Background and out below What's next; a red neon tube draws across the seam. */
 .step.step-fill { display: block; padding: 0; max-width: none; }
 .panel-full {
-  display: flex; min-height: 100vh; min-height: 100svh; pointer-events: auto;
-  background: linear-gradient(180deg, rgba(8, 11, 16, 0) 0%, rgba(8, 11, 16, 0.42) 14%, rgba(8, 11, 16, 0.42) 86%, rgba(8, 11, 16, 0) 100%);
+  --tint: rgba(8, 11, 16, 0.8);
+  position: relative; display: flex; min-height: 100vh; min-height: 100svh; pointer-events: auto;
+  background: var(--tint);
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+}
+#about .panel-full { background: linear-gradient(180deg, transparent, var(--tint) 22%); }
+#direction .panel-full { background: linear-gradient(180deg, var(--tint) 78%, transparent); }
+#direction .panel-full::before {
+  content: ""; position: absolute; top: 0; height: 2px; border-radius: 2px; transform-origin: left;
+  left: max(var(--gutter), calc((100% - var(--max)) / 2)); right: max(var(--gutter), calc((100% - var(--max)) / 2));
+  background: var(--neon); box-shadow: 0 0 14px var(--neon), 0 0 44px rgba(232, 53, 42, 0.6);
+}
+/* Where the browser supports scroll-driven animation: the tube draws in, and each panel's content
+   rises in and lifts away as it passes, so Background hands over to What's next instead of just scrolling. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    #direction .panel-full::before { animation: draw linear both; animation-timeline: view(); animation-range: entry 10% entry 70%; }
+    .panel-inner { animation: pass-through linear both; animation-timeline: view(); animation-range: cover; }
+  }
+}
+@keyframes draw { from { transform: scaleX(0); } }
+@keyframes pass-through {
+  0% { opacity: 0; transform: translateY(14vh); }
+  32%, 68% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-14vh); }
 }
 .panel-inner {
   display: flex; flex-direction: column; gap: 24px; width: 100%;
@@ -295,7 +316,7 @@ em { font-style: normal; color: var(--neon); }
 .statement-text .w { opacity: 0.22; transition: opacity 300ms, color 300ms, text-shadow 300ms; }
 .statement-text .w.on { opacity: 1; }
 .statement-text b { font-weight: 600; }
-.statement-text b .w.on { color: var(--neon); text-shadow: 0 0 24px rgba(255, 61, 110, 0.55); }
+.statement-text b .w.on { color: var(--neon); text-shadow: 0 0 24px rgba(232, 53, 42, 0.55); }
 .marquee { overflow: hidden; border-block: 1px solid var(--glass-edge); padding-block: 12px; margin-top: 4px;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
 .marquee-track { display: flex; gap: 32px; width: max-content; animation: slide 38s linear infinite; }
@@ -396,7 +417,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .runs th, .runs td { padding: 6px 8px; text-align: right; border-top: 1px solid var(--line-d); }
 .runs th[scope="row"], .runs thead th:first-child { text-align: left; font-weight: 500; }
 .runs thead th { color: var(--muted-d); font-weight: 500; border-top: 0; }
-.runs tr.is-control { background: rgba(255, 61, 110, 0.12); }
+.runs tr.is-control { background: rgba(232, 53, 42, 0.12); }
 
 /* ---------- Experience: MTR route (night) ---------- */
 
@@ -554,7 +575,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
   width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-d);
   background: var(--night); color: var(--text-d); font: inherit; font-size: 1rem; resize: vertical;
 }
-.field input:focus, .field textarea:focus { outline: none; border-color: var(--neon); box-shadow: 0 0 0 3px rgba(255, 61, 110, 0.25); }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--neon); box-shadow: 0 0 0 3px rgba(232, 53, 42, 0.25); }
 .field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--amber); }
 .form-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .form-status { font-size: 0.875rem; color: var(--muted-d); }

@@ -44,7 +44,7 @@
   };
 
   // Series: colour follows meaning in every chart.
-  // overall (indigo) = cost or total energy, cool (teal) = cooling, heat (amber) = heating / gas emissions.
+  // overall (red) = cost or total energy, cool (blue) = cooling, heat (yellow) = heating / gas emissions.
   const SERIES = {
     shgc: [
       { key: "cost", name: "Energy cost", tone: "overall" },

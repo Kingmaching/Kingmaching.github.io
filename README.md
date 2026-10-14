@@ -6,7 +6,7 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
   what's next and the Project 01 introduction (all at night over the 3D tower), Project 01's five data
   steps (night → day → sunset), then projects 01 (all runs) to 06, experience, skills, contact.
 - `styles.css` holds the palette (top of file), fonts and layout. One fixed look: harbour-night and
-  white paper bands, neon pink accent, MTR line colours for the route map.
+  white paper bands, Hong Kong red accent, MTR line colours for the route map.
 - `story.js` holds the ME 572 data, draws the hero charts and turns scroll into story progress
   (−3 to 5; below 0 is the night prologue).
 - `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the street-level tower with
