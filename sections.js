@@ -230,9 +230,9 @@
       window.lightingLayout = o;
       window.dispatchEvent(new CustomEvent("lighting-layout", { detail: o }));
       meters.innerHTML = `
-        <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · min 42</span>
+        <div class="meter"><span>Illuminance <b>${o.fc} fc</b><br>min 42</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.fc / 70) * 100}"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
-        <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b> · max 0.60</span>
+        <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b><br>max 0.60</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.lpd / 0.8) * 100}" style="background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
         <p class="demo-note" style="grid-column:1/-1">${o.n} luminaires. ${o.note}</p>`;
       $$(".meter-fill", meters).forEach(f => { f.style.width = "0%"; });
