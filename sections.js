@@ -637,8 +637,10 @@
   // The chosen station's panel slides in from the direction of travel.
   (function route() {
     const routeEl = $(".route");
-    const btns = $$(".stop-btn"), panels = $$(".stop-panel"), steps = $$(".route-step");
+    const btns = $$(".stop-btn"), steps = $$(".route-step");
     if (!routeEl || !btns.length) return;
+    // Pair by name, not position: the line lists the newest stop first, the panels don't have to.
+    const panels = btns.map(b => $(`.stop-panel[data-panel="${b.dataset.stop}"]`));
     const names = btns.map(b => b.querySelector(".stop-en").textContent);
     let cur = Math.max(0, btns.findIndex(b => b.getAttribute("aria-pressed") === "true"));
 
@@ -654,15 +656,11 @@
       if (i === cur || i < 0 || i >= btns.length) return;
       const dir = i > cur ? 1 : -1;
       btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
-      const out = panels[cur], inn = panels[i];
-      // Old panel leaves against the direction of travel; the new one follows a beat later.
-      out.style.setProperty("--shift", -dir * 70 + "px");
-      out.classList.remove("is-active");
-      inn.style.transition = "none";
+      const inn = panels[i];
+      // The old panel goes at once (so a wrong station never shows); the new one slides in from the direction of travel.
+      panels[cur].classList.remove("is-active");
       inn.style.setProperty("--shift", dir * 70 + "px");
       void inn.offsetWidth;
-      inn.style.transition = "";
-      inn.style.setProperty("--delay", "250ms");
       inn.classList.add("is-active");
       panels.forEach(p => { p.inert = p !== inn; p.setAttribute("aria-hidden", String(p !== inn)); });
       cur = i;

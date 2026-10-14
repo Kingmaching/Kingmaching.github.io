@@ -3,7 +3,7 @@
 Static site served by GitHub Pages at https://kingmaching.github.io.
 
 - `index.html` holds all the text. Search for `EDIT:` to find each section. Page order: intro and background
-  over the 3D tower in the early morning, Project 2.1's steps either side of the tower (morning → day →
+  over the 3D tower at sunrise (the sun is up from the first screen), Project 2.1's steps either side of the tower (morning → day →
   golden hour, all runs side by side as it closes back up), Project 2.2 looking down into the top floor
   at night, then projects 2.3 to 2.6, experience, skills, and the dark closing sections: what's next
   and contact.
