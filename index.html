@@ -8,11 +8,11 @@
   <meta property="og:title" content="Marco Ching">
   <meta property="og:description" content="Building energy modelling, adaptive facades, ventilation and building performance, from Hong Kong.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#0a0d12">
+  <meta name="theme-color" content="#eaf7f5">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400..700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
   <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%97%9C%E6%96%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
   <link rel="stylesheet" href="styles.css">
@@ -28,7 +28,7 @@
        EDITING NOTE
        All visible text lives in this file. Search for "EDIT:" to
        jump to each section. Colours and fonts: top of styles.css.
-       3D tower: building.js. Hero charts + ME 572 data: story.js.
+       3D tower: building.js. Hero charts + ME572 data: story.js.
        Project demos, route map, toolbox, contact form, smooth scrolling: sections.js.
        ========================================================= -->
 
@@ -37,10 +37,10 @@
       <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Marco Ching</a>
       <div class="nav-links">
         <a href="#about">Background</a>
-        <a href="#direction">What’s next</a>
         <a href="#projects">Projects</a>
         <a href="#experience">Experience</a>
         <a href="#skills">Skills</a>
+        <a href="#direction">What’s next</a>
         <a href="#contact">Contact</a>
         <a class="nav-cta" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
       </div>
@@ -49,22 +49,24 @@
 
   <main id="top">
     <!-- EDIT: SCROLL STORY ----------------------------------------
-         Nine steps, one screen each, all over the 3D tower. The first
-         four stay at night with the harbour light show: intro, background,
-         what's next and the Project 01 introduction. The last five are
-         Project 01 itself: building.js takes the tower apart as the reader
-         scrolls and story.js steps the charts through the real ME 572 runs. -->
+         Eleven steps, one screen each, around the 3D tower in the middle of the
+         screen. Intro, background and what's next sit over the louvres in the early
+         morning; Project 3.1 takes the tower apart (building.js) while story.js steps
+         the charts through the real ME572 runs; then the tower closes back up and the
+         camera looks down into its top floor for Project 3.2. -->
     <section class="story" id="story" aria-label="A building taken apart, layer by layer">
       <div class="stage" aria-hidden="true">
         <div class="sun-glare"></div>
         <canvas id="backdrop-canvas"></canvas>
         <canvas id="building-canvas"></canvas>
+        <div class="focus"></div>
+        <div class="veil"></div>
       </div>
 
       <div class="steps">
         <article class="step step-intro" data-step="0">
           <div class="intro">
-            <p class="kicker"><span class="zh">香港</span><span>Honours Mechanical Engineering Co-op<span class="kicker-sep"> · </span>University of Waterloo</span></p>
+            <p class="kicker"><span class="zh">香港</span><span>Honours Mechanical Engineering Co‑op<span class="kicker-sep"> · </span>University of Waterloo</span></p>
             <h1 class="giant-name">Marco<br>Ching</h1>
             <div class="intro-foot">
               <p class="lede">I study how buildings perform: what the model predicts, what sensors measure, and <em>why they disagree</em>.</p>
@@ -72,7 +74,6 @@
                 <a class="btn btn-neon" href="#projects">See projects</a>
                 <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
               </div>
-              <p class="scroll-cue">Scroll to meet me</p>
             </div>
           </div>
         </article>
@@ -83,7 +84,7 @@
             <div class="panel-inner">
               <p class="kicker"><span class="zh">關於</span><span>(01) Background</span></p>
               <div class="panel-body">
-                <h2 class="panel-title">Hi, I’m Marco.<br><em>Here’s the short version</em></h2>
+                <h2 class="panel-title">Hi, I’m Marco.</h2>
                 <div class="panel-foot">
                   <p class="panel-lede">I’m from Hong Kong and study Honours Mechanical Engineering Co-op at the University of Waterloo. My co-op terms have taken me from BIM at Hong Kong International Airport and WSP in Toronto to water-treatment engineering at Chevalier in Kwai Chung.</p>
                   <dl class="about-facts">
@@ -97,154 +98,127 @@
           </div>
         </article>
 
-        <!-- EDIT: WHAT'S NEXT -->
-        <article class="step step-fill" data-step="2" id="direction" data-nav="direction">
-          <div class="panel-full">
-            <div class="panel-inner">
-              <p class="kicker"><span class="zh">方向</span><span>(02) What’s next</span></p>
-              <div class="panel-body">
-                <p class="statement-text panel-title" data-reveal>
-                  Every number in my projects came from a theoretical model. Next, I want to <b>measure</b> buildings and determine where <b>reality disagrees</b>.
-                </p>
-                <p class="panel-lede">Graduate research in building performance, from 2027.</p>
-              </div>
-              <div class="marquee" aria-label="Research interests">
-                <div class="marquee-track">
-                  <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive facades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
-                  <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive facades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
-                </div>
-              </div>
+        <!-- EDIT: PROJECTS, starting with Project 2.1 (the tower). One card per step, alternating sides of
+             the tower; the project's introduction and "every run" split into two equal cards either side.
+             On phones every step is a single card. -->
+        <article class="step step-split" data-step="2" id="projects" data-nav="projects">
+          <div class="pair pair-even">
+            <div class="step-card glass">
+              <p class="kicker"><span class="zh">項目</span><span>(02) Projects</span></p>
+              <h2 class="intro-title">Six projects, <em>starting with this building</em></h2>
+              <hr class="card-rule">
+              <p class="card-hint">Scroll to see more</p>
+            </div>
+            <div class="step-card glass">
+              <p class="proj-badge"><span class="proj-badge-num">2.1</span><span>Project one<br>ME572 · 2026</span></p>
+              <h3 class="step-title">Whole-Building Energy Model</h3>
+              <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
+              <dl class="about-facts">
+                <div><dt>Runs</dt><dd>17</dd></div>
+                <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
+                <div><dt>Emissions</dt><dd>+10.6%</dd></div>
+              </dl>
+              <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
             </div>
           </div>
         </article>
 
-        <!-- EDIT: PROJECTS, starting with Project 01 (the tower) -->
-        <article class="step" data-step="3" id="projects" data-nav="projects">
-          <div class="step-card step-wide glass">
-            <p class="kicker"><span class="zh">項目</span><span>(03) Projects</span></p>
-            <h2>Six projects, <em>starting with this building</em></h2>
-            <p class="proj-meta"><span>01</span>ME 572 · 2026</p>
-            <h3 class="step-title">Whole-Building Energy Model</h3>
-            <p>A 5,000 ft² Rochester office, benchmarked against ENERGY STAR, then pushed through 17 parametric runs.</p>
-            <dl class="about-facts">
-              <div><dt>Runs</dt><dd>17</dd></div>
-              <div><dt>Peak cooling</dt><dd>−31.5%</dd></div>
-              <div><dt>Emissions</dt><dd>+10.6%</dd></div>
-            </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-            <p class="scroll-cue">Scroll through 24 hours in the life of this building</p>
-          </div>
-        </article>
-
-        <article class="step" data-step="4" data-nav="projects">
+        <article class="step step-left" data-step="3" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">01</span><span>Shading</span></p>
+            <p class="kicker"><span class="kicker-num">2.1</span><span>Shading</span></p>
             <h2>Facades that <em>react to the sun</em></h2>
             <p>This tower’s adaptive shading closes against low sun and opens when the outside air helps. Responsive facades like this are what I want to research.</p>
           </div>
         </article>
 
-        <article class="step" data-step="5" data-nav="projects">
+        <article class="step step-right" data-step="4" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">01</span><span>Envelope</span></p>
+            <p class="kicker"><span class="kicker-num">2.1</span><span>Envelope</span></p>
             <h2>One variable, <em>three answers</em></h2>
             <p>Lower glazing SHGC: cooling −31.5%, emissions +10.6%.</p>
             <figure class="chart" data-chart="shgc"></figure>
           </div>
         </article>
 
-        <article class="step" data-step="6" data-nav="projects">
+        <article class="step step-left" data-step="5" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">01</span><span>Air</span></p>
+            <p class="kicker"><span class="kicker-num">2.1</span><span>Air</span></p>
             <h2>Outdoor air is a <em>heating</em> load</h2>
             <p>30 → 10 cfm/person barely moves cooling but swings emissions 18 points.</p>
             <figure class="chart" data-chart="vent"></figure>
           </div>
         </article>
 
-        <article class="step" data-step="7" data-nav="projects">
+        <article class="step step-right" data-step="6" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">01</span><span>Lighting</span></p>
+            <p class="kicker"><span class="kicker-num">2.1</span><span>Lighting</span></p>
             <h2>Less light, <em>more heat</em></h2>
             <p>−25% lighting power: EUI −6.3%, heating +13.6%.</p>
             <figure class="chart" data-chart="lpd"></figure>
           </div>
         </article>
 
-        <article class="step" data-step="8" data-nav="projects">
+        <article class="step step-left" data-step="7" data-nav="projects">
           <div class="step-card glass">
-            <p class="kicker"><span class="kicker-num">01</span><span>Measurement</span></p>
+            <p class="kicker"><span class="kicker-num">2.1</span><span>Measurement</span></p>
             <h2>Predicted, <em>not yet measured</em></h2>
             <p>Next: instrument real buildings and explain the gap, starting with Hong Kong.</p>
             <figure class="chart" data-chart="benchmark"></figure>
+          </div>
+        </article>
+
+        <!-- 2.1, continued: the tower closes back up while every run is laid side by side -->
+        <article class="step step-split" data-step="8" data-nav="projects">
+          <div class="pair pair-even">
+            <div class="step-card glass">
+              <p class="kicker"><span class="kicker-num">2.1</span><span>All runs</span></p>
+              <h2>Every run, <em>side by side</em></h2>
+              <p>The building changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
+              <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            </div>
+            <div class="demo step-card" data-demo="envelope">
+              <div class="demo-bar">
+                <span class="demo-title" id="envelope-title">Best tested value vs control</span>
+                <div class="seg" role="group" aria-label="Metric">
+                  <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
+                  <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
+                  <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
+                </div>
+              </div>
+              <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
+              <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- EDIT: PROJECT 2.2, lighting. Night falls and the camera looks down into the tower's top floor,
+             laid out as the 48 × 34 ft office; the layout buttons move the luminaires in 3D (building.js). -->
+        <article class="step step-right" data-step="9" data-nav="projects">
+          <div class="step-card glass" data-demo="lighting">
+            <p class="proj-badge"><span class="proj-badge-num">2.2</span><span>Project two<br>ME572 · 2026</span></p>
+            <h2>Office <em>Lighting Layout</em></h2>
+            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
+            <div class="seg" role="group" aria-label="Luminaire layout">
+              <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
+              <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
+            </div>
+            <div class="meters" id="lighting-meters"></div>
+            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
           </div>
         </article>
       </div>
     </section>
 
     <!-- EDIT: PROJECTS, continued ------------------------------------
-         Project 01's full run chart, then projects 02-06. Each has a short
+         Projects 2.3-2.6 (2.1 and 2.2 live in the 3D story above). Each has a short
          info column and its own live demo, built from the numbers in the report. -->
     <section class="projects" id="more-projects" data-nav="projects">
       <div class="wrap">
-        <!-- 1. ME 572, continued: every run at once -->
+        <!-- 3. Seismic monitoring -->
         <article class="proj proj-first">
           <div class="proj-info">
-            <p class="proj-meta"><span>01</span>ME 572 · 2026 · all runs</p>
-            <h3>Every Run, Side by Side</h3>
-            <p>The building above changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
-            <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-          </div>
-          <div class="demo" data-demo="envelope">
-            <div class="demo-bar">
-              <span class="demo-title" id="envelope-title">Best tested value vs control</span>
-              <div class="seg" role="group" aria-label="Metric">
-                <button type="button" data-metric="cost" aria-pressed="false">Cost</button>
-                <button type="button" data-metric="eui" aria-pressed="false">Site EUI</button>
-                <button type="button" data-metric="ghg" aria-pressed="true">GHG</button>
-              </div>
-            </div>
-            <svg class="demo-svg" id="envelope-svg" viewBox="0 0 520 250" role="img" aria-label="Percent change from the control case for the best tested value of each parameter"></svg>
-            <button type="button" class="demo-btn demo-btn-ghost" id="runs-toggle" aria-pressed="false">Show all 17 runs</button>
-          </div>
-        </article>
-
-        <header class="sec-head sec-head-more">
-          <p class="label"><span class="zh">項目</span> (03) Projects, continued</p>
-          <h2>Five more<br><em>Try each one</em></h2>
-        </header>
-
-        <!-- 2. Lighting design -->
-        <article class="proj proj-flip">
-          <div class="proj-info">
-            <p class="proj-meta"><span>02</span>ME 572 · 2026</p>
-            <h3>Office Lighting Layout</h3>
-            <p>A 48 × 34 ft office lit to 52 fc under the 0.6 W/ft² cap. Then COMFEN showed what less light does to heating.</p>
-            <dl class="proj-stats">
-              <div><dt>Illuminance</dt><dd>52 fc</dd></div>
-              <div><dt>Power</dt><dd>0.52 W/ft²</dd></div>
-              <div><dt>Luminaires</dt><dd>20</dd></div>
-            </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
-          </div>
-          <div class="demo" data-demo="lighting">
-            <div class="demo-bar">
-              <span class="demo-title">Plan view · 48 × 34 ft</span>
-              <div class="seg" role="group" aria-label="Layout option">
-                <button type="button" data-layout="0" aria-pressed="false">4 × 4</button>
-                <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
-              </div>
-            </div>
-            <svg class="demo-svg" id="lighting-svg" viewBox="0 0 520 300" role="img" aria-label="Office plan with luminaire grid"></svg>
-            <div class="meters" id="lighting-meters"></div>
-          </div>
-        </article>
-
-        <!-- 3. Seismic monitoring -->
-        <article class="proj">
-          <div class="proj-info">
-            <p class="proj-meta"><span>03</span>IEEE YEC · 3rd place</p>
-            <h3>Listening To Hong Kong’s Dormant Supervolcano</h3>
+            <p class="proj-meta"><span>2.3</span>IEEE YEC · 3rd place</p>
+            <h3>Listening to Hong Kong’s Dormant Supervolcano</h3>
             <p>Two Raspberry Shake geophones in Pokfulam, a seismograph in Sai Kung, and triangulated tremors near Cheung Chau too small for the Observatory’s list.</p>
             <dl class="proj-stats">
               <div><dt>Detects</dt><dd>~M1</dd></div>
@@ -267,7 +241,7 @@
         <!-- 4. Baseball aerodynamics -->
         <article class="proj proj-flip">
           <div class="proj-info">
-            <p class="proj-meta"><span>04</span>ME 362 · 2025</p>
+            <p class="proj-meta"><span>2.4</span>ME362 · 2025</p>
             <h3>Pitch Aerodynamics</h3>
             <p>My MATLAB model of drag and spin-dependent Magnus lift, re-built here so you can throw it. It matches MLB Statcast for three of four pitches; the knuckleball needs seams.</p>
             <dl class="proj-stats">
@@ -300,7 +274,7 @@
         <!-- 5. Robotic crane -->
         <article class="proj">
           <div class="proj-info">
-            <p class="proj-meta"><span>05</span>Mechatronics · 2025</p>
+            <p class="proj-meta"><span>2.5</span>Mechatronics · 2025</p>
             <h3>Five-Axis Robotic Crane</h3>
             <p>Turntable base, belt-driven arm, worm-gear hoist and a rotating gripper, driven from a game controller in C++.</p>
             <dl class="proj-stats">
@@ -332,7 +306,7 @@
         <!-- 6. Capstone wagon -->
         <article class="proj proj-flip">
           <div class="proj-info">
-            <p class="proj-meta"><span>06</span>ME 481 Capstone · now</p>
+            <p class="proj-meta"><span>2.6</span>ME481 Capstone · now</p>
             <h3>All-Terrain Electric Wagon</h3>
             <p>I designed the steering, which falls back to manual if the motors fail, and the trailing-arm suspension shared by all four wheels.</p>
             <dl class="proj-stats">
@@ -361,101 +335,88 @@
     <section class="experience" id="experience" data-nav="experience">
       <div class="wrap">
         <header class="sec-head">
-          <p class="label"><span class="zh">經驗</span> (04) Experience</p>
+          <p class="label"><span class="zh">經驗</span> (03) Experience</p>
           <h2>The route <em>so far</em>...</h2>
         </header>
 
-        <p class="route-hint"><span class="route-hint-dot" aria-hidden="true"></span>Click any station to ride there</p>
-        <ol class="route" role="list">
-          <li class="stop" style="--line: var(--line-uw)">
-            <button type="button" class="stop-btn" data-stop="uw" aria-pressed="false">
-              <span class="stop-dot" aria-hidden="true"></span>
-              <span class="stop-zh">滑鐵盧</span><span class="stop-en">Waterloo</span><span class="stop-year">2022</span>
-            </button>
-          </li>
-          <li class="stop" style="--line: var(--line-airport)">
-            <button type="button" class="stop-btn" data-stop="aahk" aria-pressed="false">
-              <span class="stop-dot" aria-hidden="true"></span>
-              <span class="stop-zh">機場</span><span class="stop-en">Airport</span><span class="stop-year">2025</span>
-            </button>
-          </li>
-          <li class="stop" style="--line: var(--line-ttc)">
-            <button type="button" class="stop-btn" data-stop="wsp" aria-pressed="false">
-              <span class="stop-dot" aria-hidden="true"></span>
-              <span class="stop-zh">多倫多</span><span class="stop-en">Toronto</span><span class="stop-year">2026</span>
-            </button>
-          </li>
-          <li class="stop" style="--line: var(--line-tw)">
-            <button type="button" class="stop-btn" data-stop="chevalier" aria-pressed="true">
-              <span class="stop-dot" aria-hidden="true"></span>
-              <span class="stop-zh">葵涌</span><span class="stop-en">Kwai Chung</span><span class="stop-year">Now</span>
-            </button>
-          </li>
-          <li class="stop stop-next" style="--line: var(--neon)">
-            <button type="button" class="stop-btn" data-stop="next" aria-pressed="false">
-              <span class="stop-dot" aria-hidden="true"></span>
-              <span class="stop-zh">研究院</span><span class="stop-en">Grad school</span><span class="stop-year">2027</span>
-            </button>
-          </li>
-          <li class="route-train" aria-hidden="true">
-            <svg viewBox="0 0 132 40">
-              <path class="t-body" d="M4 6h96c13 0 22 8 27 20v6H4z"/>
-              <path class="t-glass" d="M103 10c8 1 14 6 18 13h-18z"/>
-              <rect class="t-glass" x="10" y="11" width="16" height="9" rx="2"/>
-              <rect class="t-glass" x="32" y="11" width="16" height="9" rx="2"/>
-              <rect class="t-glass" x="54" y="11" width="16" height="9" rx="2"/>
-              <rect class="t-glass" x="76" y="11" width="16" height="9" rx="2"/>
-              <path class="t-door" d="M29.5 9v18M51.5 9v18M73.5 9v18M95.5 9v18"/>
-              <rect class="t-stripe" x="4" y="23" width="124" height="4"/>
-              <circle class="t-lamp" cx="124" cy="29" r="1.8"/>
-              <rect class="t-under" x="8" y="32" width="114" height="3" rx="1"/>
-              <g class="t-wheel"><circle cx="18" cy="36" r="3.4"/><circle cx="30" cy="36" r="3.4"/><circle cx="98" cy="36" r="3.4"/><circle cx="110" cy="36" r="3.4"/></g>
-            </svg>
-          </li>
-        </ol>
-
-        <div class="route-nav">
-          <button type="button" class="route-step" data-dir="-1"><span aria-hidden="true">←</span> <span class="route-step-label">Previous station</span></button>
-          <button type="button" class="route-step" data-dir="1"><span class="route-step-label">Next station</span> <span aria-hidden="true">→</span></button>
-        </div>
-
-        <!-- EDIT: one panel per stop -->
-        <div class="stop-panels">
-          <article class="stop-panel" data-panel="uw">
-            <p class="panel-when">09/2022 – 06/2027 · Waterloo, Canada</p>
-            <h3>University of Waterloo</h3>
-            <p class="panel-role">BASc, Honours Mechanical Engineering Co-op</p>
-            <p>Building Energy Analysis, Fluid Power Control Systems. Next term: HVAC Systems, HVAC Load Analysis and Fire Safety Engineering.</p>
-            <p class="panel-stat"><strong>2023</strong> President’s Scholarship</p>
-          </article>
-          <article class="stop-panel" data-panel="aahk">
-            <p class="panel-when">06/2025 – 08/2025 · Hong Kong International Airport</p>
-            <h3>Airport Authority Hong Kong</h3>
-            <p class="panel-role">BIM Engineering Trainee</p>
-            <p>Built a Dynamo–Power BI workflow for BIM analytics during the move to Autodesk Construction Cloud, and worked on SLAM and LiDAR for a waste-sorting patrol robot.</p>
-            <p class="panel-stat"><strong>20+</strong> airport Revit models reviewed</p>
-          </article>
-          <article class="stop-panel" data-panel="wsp">
-            <p class="panel-when">01/2026 – 04/2026 · Toronto, Canada</p>
-            <h3>WSP Global Inc.</h3>
-            <p class="panel-role">BIM Co-op Student</p>
-            <p>HVAC and plumbing models for the Eglinton Crosstown West Extension, and sprinkler and water layouts for Union Station’s Blue Route, Phases 2–6.</p>
-            <p class="panel-stat"><strong>10</strong> project scopes through IFC review</p>
-          </article>
-          <article class="stop-panel is-active" data-panel="chevalier">
-            <p class="panel-when">09/2026 – present · Kwai Chung, Hong Kong</p>
-            <h3>Chevalier Group</h3>
-            <p class="panel-role">Envirotech Trainee</p>
-            <p>Hydraulic and process calculations for water-treatment chemical dosing: storage sizing, 4:1 turndown, pipe sizing, head loss, pump selection against Arup and WSD requirements.</p>
-            <p class="panel-stat"><strong>640</strong> MLD treatment works</p>
-          </article>
-          <article class="stop-panel" data-panel="next">
-            <p class="panel-when">From 2027</p>
-            <h3>Graduate study in building performance</h3>
-            <p class="panel-role">Next stop</p>
-            <p>Adaptive facades, natural ventilation and sensing, with one question: does the real building do what the model said?</p>
-            <p class="panel-stat"><strong>下一站</strong> next stop</p>
-          </article>
+        <p class="route-hint"><span class="route-hint-dot" aria-hidden="true"></span>Click any station to see that stop</p>
+        <div class="route-grid">
+          <ol class="route" role="list">
+            <li class="stop stop-next" style="--line: var(--neon)">
+              <button type="button" class="stop-btn" data-stop="next" aria-pressed="false">
+                <span class="stop-dot" aria-hidden="true"></span>
+                <span class="stop-zh">研究院</span><span class="stop-en">Grad school</span><span class="stop-year">2027</span>
+              </button>
+            </li>
+            <li class="stop" style="--line: var(--line-tw)">
+              <button type="button" class="stop-btn" data-stop="chevalier" aria-pressed="true">
+                <span class="stop-dot" aria-hidden="true"></span>
+                <span class="stop-zh">葵涌</span><span class="stop-en">Kwai Chung</span><span class="stop-year">Now</span>
+              </button>
+            </li>
+            <li class="stop" style="--line: var(--line-ttc)">
+              <button type="button" class="stop-btn" data-stop="wsp" aria-pressed="false">
+                <span class="stop-dot" aria-hidden="true"></span>
+                <span class="stop-zh">多倫多</span><span class="stop-en">Toronto</span><span class="stop-year">2026</span>
+              </button>
+            </li>
+            <li class="stop" style="--line: var(--line-airport)">
+              <button type="button" class="stop-btn" data-stop="aahk" aria-pressed="false">
+                <span class="stop-dot" aria-hidden="true"></span>
+                <span class="stop-zh">機場</span><span class="stop-en">Airport</span><span class="stop-year">2025</span>
+              </button>
+            </li>
+            <li class="stop" style="--line: var(--line-uw)">
+              <button type="button" class="stop-btn" data-stop="uw" aria-pressed="false">
+                <span class="stop-dot" aria-hidden="true"></span>
+                <span class="stop-zh">滑鐵盧</span><span class="stop-en">Waterloo</span><span class="stop-year">2022</span>
+              </button>
+            </li>
+          </ol>
+          <div class="route-box">
+            <!-- EDIT: one panel per stop -->
+            <div class="stop-panels">
+              <article class="stop-panel" data-panel="uw">
+                <p class="panel-when">09/2022 – 06/2027 · Waterloo, Canada</p>
+                <h3>University of Waterloo</h3>
+                <p class="panel-role">BASc, Honours Mechanical Engineering Co-op</p>
+                <p>Building Energy Analysis, Fluid Power Control Systems. Next term: HVAC Systems, HVAC Load Analysis and Fire Safety Engineering.</p>
+                <p class="panel-stat"><strong>2023</strong> President’s Scholarship</p>
+              </article>
+              <article class="stop-panel" data-panel="aahk">
+                <p class="panel-when">06/2025 – 08/2025 · Hong Kong International Airport</p>
+                <h3>Airport Authority Hong Kong</h3>
+                <p class="panel-role">BIM Engineering Trainee</p>
+                <p>Built a Dynamo–Power BI workflow for BIM analytics during the move to Autodesk Construction Cloud, and worked on SLAM and LiDAR for a waste-sorting patrol robot.</p>
+                <p class="panel-stat"><strong>20+</strong> airport Revit models reviewed</p>
+              </article>
+              <article class="stop-panel" data-panel="wsp">
+                <p class="panel-when">01/2026 – 04/2026 · Toronto, Canada</p>
+                <h3>WSP Global Inc.</h3>
+                <p class="panel-role">BIM Co-op Student</p>
+                <p>HVAC and plumbing models for the Eglinton Crosstown West Extension, and sprinkler and water layouts for Union Station’s Blue Route, Phases 2–6.</p>
+                <p class="panel-stat"><strong>10</strong> project scopes through IFC review</p>
+              </article>
+              <article class="stop-panel is-active" data-panel="chevalier">
+                <p class="panel-when">09/2026 – present · Kwai Chung, Hong Kong</p>
+                <h3>Chevalier Group</h3>
+                <p class="panel-role">Envirotech Trainee</p>
+                <p>Hydraulic and process calculations for water-treatment chemical dosing: storage sizing, 4:1 turndown, pipe sizing, head loss, pump selection against Arup and WSD requirements.</p>
+                <p class="panel-stat"><strong>640</strong> MLD treatment works</p>
+              </article>
+              <article class="stop-panel" data-panel="next">
+                <p class="panel-when">From 2027</p>
+                <h3>Graduate study in building performance</h3>
+                <p class="panel-role">Next stop</p>
+                <p>Adaptive facades, natural ventilation and sensing, with one question: does the real building do what the model said?</p>
+                <p class="panel-stat"><strong>下一站</strong> next stop</p>
+              </article>
+            </div>
+            <div class="route-nav">
+              <button type="button" class="route-step" data-dir="1"><span aria-hidden="true">↓</span> <span class="route-step-label">Earlier stop</span></button>
+              <button type="button" class="route-step" data-dir="-1"><span class="route-step-label">Later stop</span> <span aria-hidden="true">↑</span></button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -464,7 +425,7 @@
     <section class="skills" id="skills" data-nav="skills">
       <div class="wrap">
         <header class="sec-head">
-          <p class="label"><span class="zh">技能</span> (05) Skills</p>
+          <p class="label"><span class="zh">技能</span> (04) Skills</p>
           <h2>The <em>Toolbox</em></h2>
         </header>
         <div class="toolbox" id="toolbox">
@@ -500,11 +461,29 @@
       </div>
     </section>
 
+    <!-- EDIT: WHAT'S NEXT -->
+    <section class="direction deep" id="direction" data-nav="direction">
+      <div class="window" aria-hidden="true"><div class="window-city"></div><div class="window-frame"></div></div>
+      <div class="wrap">
+        <p class="label"><span class="zh">方向</span> (05) What’s next</p>
+        <p class="statement-text panel-title" data-reveal>
+          Next, I want to <b>measure</b> real buildings and find where the <b>models get them wrong</b>.
+        </p>
+        <p class="panel-lede">Graduate research in building performance, from 2027.</p>
+        <div class="marquee" aria-label="Research interests">
+          <div class="marquee-track">
+            <span>Building energy modelling</span><span>Performance verification</span><span>HVAC systems &amp; controls</span><span>Adaptive facades</span><span>Natural ventilation</span><span>Low-carbon buildings</span>
+            <span aria-hidden="true">Building energy modelling</span><span aria-hidden="true">Performance verification</span><span aria-hidden="true">HVAC systems &amp; controls</span><span aria-hidden="true">Adaptive facades</span><span aria-hidden="true">Natural ventilation</span><span aria-hidden="true">Low-carbon buildings</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- EDIT: CONTACT ----------------------------------------------
          The form sends through Web3Forms when data-access-key is set
          (free key from web3forms.com, tied to your Gmail). Without a key it
          opens the visitor's email app with the message filled in. -->
-    <section class="contact" id="contact" data-nav="contact">
+    <section class="contact deep" id="contact" data-nav="contact">
       <div class="wrap contact-grid">
         <div class="contact-side">
           <p class="label"><span class="zh">聯絡</span> (06) Contact</p>
@@ -534,7 +513,7 @@
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer deep">
     <div class="wrap footer-row">
       <span>© <span id="year">2026</span> Marco Ching</span>
       <span><span class="zh">下一站</span> Next stop: graduate school, 2027</span>

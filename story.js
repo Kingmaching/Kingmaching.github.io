@@ -44,7 +44,7 @@
   };
 
   // Series: colour follows meaning in every chart.
-  // overall (indigo) = cost or total energy, cool (teal) = cooling, heat (amber) = heating / gas emissions.
+  // overall (red) = cost or total energy, cool (blue) = cooling, heat (yellow) = heating / gas emissions.
   const SERIES = {
     shgc: [
       { key: "cost", name: "Energy cost", tone: "overall" },
@@ -64,11 +64,12 @@
   };
 
   // Where each data step sits in scroll progress q (step k is centred at q = k).
-  // Four night-time steps come first (intro, background, what's next, Project 01), so q runs from
-  // −PRE to 5: q < 0 is the night prologue and q = 0 is the Project 01 introduction.
+  // Two opening steps come first (intro, background), so q runs from −PRE to 7: q = 0 is the
+  // Project 2.1 introduction, 5 its measurement chart, 6 every run side by side (the tower closes
+  // back up) and 7 Project 2.2, looking down into the lit top floor at night.
   const RANGES = { shgc: [1.55, 2.45], vent: [2.55, 3.45], lpd: [3.55, 4.45] };
-  const PRE = 3;
-  const STEPS = 9;
+  const PRE = 2;
+  const STEPS = 10;
 
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const pct = (v, base) => (v - base) / base;
@@ -240,7 +241,7 @@
   function updateReadout(q) {
     const b = DATA.baseline;
     if (q < 1.5) {
-      cells("ME 572 model · 5,000 ft² office · Rochester, NY", [
+      cells("ME572 model · 5,000 ft² office · Rochester, NY", [
         ["Site EUI", b.eui.toFixed(1), "kBtu/ft²·yr"],
         ["Energy cost", "$" + fmtInt(b.cost), "per year"],
         ["GHG", fmtInt(b.ghg), "kg CO₂e/yr"],
@@ -279,11 +280,20 @@
   }
 
   // ---------- Scroll progress ----------
-  let q = -PRE;
+  // The steps end with a tail (padding-bottom on .steps) where q holds at the last step, so the last card
+  // can scroll away over the finished scene; tail runs 0 → 1 across it and building.js fades out on it.
+  const steps = story.querySelector(".steps"), stage = story.querySelector(".stage");
+  let q = -PRE, tail = 0;
+  const ease = t => t * t * (3 - 2 * t);
+  const phase = (a, b) => ease(clamp((q - a) / (b - a), 0, 1));
   function readScroll() {
     const rect = story.getBoundingClientRect();
-    const range = rect.height - window.innerHeight;
+    const tailPx = steps ? parseFloat(getComputedStyle(steps).paddingBottom) || 0 : 0;
+    const range = rect.height - window.innerHeight - tailPx;
     q = (range > 0 ? clamp(-rect.top / range, 0, 1) * (STEPS - 1) : 0) - PRE;
+    tail = tailPx > 0 ? clamp((-rect.top - range) / tailPx, 0, 1) : 0;
+    // The veil behind Background: in from the intro, out into Project 2.1.
+    stage?.style.setProperty("--veil", (phase(-1.55, -1.15) * (1 - phase(-0.6, -0.25))).toFixed(3));
     ["shgc", "vent", "lpd"].forEach(name => {
       const c = charts[name];
       if (!c) return;
@@ -302,6 +312,7 @@
     PRE,
     DATA,
     progress: () => q,
+    tail: () => tail,
     runIndex,
   };
 })();

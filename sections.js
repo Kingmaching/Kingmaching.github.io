@@ -130,11 +130,12 @@
       return { bar, val };
     });
 
-    // View 2: small multiples, one panel per parameter, all five runs
+    // View 2: small multiples, one panel per parameter, all five runs, stacked down the card
+    // (the card grows taller to fit them; its width stays the same)
     const vRuns = svgEl("g", { class: "view is-off" }, svg);
-    const PW = 252, PH = 118;
+    const PW = 520, PH = 118, STEP = 132, H1 = 250, H2 = STEP * 4 - 10;
     const panels = RUNS.map((r, i) => {
-      const ox = (i % 2) * 268, oy = Math.floor(i / 2) * 130;
+      const ox = 0, oy = i * STEP;
       const g = svgEl("g", { transform: `translate(${ox} ${oy})` }, vRuns);
       const px = j => 34 + (j / 4) * (PW - 50), py = v => 24 + ((lim - v) / (2 * lim)) * 72;
       text(g, 0, 12, r.name, "d-label");
@@ -142,8 +143,8 @@
       svgEl("line", { x1: 30, x2: PW - 10, y1: py(0), y2: py(0), class: "d-axis" }, g);
       [-10, 10].forEach(t => { svgEl("line", { x1: 30, x2: PW - 10, y1: py(t), y2: py(t), class: "d-grid" }, g); text(g, 26, py(t) + 3, (t > 0 ? "+" : "−") + "10%", "d-text", "end"); });
       r.xs.forEach((v, j) => text(g, px(j), PH - 4, v, "d-text", "middle"));
-      const line = svgEl("polyline", { fill: "none", stroke: "#9aa3b3", "stroke-width": 1.6 }, g);
-      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#0a0d12", "stroke-width": 2 }, g));
+      const line = svgEl("polyline", { fill: "none", stroke: "#b6d0bf", "stroke-width": 1.6 }, g);
+      const dots = r.xs.map((_, j) => svgEl("circle", { r: j === r.ctrl ? 4.5 : 4, stroke: "#144425", "stroke-width": 2 }, g));
       const endLabel = text(g, 0, 0, "", "d-value");
       return { r, px, py, line, dots, endLabel };
     });
@@ -166,7 +167,7 @@
         p.line.setAttribute("points", v.map((y, j) => `${p.px(j)},${p.py(y)}`).join(" "));
         p.dots.forEach((d, j) => {
           d.setAttribute("cx", p.px(j)); d.setAttribute("cy", p.py(v[j]));
-          d.setAttribute("fill", j === p.r.ctrl ? "#eef0f4" : v[j] < 0 ? "#2a9fd6" : "#ff3d6e");
+          d.setAttribute("fill", j === p.r.ctrl ? "#f1f8ef" : v[j] < 0 ? "#7cc3ea" : "#b5d984");
         });
         const far = v[0] * v[0] > v[4] * v[4] ? 0 : 4;
         p.endLabel.textContent = (v[far] > 0 ? "+" : "−") + Math.abs(v[far]).toFixed(1) + "%";
@@ -187,8 +188,22 @@
       setMetric(b.dataset.metric);
     }));
     const toggle = $("#runs-toggle"), title = $("#envelope-title");
+    let viewH = H1, cancelH = () => {};
     toggle.addEventListener("click", () => {
       const on = toggle.getAttribute("aria-pressed") !== "true";
+      const fromH = viewH, toH = on ? H2 : H1;
+      cancelH();
+      // The words card beside it keeps its size: pin its height, then let it sit centred while the chart grows.
+      const pair = group.closest(".pair"), partner = pair?.firstElementChild;
+      if (partner && !partner.style.height) {
+        partner.style.height = partner.offsetHeight + "px";
+        window.addEventListener("resize", () => { if (!pair.classList.contains("is-tall")) partner.style.height = ""; });
+      }
+      if (on) pair?.classList.add("is-tall");
+      cancelH = tween(520, e => {
+        viewH = fromH + (toH - fromH) * e; svg.setAttribute("viewBox", `0 0 520 ${viewH.toFixed(1)}`);
+        if (e >= 1 && !on) pair?.classList.remove("is-tall");
+      });
       toggle.setAttribute("aria-pressed", String(on));
       toggle.textContent = on ? "Back to best vs control" : "Show all 17 runs";
       vBars.classList.toggle("is-off", on);
@@ -200,65 +215,35 @@
     draw(cur);
   })();
 
-  // ---------- 02 · Lighting plan ----------
+  // ---------- 3.2 · Lighting layout ----------
+  // The plan itself is the tower's top floor in 3D (building.js listens for "lighting-layout");
+  // this card keeps the meters and the layout buttons.
   (function lighting() {
-    const svg = $("#lighting-svg"), meters = $("#lighting-meters");
-    if (!svg) return;
-    const W = 48, D = 34, s = Math.min(460 / W, 250 / D);
-    const ox = (520 - W * s) / 2, oy = 22;
+    const meters = $("#lighting-meters");
+    if (!meters) return;
     const OPTIONS = [
       { cols: 4, rows: 4, n: 16, fc: 42, lpd: 0.41, note: "Passes, but with no illuminance margin." },
       { cols: 5, rows: 4, n: 20, fc: 52, lpd: 0.52, note: "Chosen: 10 fc of margin, still under the power cap." },
     ];
-    const defs = svgEl("defs", {}, svg);
-    const grad = svgEl("radialGradient", { id: "pool" }, defs);
-    svgEl("stop", { offset: "0%", "stop-color": "#ffd88a", "stop-opacity": "0.55" }, grad);
-    svgEl("stop", { offset: "100%", "stop-color": "#ffd88a", "stop-opacity": "0" }, grad);
-    svgEl("rect", { x: ox, y: oy, width: W * s, height: D * s, fill: "#131923", stroke: "#8e98a8", "stroke-width": 2 }, svg);
-    svgEl("line", { x1: ox + 2 * s, x2: ox + 46 * s, y1: oy + D * s, y2: oy + D * s, stroke: "#2a9fd6", "stroke-width": 5 }, svg);
-    text(svg, ox + 24 * s, oy + D * s + 16, "South window · 44 ft", "d-text", "middle");
-    text(svg, ox, oy - 8, "48 ft", "d-text");
-    text(svg, ox + W * s + 6, oy + 10, "34 ft", "d-text");
-    // 20 luminaires; the 4 × 4 layout parks four of them, invisible, on their neighbours
-    const lums = Array.from({ length: 20 }, () => {
-      const g = svgEl("g", { class: "lum" }, svg);
-      svgEl("circle", { r: 6.5 * s, fill: "url(#pool)" }, g);
-      svgEl("rect", { x: -2 * s, y: -1 * s, width: 4 * s, height: 2 * s, rx: 2, fill: "#fff1c9" }, g);
-      return g;
-    });
-    const dimLine = svgEl("line", { class: "d-dim lum" }, svg);
-    const dimText = text(svg, 0, 0, "", "d-value", "middle");
-    dimText.classList.add("fade-swap");
     function render(i) {
-      const o = OPTIONS[i], sx = W / o.cols, sy = D / o.rows;
-      let k = 0;
-      for (let r = 0; r < o.rows; r++) for (let c = 0; c < 5; c++) {
-        const g = lums[k++], col = Math.min(c, o.cols - 1);
-        const cx = ox + (col + 0.5) * sx * s, cy = oy + (r + 0.5) * sy * s;
-        g.style.transform = `translate(${cx}px, ${cy}px)`;
-        g.style.opacity = c < o.cols ? 1 : 0;
-      }
-      const y = oy + 0.5 * sy * s - 14, x1 = ox + 0.5 * sx * s, x2 = ox + 1.5 * sx * s;
-      dimLine.setAttribute("x1", x1); dimLine.setAttribute("x2", x2); dimLine.setAttribute("y1", y); dimLine.setAttribute("y2", y);
-      dimText.style.opacity = 0;
-      setTimeout(() => { dimText.setAttribute("x", (x1 + x2) / 2); dimText.setAttribute("y", y - 4); dimText.textContent = sx.toFixed(1) + " ft"; dimText.style.opacity = 1; }, 250);
+      const o = OPTIONS[i];
+      window.lightingLayout = o;
+      window.dispatchEvent(new CustomEvent("lighting-layout", { detail: o }));
       meters.innerHTML = `
         <div class="meter"><span>Illuminance <b>${o.fc} fc</b> · min 42</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.fc / 70) * 100}"></div><div class="meter-mark" style="left:${(42 / 70) * 100}%"></div></div></div>
         <div class="meter"><span>Power density <b>${o.lpd.toFixed(2)} W/ft²</b> · max 0.60</span>
           <div class="meter-bar"><div class="meter-fill" data-w="${(o.lpd / 0.8) * 100}" style="background:var(--amber)"></div><div class="meter-mark" style="left:${(0.6 / 0.8) * 100}%"></div></div></div>
         <p class="demo-note" style="grid-column:1/-1">${o.n} luminaires. ${o.note}</p>`;
-      $$(".meter-fill", meters).forEach(f => { f.style.width = (render.prev?.[f.dataset.w] ?? 0) + "%"; });
+      $$(".meter-fill", meters).forEach(f => { f.style.width = "0%"; });
       requestAnimationFrame(() => $$(".meter-fill", meters).forEach(f => { f.style.width = f.dataset.w + "%"; }));
     }
-    const group = svg.closest(".demo");
+    const group = meters.closest("[data-demo]");
     $$("[data-layout]", group).forEach(b => b.addEventListener("click", () => {
       setPressed(group, "data-layout", b.dataset.layout);
       render(Number(b.dataset.layout));
     }));
-    lums.forEach(g => { g.style.transition = "none"; });
     render(1);
-    requestAnimationFrame(() => requestAnimationFrame(() => lums.forEach(g => { g.style.transition = ""; })));
   })();
 
   // ---------- 03 · Seismic schematic ----------
@@ -314,7 +299,7 @@
     text(svg, SRC.p[0] - 10, SRC.p[1] + 4, "Cheung Chau · source", "d-label", "end");
     const dots = STATIONS.map((st, i) => {
       const [x, y] = st.p;
-      const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#2a9fd6" }, svg);
+      const d = svgEl("rect", { x: x - 5 + (i === 1 ? 7 : 0), y: y - 5 + (i === 0 ? -6 : i === 1 ? 4 : 0), width: 10, height: 10, rx: 2, fill: "#7cc3ea" }, svg);
       return d;
     });
     text(svg, STATIONS[0].p[0] + 18, STATIONS[0].p[1] - 4, "Pokfulam · 2 Raspberry Shakes", "d-label");
@@ -342,9 +327,9 @@
         const r = quakeT * SPEED;
         [0, 26, 52].forEach((off, k) => {
           const rr = r - off;
-          if (rr > 0) svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: rr, fill: "none", stroke: "#ff3d6e", "stroke-opacity": Math.max(0, 0.8 - rr / 520) * (1 - k * 0.25), "stroke-width": 2 }, rings);
+          if (rr > 0) svgEl("circle", { cx: SRC.p[0], cy: SRC.p[1], r: rr, fill: "none", stroke: "#b5d984", "stroke-opacity": Math.max(0, 0.8 - rr / 520) * (1 - k * 0.25), "stroke-width": 2 }, rings);
         });
-        rows.forEach((row, i) => { if (!row.hit && r >= dist[i]) { row.hit = true; row.amp = 1; dots[i].setAttribute("fill", "#ff3d6e"); } });
+        rows.forEach((row, i) => { if (!row.hit && r >= dist[i]) { row.hit = true; row.amp = 1; dots[i].setAttribute("fill", "#b5d984"); } });
         if (r > 560) quakeT = -1;
       }
       // traces scroll left
@@ -356,11 +341,11 @@
         const quake = row.amp * Math.sin(now / 18) * (0.6 + Math.random() * 0.4);
         row.buf[row.buf.length - 1] = noise + quake;
         row.amp *= 0.965;
-        if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#2a9fd6");
+        if (row.amp < 0.05 && row.hit) dots[i].setAttribute("fill", "#7cc3ea");
         const mid = rh * i + rh / 2;
-        ctx.strokeStyle = "#2a3344"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
-        ctx.fillStyle = "#9aa3b3"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
-        ctx.strokeStyle = row.amp > 0.1 ? "#ff3d6e" : "#2a9fd6"; ctx.lineWidth = 1.5; ctx.beginPath();
+        ctx.strokeStyle = "#2f7046"; ctx.beginPath(); ctx.moveTo(96, mid); ctx.lineTo(W, mid); ctx.stroke();
+        ctx.fillStyle = "#b6d0bf"; ctx.font = "10px Geist Mono, monospace"; ctx.fillText(LABELS[i], 8, mid + 3);
+        ctx.strokeStyle = row.amp > 0.1 ? "#b5d984" : "#7cc3ea"; ctx.lineWidth = 1.5; ctx.beginPath();
         for (let k = 0; k < row.buf.length; k++) {
           const px = 96 + (k / (row.buf.length - 1)) * (W - 100), py = mid - row.buf[k] * rh * 0.42;
           k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
@@ -416,12 +401,12 @@
     svgEl("line", { x1: CX(0), x2: CX(0), y1: SZ(2.1), y2: SZ(0), class: "d-grid" }, svg);
     text(svg, CX(0), 16, "At the plate", "d-text", "middle");
     text(svg, CX(-0.35), 222, "← glove side", "d-text");
-    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#2a9fd6", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
+    const mlbBox = svgEl("rect", { fill: "rgba(42,159,214,0.18)", stroke: "#7cc3ea", "stroke-dasharray": "3 3", class: "fade-swap" }, svg);
     const mlbText = text(svg, 0, 0, "MLB range", "d-text");
     mlbText.classList.add("fade-swap");
-    const sidePath = svgEl("polyline", { fill: "none", stroke: "#ff3d6e", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
+    const sidePath = svgEl("polyline", { fill: "none", stroke: "#b5d984", "stroke-width": 2.5, "stroke-linecap": "round" }, svg);
     const ball = svgEl("circle", { r: 5, fill: "#fff" }, svg);
-    const hit = svgEl("circle", { r: 6, fill: "#ff3d6e", stroke: "#0a0d12", "stroke-width": 2 }, svg);
+    const hit = svgEl("circle", { r: 6, fill: "#b5d984", stroke: "#144425", "stroke-width": 2 }, svg);
     const ballC = svgEl("circle", { r: 5, fill: "#fff" }, svg);
 
     const group = svg.closest(".demo"), vIn = $("#pitch-v"), rIn = $("#pitch-rpm"), out = $("#pitch-readout");
@@ -497,25 +482,25 @@
     const st = { t: 30, h: 4, theta: 0, grip: false, carrying: false, benchy: 18, stacked: 0 };
 
     // static parts
-    svgEl("rect", { x: 20, y: FLOOR, width: 480, height: 4, fill: "#2a3344" }, svg);
+    svgEl("rect", { x: 20, y: FLOOR, width: 480, height: 4, fill: "#2f7046" }, svg);
     svgEl("rect", { x: COLX - 34, y: FLOOR - 16, width: 68, height: 16, rx: 4, fill: "#5b6776" }, svg);   // base / turntable
     svgEl("rect", { x: COLX - 9, y: TOPY, width: 18, height: FLOOR - 16 - TOPY, fill: "#8e98a8" }, svg);  // 2040 column
     svgEl("rect", { x: COLX, y: TOPY - 10, width: ARM + 14, height: 10, fill: "#a3adb8" }, svg);          // 2020 arm
-    svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#ff3d6e" }, svg);  // target pad
+    svgEl("rect", { x: COLX + PAD * PX - 16, y: FLOOR - 4, width: 32, height: 4, fill: "#b5d984" }, svg);  // target pad
     text(svg, COLX + PAD * PX, FLOOR + 18, "target ±5 mm", "d-text", "middle");
     for (let c = 0; c <= 40; c += 10) text(svg, COLX + c * PX, TOPY - 16, c + "", "d-text", "middle");
     text(svg, COLX + ARM, TOPY - 16, "51 cm", "d-text", "end");
-    const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#ff3d6e" }, svg);
-    const wire = svgEl("line", { stroke: "#eef0f4", "stroke-width": 1.5 }, svg);
+    const trolley = svgEl("rect", { width: 26, height: 12, rx: 3, fill: "#b5d984" }, svg);
+    const wire = svgEl("line", { stroke: "#f1f8ef", "stroke-width": 1.5 }, svg);
     const head = svgEl("rect", { width: 22, height: 14, rx: 3, fill: "#5b6776" }, svg);
-    const jawL = svgEl("rect", { width: 4, height: 14, fill: "#eef0f4" }, svg);
-    const jawR = svgEl("rect", { width: 4, height: 14, fill: "#eef0f4" }, svg);
+    const jawL = svgEl("rect", { width: 4, height: 14, fill: "#f1f8ef" }, svg);
+    const jawR = svgEl("rect", { width: 4, height: 14, fill: "#f1f8ef" }, svg);
     const stackG = svgEl("g", {}, svg);
-    const benchy = svgEl("path", { d: BENCHY_PATH, fill: "#f5a623" }, svg);
+    const benchy = svgEl("path", { d: BENCHY_PATH, fill: "#82d1c5" }, svg);
     // top-view dial for base rotation
     const dial = svgEl("g", { transform: "translate(470 210)" }, svg);
-    svgEl("circle", { r: 26, fill: "none", stroke: "#2a3344", "stroke-width": 2 }, dial);
-    const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#ff3d6e", "stroke-width": 3, "stroke-linecap": "round" }, dial);
+    svgEl("circle", { r: 26, fill: "none", stroke: "#2f7046", "stroke-width": 2 }, dial);
+    const dialArm = svgEl("line", { x1: 0, y1: 0, x2: 0, y2: -24, stroke: "#b5d984", "stroke-width": 3, "stroke-linecap": "round" }, dial);
     text(dial, 0, 42, "top view", "d-text", "middle");
 
     const contactDepth = () => {          // hoist depth where the jaws (or a carried Benchy) meet the floor or the stack
@@ -536,7 +521,7 @@
       benchy.setAttribute("transform", `translate(${bx} ${by}) scale(${sc})`);
       benchy.style.display = st.stacked >= 3 && !st.carrying ? "none" : "";
       stackG.replaceChildren();
-      for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#f5a623", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
+      for (let i = 0; i < st.stacked; i++) svgEl("path", { d: BENCHY_PATH, fill: "#82d1c5", opacity: 0.85, transform: `translate(${COLX + PAD * PX} ${FLOOR - i * BPX}) scale(${BPX / 20})` }, stackG);
       dialArm.setAttribute("transform", `rotate(${st.theta})`);
       out.innerHTML = `<strong>Reach ${st.t.toFixed(1)} cm · hoist ${st.h.toFixed(0)} cm · base ${Math.round(st.theta)}°</strong> · Stacked ${st.stacked}/3 on the ±5 mm pad${st.stacked >= 3 ? " · validated, like the real one" : ""}`;
     }
@@ -588,15 +573,15 @@
     const S = 0.62;                                             // px per mm
     const GROUND = 214, WX = 330, WY = GROUND - WHEEL_R * S;    // wheel centre stays on the ground
     const PIVOT_Y0 = WY - 70;                                   // unloaded pivot height
-    svgEl("rect", { x: 0, y: GROUND, width: 520, height: 3, fill: "#2a3344" }, svg);
+    svgEl("rect", { x: 0, y: GROUND, width: 520, height: 3, fill: "#2f7046" }, svg);
     const frame = svgEl("rect", { height: 14, rx: 3, fill: "#5b6776" }, svg);
     const arm = svgEl("line", { stroke: "#a3adb8", "stroke-width": 9, "stroke-linecap": "round" }, svg);
-    const coil = svgEl("polyline", { fill: "none", stroke: "#ff3d6e", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
-    const tyre = svgEl("circle", { cx: WX, cy: WY, r: WHEEL_R * S, fill: "#1c2330", stroke: "#8e98a8", "stroke-width": 8 }, svg);
+    const coil = svgEl("polyline", { fill: "none", stroke: "#b5d984", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
+    const tyre = svgEl("circle", { cx: WX, cy: WY, r: WHEEL_R * S, fill: "#22603a", stroke: "#8e98a8", "stroke-width": 8 }, svg);
     svgEl("circle", { cx: WX, cy: WY, r: 8, fill: "#a3adb8" }, svg);
-    const pivot = svgEl("circle", { r: 6, fill: "#f5a623" }, svg);
+    const pivot = svgEl("circle", { r: 6, fill: "#82d1c5" }, svg);
     const sagLabel = text(svg, 0, 0, "", "d-value");
-    const load = svgEl("rect", { width: 70, rx: 4, fill: "rgba(245,166,35,0.25)", stroke: "#f5a623" }, svg);
+    const load = svgEl("rect", { width: 70, rx: 4, fill: "rgba(130,209,197,0.25)", stroke: "#82d1c5" }, svg);
     const loadText = text(svg, 0, 0, "", "d-value", "middle");
     tyre.setAttribute("aria-hidden", "true");
 
@@ -649,64 +634,50 @@
   })();
 
   // ---------- Experience: MTR route ----------
-  // A train rides the line to the chosen station (longer trips take longer), then that
-  // station's panel slides in from the direction of travel.
+  // The chosen station's panel slides in from the direction of travel.
   (function route() {
-    const routeEl = $(".route"), train = $(".route-train");
+    const routeEl = $(".route");
     const btns = $$(".stop-btn"), panels = $$(".stop-panel"), steps = $$(".route-step");
     if (!routeEl || !btns.length) return;
     const names = btns.map(b => b.querySelector(".stop-en").textContent);
     let cur = Math.max(0, btns.findIndex(b => b.getAttribute("aria-pressed") === "true"));
 
-    function placeTrain(i, ms) {
-      if (!train) return;
-      const r = routeEl.getBoundingClientRect(), d = btns[i].querySelector(".stop-dot").getBoundingClientRect();
-      train.style.setProperty("--ride", ms + "ms");
-      train.style.setProperty("--train", getComputedStyle(btns[i].closest(".stop")).getPropertyValue("--line"));
-      train.style.transform = `translate(${d.left + d.width / 2 - r.left}px, ${d.top + d.height / 2 - r.top}px)`;
-    }
     function syncSteps() {
       steps.forEach(b => {
         const to = cur + Number(b.dataset.dir), ok = to >= 0 && to < btns.length;
         b.disabled = !ok;
-        b.querySelector(".route-step-label").textContent = ok ? names[to] : (to < 0 ? "First station" : "Last station");
-        b.setAttribute("aria-label", ok ? `${b.dataset.dir > 0 ? "Next" : "Previous"} station: ${names[to]}` : "No more stations");
+        b.querySelector(".route-step-label").textContent = ok ? names[to] : (to < 0 ? "Latest stop" : "First stop");
+        b.setAttribute("aria-label", ok ? `${b.dataset.dir > 0 ? "Earlier" : "Later"} stop: ${names[to]}` : "No more stops");
       });
     }
     function go(i) {
       if (i === cur || i < 0 || i >= btns.length) return;
-      const dir = i > cur ? 1 : -1, hops = Math.abs(i - cur);
-      const ride = Math.min(500 + hops * 350, 1700);
-      train?.classList.toggle("is-reversed", dir < 0);           // the cab leads the way
+      const dir = i > cur ? 1 : -1;
       btns.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
       const out = panels[cur], inn = panels[i];
-      // Old panel leaves against the direction of travel; the new one arrives as the train pulls in.
+      // Old panel leaves against the direction of travel; the new one follows a beat later.
       out.style.setProperty("--shift", -dir * 70 + "px");
       out.classList.remove("is-active");
       inn.style.transition = "none";
       inn.style.setProperty("--shift", dir * 70 + "px");
       void inn.offsetWidth;
       inn.style.transition = "";
-      inn.style.setProperty("--delay", Math.round(ride * 0.45) + "ms");
+      inn.style.setProperty("--delay", "250ms");
       inn.classList.add("is-active");
       panels.forEach(p => { p.inert = p !== inn; p.setAttribute("aria-hidden", String(p !== inn)); });
       cur = i;
-      placeTrain(i, ride);
       syncSteps();
     }
     panels.forEach((p, k) => { p.inert = k !== cur; p.setAttribute("aria-hidden", String(k !== cur)); });
     btns.forEach((b, i) => b.addEventListener("click", () => go(i)));
     steps.forEach(b => b.addEventListener("click", () => go(cur + Number(b.dataset.dir))));
     routeEl.addEventListener("keydown", ev => {
-      if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return;
+      if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;   // the line runs newest at the top
       ev.preventDefault();
-      go(cur + (ev.key === "ArrowRight" ? 1 : -1));
+      go(cur + (ev.key === "ArrowDown" ? 1 : -1));
       btns[cur].focus();
     });
-    placeTrain(cur, 0);
     syncSteps();
-    window.addEventListener("resize", () => placeTrain(cur, 0));
-    document.fonts?.ready.then(() => placeTrain(cur, 0));
   })();
 
   // ---------- Toolbox: the lid swings open when it comes into view ----------
@@ -812,6 +783,7 @@
       let key = atEnd ? regions[regions.length - 1].dataset.nav : null;
       if (!key) regions.forEach(r => { const b = r.getBoundingClientRect(); if (b.top <= line && b.bottom > line) key = r.dataset.nav; });
       const on = key ? links.find(a => a.getAttribute("href") === "#" + key) || null : null;
+      document.querySelector(".topbar-inner")?.classList.toggle("deep", key === "direction" || key === "contact");   // dark bar over the night sections
       if (on === current) return;
       current = on;
       links.forEach(a => (a === on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
@@ -836,6 +808,16 @@
       if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
     }), { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     items.forEach(el => { el.classList.add("slide-in"); io.observe(el); });
+  })();
+
+  // ---------- What's next: the blurred city beyond the window drifts a little as the section scrolls past ----------
+  (function windowDrift() {
+    const sec = $("#direction"), city = $(".window-city");
+    if (!sec || !city) return;
+    let queued = false;
+    const apply = () => { queued = false; const r = sec.getBoundingClientRect(); city.style.setProperty("--drift", (-(r.top + r.height / 2 - innerHeight / 2) * 0.12).toFixed(1)); };
+    window.addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(apply); } }, { passive: true });
+    apply();
   })();
 
   // ---------- Copy email, year ----------
