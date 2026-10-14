@@ -83,7 +83,6 @@
     hill: std({ roughness: 1, flatShading: true }),
     plant: std({ roughness: 0.6, metalness: 0.4 }),
     car: std({ roughness: 0.45, metalness: 0.3, color: 0xffffff }),
-    person: std({ roughness: 0.8, color: 0xffffff }),
     air: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     arrow: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     sensor: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
@@ -716,7 +715,17 @@
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
   // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
-  const cars = Array.from({ length: 8 }, (_, i) => ({ s0: i / 8 + rand() * 0.05, lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07 }));
+  // Some cars and people leave before Project 2.1: at qLeave they reach the waterfront avenue (−z) and head
+  // off down it, away from the camera. Their start point is set so they are at that junction exactly then.
+  const EXIT_S = 1 / 8;                             // rectPath: middle of the −z side, heading +x
+  const loopOrLeave = (s0, rate, q, h, qLeave, exitX) => (qLeave === undefined || q < qLeave
+    ? rectPath(s0 + rate * q, h, h)
+    : [exitX, -h - (q - qLeave) * rate * 8 * h, Math.PI / 2]);   // same speed, now along −z
+  const cars = Array.from({ length: 6 }, (_, i) => {
+    const c = { s0: i / 6 + rand() * 0.05, lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07 };
+    if (i === 1 || i === 3) { c.qLeave = i === 1 ? -1.4 : -0.5; c.s0 = EXIT_S - c.v * c.qLeave; }
+    return c;
+  });
   const carBody = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), mat.car, cars.length);
   const carCab = new THREE.InstancedMesh(new THREE.BoxGeometry(2.2, 0.8, 1.7), mat.car, cars.length);
   const lights = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.3, 1.6), mat.headlight, cars.length);
@@ -730,20 +739,38 @@
   const beams = new THREE.InstancedMesh(beamGeo, beamMat, cars.length), tails = new THREE.InstancedMesh(new THREE.BoxGeometry(0.15, 0.28, 1.5), tailMat, cars.length);
   beams.renderOrder = 2;
   scene.add(carBody, carCab, lights, beams, tails);
-  const people = Array.from({ length: 14 }, (_, i) => {
-    const outer = i % 3 === 0;                          // outer pavement beyond the ring road, or the plaza
-    return { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4 };
+  // People: one simple figure (head, body, legs) for everyone, walking, sitting or walking the dog.
+  const skin = std({ color: 0xd9a77c });
+  function makeActor(shirt, legs) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.8, 8), std({ color: shirt }));
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), skin);
+    const lower = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1, 0.3), std({ color: legs }));
+    body.castShadow = head.castShadow = lower.castShadow = true;
+    g.add(body, head, lower);
+    scene.add(g);
+    return { g, body, head, lower };
+  }
+  // sit 0 = standing (legs straight down), 1 = seated (legs forward along the seat); bob is the walking step
+  function pose(a, sit, bob = 0) {
+    a.body.position.set(0, lerp(1.35, 1.0, sit) + bob, lerp(0, -0.12, sit));
+    a.head.position.set(0, lerp(1.98, 1.6, sit) + bob, lerp(0, -0.1, sit));
+    a.lower.position.set(0, lerp(0.48, 0.66, sit) + bob * 0.5, lerp(0, 0.2, sit));
+    a.lower.scale.set(1, lerp(0.95, 0.14, sit), lerp(1, 1.8, sit));
+  }
+  const SHIRTS = ["#f5b83d", "#5aa9e6", "#e0703a", "#eef0f4", "#46953d", "#8a5bd6"], LEGS = ["#2d3a40", "#3a4a5a", "#2b2f36"];
+  const people = Array.from({ length: 8 }, (_, i) => {
+    const outer = i % 2 === 0;                          // outer pavement beyond the ring road, or the plaza
+    const p = { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4,
+      a: makeActor(SHIRTS[i % SHIRTS.length], LEGS[i % LEGS.length]) };
+    if (i === 0 || i === 4) { p.v = Math.abs(p.v); p.qLeave = i ? -0.3 : -1.2; p.s0 = EXIT_S - p.v * p.qLeave; }
+    pose(p.a, 0);
+    return p;
   });
-  const personGeo = new THREE.CylinderGeometry(0.32, 0.38, 1.8, 6);
-  personGeo.translate(0, 0.9, 0);
-  const crowd = new THREE.InstancedMesh(personGeo, mat.person, people.length);
-  const SHIRTS = ["#f5b83d", "#5aa9e6", "#f5a623", "#eef0f4", "#1c2330", "#7cc46b"];
-  people.forEach((p, i) => crowd.setColorAt(i, C(SHIRTS[i % SHIRTS.length])));
-  scene.add(crowd);
 
   function moveTraffic(q, nightAmt) {
     cars.forEach((c, i) => {
-      const [x, z, yaw] = rectPath(c.s0 + c.lane * c.v * q, RING + c.lane * 1.8, RING + c.lane * 1.8);
+      const [x, z, yaw] = loopOrLeave(c.s0, c.lane * c.v, q, RING + c.lane * 1.8, c.qLeave, 1.8);
       const dir = c.lane > 0 ? yaw : yaw + Math.PI;
       dummy.position.set(x, 0.75, z); dummy.rotation.set(0, dir, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
       carBody.setMatrixAt(i, dummy.matrix);
@@ -757,14 +784,13 @@
       beams.setMatrixAt(i, dummy.matrix);
     });
     beams.instanceMatrix.needsUpdate = tails.instanceMatrix.needsUpdate = true;
-    people.forEach((p, i) => {
+    people.forEach(p => {
       const r = (p.outer ? RING + 5.2 : 24.8) + p.off * 0.5;
-      const [x, z, yaw] = rectPath(p.s0 + p.v * q, r, r);
-      dummy.position.set(x, 0.05, z);
-      dummy.rotation.set(0, yaw, 0); dummy.scale.set(1.5, 1.5, 1.5); dummy.updateMatrix();
-      crowd.setMatrixAt(i, dummy.matrix);
+      const [x, z, yaw] = loopOrLeave(p.s0, p.v, q, r, p.qLeave, 5.6);
+      p.a.g.position.set(x, 0.05, z);
+      p.a.g.rotation.y = yaw;
     });
-    carBody.instanceMatrix.needsUpdate = carCab.instanceMatrix.needsUpdate = lights.instanceMatrix.needsUpdate = crowd.instanceMatrix.needsUpdate = true;
+    carBody.instanceMatrix.needsUpdate = carCab.instanceMatrix.needsUpdate = lights.instanceMatrix.needsUpdate = true;
     mat.headlight.opacity = nightAmt;
     beamMat.opacity = 0.45 * nightAmt;
     tailMat.opacity = nightAmt;
@@ -804,7 +830,7 @@
     .forEach(([x, z]) => { const b = new THREE.Mesh(binGeo, binMat); b.position.set(x, 0.5, z); b.castShadow = true; scene.add(b); });
   // Benches on the plaza lawn. As the page scrolls, one person walks over and sits down on an empty bench
   // while another gets up and leaves; a third stays sitting the whole time (one to three people at once).
-  const benchWood = std({ color: 0x9a6b43 }), skin = std({ color: 0xd9a77c });
+  const benchWood = std({ color: 0x9a6b43 });
   const benches = [[18, 3, Math.PI / 2], [3, 18, 0], [-13, 18, 0], [18, -11, Math.PI / 2]].map(([x, z, yaw]) => {
     const g = new THREE.Group();
     g.position.set(x, 0, z); g.rotation.y = yaw;
@@ -815,23 +841,6 @@
     g.updateMatrixWorld();
     return g;
   });
-  function makeActor(shirt, legs) {                 // a simple person who can stand, walk and sit
-    const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.8, 8), std({ color: shirt }));
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), skin);
-    const lower = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1, 0.3), std({ color: legs }));
-    body.castShadow = head.castShadow = lower.castShadow = true;
-    g.add(body, head, lower);
-    scene.add(g);
-    return { g, body, head, lower };
-  }
-  // sit 0 = standing (legs straight down), 1 = seated (legs forward along the seat); bob is the walking step
-  function pose(a, sit, bob = 0) {
-    a.body.position.set(0, lerp(1.35, 1.0, sit) + bob, lerp(0, -0.12, sit));
-    a.head.position.set(0, lerp(1.98, 1.6, sit) + bob, lerp(0, -0.1, sit));
-    a.lower.position.set(0, lerp(0.48, 0.66, sit) + bob * 0.5, lerp(0, 0.2, sit));
-    a.lower.scale.set(1, lerp(0.95, 0.14, sit), lerp(1, 1.8, sit));
-  }
   const seatAt = (b, dx, fwd = 0) => new THREE.Vector3(dx, 0, fwd).applyMatrix4(b.matrixWorld);
   const seated = makeActor("#2b77a1", "#2d3a40");                 // stays the whole time
   seated.g.position.copy(seatAt(benches[0], -0.5)); seated.g.rotation.y = benches[0].rotation.y; pose(seated, 1);
@@ -871,9 +880,9 @@
   const tail = new THREE.Group(); tail.position.set(-0.52, 0.8, 0); dog.add(tail);
   box(0.4, 0.09, 0.09, furDark, tail, -0.18, 0.08, 0, false);
   dog.scale.setScalar(1.3);
-  const owner = new THREE.Mesh(personGeo, std({ color: 0x2b77a1 }));
-  owner.scale.setScalar(1.5); owner.castShadow = true;
-  scene.add(dog, owner);
+  const ownerA = makeActor("#2b77a1", "#2b2f36"), owner = ownerA.g;
+  pose(ownerA, 0);
+  scene.add(dog);
   // A plane crossing the distant sky as the page scrolls, leaving a faint contrail. It sits in a group that
   // turns about the vertical axis, so the plane and its trail ride one arc of radius 560 m.
   const flight = new THREE.Group(), plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
@@ -911,10 +920,14 @@
     dog.position.set(dx, 0, dz); dog.rotation.y = dyaw;
     tail.rotation.y = Math.sin(t * 9) * 0.6;
     moveActors(q);
-    flight.rotation.y = -(3.4 + clamp((q + 2) / 9, 0, 1) * 1.9);     // the plane crosses the sky as you scroll
+    flight.rotation.y = -(3.4 + clamp((q + 2) / 3, 0, 1) * 1.2);     // the plane crosses the sky as you scroll
+    const away = smoothstep(q, -0.8, 0.3);                           // ...and flies off into the distance by Project 2.1
+    plane.scale.setScalar(Math.max(0.001, 1 - away));
+    plane.position.y = FLY_H + away * 40;
+    flight.visible = away < 1;
     beacon.visible = (t % 1.2) < 0.15;
     planeMat.color.set(0xe9eef2).lerp(SKY_NIGHT, nightAmt);
-    trailMat.uniforms.uOpacity.value = 0.5 * (1 - nightAmt * 0.7);
+    trailMat.uniforms.uOpacity.value = 0.5 * (1 - nightAmt * 0.7) * (1 - away);
   }
 
   // ---------- Camera path (keyframes at given q) ----------
@@ -931,7 +944,7 @@
     { q: 4, ang: 1.90, rad: 184, h: 32, ty: 43 },
     { q: 5, ang: 2.15, rad: 190, h: 38, ty: 45 },
     { q: 6, ang: 2.25, rad: 138, h: 30, ty: 28 },                       // closed back up
-    { q: 7, ang: Math.PI / 2, rad: 9, h: 128, ty: 47.5, side: -14, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card
+    { q: 7, ang: Math.PI / 2, rad: 7, h: 104, ty: 47.5, side: -11, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
@@ -1014,7 +1027,6 @@
     mat.mullion.color.copy(mat.slab.color).multiplyScalar(0.55);
     mat.plant.color.copy(mat.slab.color).multiplyScalar(0.8);
     mat.car.color.copy(blend("panelTint", day, dusk));
-    mat.person.color.copy(mat.car.color);
     const ctx = blend("context", day, dusk);
     // The city keeps a few lights on all day; they brighten in the golden hour and come fully on at night.
     const lit = Math.max(dusk * 0.6, nightfall);
