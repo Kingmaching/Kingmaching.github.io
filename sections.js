@@ -130,11 +130,12 @@
       return { bar, val };
     });
 
-    // View 2: small multiples, one panel per parameter, all five runs
+    // View 2: small multiples, one panel per parameter, all five runs, stacked down the card
+    // (the card grows taller to fit them; its width stays the same)
     const vRuns = svgEl("g", { class: "view is-off" }, svg);
-    const PW = 252, PH = 118;
+    const PW = 520, PH = 118, STEP = 132, H1 = 250, H2 = STEP * 4 - 10;
     const panels = RUNS.map((r, i) => {
-      const ox = (i % 2) * 268, oy = Math.floor(i / 2) * 130;
+      const ox = 0, oy = i * STEP;
       const g = svgEl("g", { transform: `translate(${ox} ${oy})` }, vRuns);
       const px = j => 34 + (j / 4) * (PW - 50), py = v => 24 + ((lim - v) / (2 * lim)) * 72;
       text(g, 0, 12, r.name, "d-label");
@@ -187,8 +188,13 @@
       setMetric(b.dataset.metric);
     }));
     const toggle = $("#runs-toggle"), title = $("#envelope-title");
+    let viewH = H1, cancelH = () => {};
     toggle.addEventListener("click", () => {
       const on = toggle.getAttribute("aria-pressed") !== "true";
+      const fromH = viewH, toH = on ? H2 : H1;
+      cancelH();
+      cancelH = tween(520, e => { viewH = fromH + (toH - fromH) * e; svg.setAttribute("viewBox", `0 0 520 ${viewH.toFixed(1)}`); });
+      group.closest(".pair")?.classList.toggle("is-tall", on);
       toggle.setAttribute("aria-pressed", String(on));
       toggle.textContent = on ? "Back to best vs control" : "Show all 17 runs";
       vBars.classList.toggle("is-off", on);
@@ -768,6 +774,7 @@
       let key = atEnd ? regions[regions.length - 1].dataset.nav : null;
       if (!key) regions.forEach(r => { const b = r.getBoundingClientRect(); if (b.top <= line && b.bottom > line) key = r.dataset.nav; });
       const on = key ? links.find(a => a.getAttribute("href") === "#" + key) || null : null;
+      document.querySelector(".topbar-inner")?.classList.toggle("deep", key === "direction" || key === "contact");   // dark bar over the night sections
       if (on === current) return;
       current = on;
       links.forEach(a => (a === on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));

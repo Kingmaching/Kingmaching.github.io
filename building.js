@@ -11,7 +11,7 @@
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the light turns golden
 //   5 → 6  the tower closes back up (every run side by side)
-//   6 → 7  night falls (street lamps, car lights, neon signs and their glow on wet roads come on), the roof
+//   6 → 7  night falls (street lamps, car lights and coloured city light on wet roads come on), the roof
 //          lifts off and the camera rises to look almost straight down into the top floor, laid out as
 //          the office of Project 2.2; the layout buttons move its luminaires
 // The skyline is drawn by a second renderer onto #backdrop-canvas, which CSS blurs, so the tower stays
@@ -337,19 +337,7 @@
     const b = box(w, h, w, cityMaterial(w, h, nearMats), scene, Math.cos(a) * r, h / 2, Math.sin(a) * r);
     box(w * 0.9, 0.6, w * 0.9, mat.green, scene, b.position.x, h + 0.3, b.position.z, false);   // green roofs
   });
-  // Hong Kong blade signs: one or two per block, sticking out of the face towards the tower.
-  const NEON = ["#ff4fa3", "#3fd0ff", "#ffb347", "#9b6bff", "#4dffb0", "#ff6b5a"];
-  const signMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const signs = new THREE.InstancedMesh(new THREE.BoxGeometry(0.35, 5, 2.4), signMat, near.length * 2);
-  near.forEach(({ a, r, h, w }, i) => [0, 1].forEach(k => {
-    const ox = -Math.cos(a), oz = -Math.sin(a), tx = -oz, tz = ox;           // out of the face, and along it
-    const along = (k ? 0.28 : -0.22) * w, d = w / 2 + 1.2;
-    dummy.position.set(Math.cos(a) * r + ox * d + tx * along, Math.min(h - 3, 5 + k * 3.5), Math.sin(a) * r + oz * d + tz * along);
-    dummy.rotation.set(0, Math.atan2(ox, oz), 0); dummy.scale.setScalar(k && h < 14 ? 0.001 : 1); dummy.updateMatrix();
-    signs.setMatrixAt(i * 2 + k, dummy.matrix);
-    signs.setColorAt(i * 2 + k, C(NEON[(i * 2 + k) % NEON.length]));
-  }));
-  scene.add(signs);
+  const NEON = ["#ff4fa3", "#3fd0ff", "#ffb347", "#9b6bff", "#4dffb0", "#ff6b5a"];   // Hong Kong's coloured night light
 
   // ---------- Street lamps: posts on both kerbs of the ring road, a warm pool of light under each ----------
   const lampSpots = [];
@@ -793,7 +781,7 @@
     { q: 4, ang: 1.90, rad: 184, h: 32, ty: 43 },
     { q: 5, ang: 2.15, rad: 190, h: 38, ty: 45 },
     { q: 6, ang: 2.25, rad: 138, h: 30, ty: 28 },                       // closed back up
-    { q: 7, ang: Math.PI / 2, rad: 6.5, h: 107, ty: 47.5, drop: 7, room: true },   // ~84° bird's eye, plan square to the screen
+    { q: 7, ang: Math.PI / 2, rad: 9, h: 128, ty: 47.5, side: -14, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
@@ -827,7 +815,7 @@
     return { shgc: q < 1.5 ? 0.70 : sh.x, cfm: vent.x, lpd: lp.x, heat };
   }
   const live = { shgc: 0.70, cfm: 20, lpd: 0.52, heat: 0 };
-  const sunScreen = new THREE.Vector3();
+  const sunScreen = new THREE.Vector3(), focusPt = new THREE.Vector3(), focusEdge = new THREE.Vector3();
   let flowSpeed = 0.12;
 
   function update(q, time, dt) {
@@ -933,7 +921,7 @@
     sensors.forEach((s, i) => { s.scale.setScalar(Math.max(0.001, st.sense * pulse * (i % 4 === 0 ? 1.15 : 1))); });
 
     moveTraffic(q, Math.max(dusk * 0.7, nightfall));
-    // Night life: lamps, signs' glow on the street, wet roads
+    // Night life: lamps, the city's coloured light on the street, wet roads
     const lampsOn = Math.max(dusk * 0.5, nightfall);
     lampHeadMat.color.copy(LAMP_OFF).lerp(LAMP_ON, lampsOn);
     poolMat.opacity = 0.5 * lampsOn;
@@ -947,6 +935,13 @@
     top.inside.forEach(m => { m.visible = !inside; });
     room.visible = inside;
     if (inside) stepRoom(time);
+    // Soft focus outside the lit room: centre and radius of the top floor on screen
+    focusPt.set(0, top.g.position.y + Y0, 0).project(camera);
+    focusEdge.set(W / 2 + 2, top.g.position.y + Y0, W / 2 + 2).project(camera);
+    stage.style.setProperty("--focus", (smoothstep(q, 6.4, 6.9)).toFixed(3));
+    stage.style.setProperty("--fx", ((focusPt.x + 1) * 50).toFixed(1) + "%");
+    stage.style.setProperty("--fy", ((1 - focusPt.y) * 50).toFixed(1) + "%");
+    stage.style.setProperty("--fr", Math.round(Math.hypot(focusEdge.x - focusPt.x, (focusEdge.y - focusPt.y) / camera.aspect) * canvas.clientWidth * 0.62) + "px");
 
     placeCamera(q);
     camera.updateMatrixWorld();
