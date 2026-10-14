@@ -293,7 +293,7 @@
     q = (range > 0 ? clamp(-rect.top / range, 0, 1) * (STEPS - 1) : 0) - PRE;
     tail = tailPx > 0 ? clamp((-rect.top - range) / tailPx, 0, 1) : 0;
     // The veil behind Background: in from the intro, out into Project 2.1.
-    stage?.style.setProperty("--veil", (phase(-1.45, -1.05) * (1 - phase(-0.6, -0.25))).toFixed(3));
+    stage?.style.setProperty("--veil", (phase(-1.55, -1.15) * (1 - phase(-0.6, -0.25))).toFixed(3));
     ["shgc", "vent", "lpd"].forEach(name => {
       const c = charts[name];
       if (!c) return;

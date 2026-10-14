@@ -193,8 +193,17 @@
       const on = toggle.getAttribute("aria-pressed") !== "true";
       const fromH = viewH, toH = on ? H2 : H1;
       cancelH();
-      cancelH = tween(520, e => { viewH = fromH + (toH - fromH) * e; svg.setAttribute("viewBox", `0 0 520 ${viewH.toFixed(1)}`); });
-      group.closest(".pair")?.classList.toggle("is-tall", on);
+      // The words card beside it keeps its size: pin its height, then let it sit centred while the chart grows.
+      const pair = group.closest(".pair"), partner = pair?.firstElementChild;
+      if (partner && !partner.style.height) {
+        partner.style.height = partner.offsetHeight + "px";
+        window.addEventListener("resize", () => { if (!pair.classList.contains("is-tall")) partner.style.height = ""; });
+      }
+      if (on) pair?.classList.add("is-tall");
+      cancelH = tween(520, e => {
+        viewH = fromH + (toH - fromH) * e; svg.setAttribute("viewBox", `0 0 520 ${viewH.toFixed(1)}`);
+        if (e >= 1 && !on) pair?.classList.remove("is-tall");
+      });
       toggle.setAttribute("aria-pressed", String(on));
       toggle.textContent = on ? "Back to best vs control" : "Show all 17 runs";
       vBars.classList.toggle("is-off", on);
@@ -637,8 +646,8 @@
       steps.forEach(b => {
         const to = cur + Number(b.dataset.dir), ok = to >= 0 && to < btns.length;
         b.disabled = !ok;
-        b.querySelector(".route-step-label").textContent = ok ? names[to] : (to < 0 ? "First station" : "Last station");
-        b.setAttribute("aria-label", ok ? `${b.dataset.dir > 0 ? "Next" : "Previous"} station: ${names[to]}` : "No more stations");
+        b.querySelector(".route-step-label").textContent = ok ? names[to] : (to < 0 ? "Latest stop" : "First stop");
+        b.setAttribute("aria-label", ok ? `${b.dataset.dir > 0 ? "Earlier" : "Later"} stop: ${names[to]}` : "No more stops");
       });
     }
     function go(i) {
@@ -663,9 +672,9 @@
     btns.forEach((b, i) => b.addEventListener("click", () => go(i)));
     steps.forEach(b => b.addEventListener("click", () => go(cur + Number(b.dataset.dir))));
     routeEl.addEventListener("keydown", ev => {
-      if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return;
+      if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;   // the line runs newest at the top
       ev.preventDefault();
-      go(cur + (ev.key === "ArrowRight" ? 1 : -1));
+      go(cur + (ev.key === "ArrowDown" ? 1 : -1));
       btns[cur].focus();
     });
     syncSteps();

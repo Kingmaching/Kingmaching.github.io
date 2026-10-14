@@ -773,7 +773,7 @@
   // `side` is ignored and `drop` shifts the view the other way, lifting the subject above the card. Keys marked
   // `room` look down on a point, so on tall screens they back away along the view line instead of rising.
   const KEYS = [
-    { q: -1, ang: 0.62, rad: 118, h: 16, ty: 27, side: 22 },
+    { q: -1, ang: 0.62, rad: 150, h: 18, ty: 30, side: 26 },     // the whole tower in frame beside the name
     { q: 0, ang: 0.62, rad: 128, h: 18, ty: 28 },
     { q: 1, ang: 0.95, rad: 140, h: 26, ty: 30 },        // pulled back while the facade is out, so the cards keep their room
     { q: 2, ang: 1.25, rad: 152, h: 28, ty: 32 },
@@ -781,7 +781,7 @@
     { q: 4, ang: 1.90, rad: 184, h: 32, ty: 43 },
     { q: 5, ang: 2.15, rad: 190, h: 38, ty: 45 },
     { q: 6, ang: 2.25, rad: 138, h: 30, ty: 28 },                       // closed back up
-    { q: 7, ang: Math.PI / 2, rad: 9, h: 128, ty: 47.5, side: -14, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card
+    { q: 7, ang: Math.PI * 1.5, rad: 9, h: 128, ty: 47.5, side: -14, drop: 9, room: true },   // ~85° bird's eye, the tower's top left of the card; the camera swings on round the tower to get there
   ];
   const lookTarget = new THREE.Vector3();
   let distScale = 1;
