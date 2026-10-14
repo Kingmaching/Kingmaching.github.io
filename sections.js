@@ -818,6 +818,23 @@
     apply();
   })();
 
+  // ---------- Keep a number with its unit ("52 fc", "48 × 34 ft", "20 kg → 15 mm") on one line ----------
+  // Joins them with no-break spaces, here and in any text the charts and demos write later.
+  (function keepNumbersTogether() {
+    const UNIT = String.raw`(?:W/ft²|kBtu/ft²·yr|cfm/person|m/s|ft²|fc|ft|mm|cm|kg|Hz|rpm|MLD|m|V|N|s)`;
+    const unit = new RegExp(String.raw`(\d) (?=${UNIT}(?![A-Za-z]))`, "g");
+    const op = /(?<=\d[^ ]*) ([×→–]) (?=[−+±~]?\d|present)/g;
+    const fix = n => { const v = n.nodeValue.replace(unit, "$1\u00A0").replace(op, "\u00A0$1\u00A0"); if (v !== n.nodeValue) n.nodeValue = v; };
+    const walk = root => {
+      if (root.nodeType === 3) return fix(root);
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) fix(w.currentNode);
+    };
+    walk(document.body);
+    new MutationObserver(ms => ms.forEach(m => (m.type === "characterData" ? fix(m.target) : m.addedNodes.forEach(walk))))
+      .observe(document.body, { subtree: true, childList: true, characterData: true });
+  })();
+
   // ---------- Copy email, year ----------
   const copyButton = $("#copy-email");
   copyButton?.addEventListener("click", async () => {

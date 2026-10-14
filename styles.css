@@ -115,7 +115,7 @@ a { color: inherit; }
 button { font: inherit; color: inherit; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 p, ul, ol, dl, dd, figure { margin: 0; }
-p { text-align: justify; -webkit-hyphens: auto; hyphens: auto; }   /* the big What's next statement opts out */
+p { text-wrap: pretty; }   /* ragged right everywhere, no hyphen breaks; pretty avoids one-word last lines */
 ul, ol { padding: 0; }
 em { font-style: normal; color: var(--neon); }
 ::selection { background: var(--neon); color: var(--on-neon); }
@@ -133,7 +133,6 @@ em { font-style: normal; color: var(--neon); }
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-d);
-  text-align: left; -webkit-hyphens: manual; hyphens: manual;
 }
 .label .zh, .kicker .zh { font-size: 1rem; color: var(--neon); letter-spacing: 0.1em; }
 
@@ -235,7 +234,7 @@ em { font-style: normal; color: var(--neon); }
 .step-card.glass { border-radius: 32px; }   /* the bubbles */
 .step-card { display: grid; gap: 14px; width: min(100%, clamp(300px, calc(50vw - var(--tower-half, 24vh) - var(--gutter) - 36px), 540px)); padding: clamp(20px, 2.6vw, 30px); border-radius: var(--radius); pointer-events: auto; }
 .step-card h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.02; letter-spacing: -0.03em; }
-.step-card > p:not(.kicker) { color: var(--muted-d); text-align: left; }   /* narrow columns justify badly */
+.step-card > p:not(.kicker) { color: var(--muted-d); }
 /* Background: full-screen text over the veil, a translucent white layer in the stage that covers the
    whole screen and simply fades in from the intro and out into Project 2.1 (story.js sets --veil),
    so there is no edge or gradient band. The words settle in gently as the panel arrives. */
@@ -268,7 +267,7 @@ em { font-style: normal; color: var(--neon); }
   font-family: var(--font-display); font-weight: 800; color: var(--text-d);
   font-size: clamp(2.6rem, min(7vw, 11vh), 6.6rem); line-height: 0.95; letter-spacing: -0.045em;
 }
-.statement-text.panel-title { text-align: left; max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
+.statement-text.panel-title { max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
 .panel-foot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: end; }
 .panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--muted-d); max-width: 52ch; }
 .panel-full .about-facts dd { font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
@@ -279,7 +278,7 @@ em { font-style: normal; color: var(--neon); }
 .step-card .proj-link { color: var(--neon); }
 .proj-badge {                          /* where a new project starts: a big number and its name */
   display: flex; align-items: center; gap: 14px; padding-block: 4px 2px;
-  font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-d); text-align: left;
+  font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-d);
 }
 .proj-badge-num {
   display: grid; place-items: center; min-width: 2.6em; height: 2.6em; padding-inline: 0.3em; border-radius: 16px;
@@ -302,10 +301,10 @@ em { font-style: normal; color: var(--neon); }
 .about-facts dt { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-d); }
 .about-facts dd { font-family: var(--font-display); font-weight: 750; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--text-d); font-variant-numeric: tabular-nums; }
 .step-intro { align-items: stretch; padding-top: 84px; padding-bottom: 28px; }
-/* Spare height is split 3:1 above and below the name, so it sits closer to the box underneath. */
-.intro { display: grid; grid-template-rows: auto minmax(0, 3fr) auto minmax(18px, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
-.intro > .kicker { grid-row: 1; justify-self: start; padding: 6px 12px; border-radius: 999px; color: var(--text-d);
-  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }   /* readable over the 3D scene */
+/* Spare height is split 2:1 above and below the name, so it sits closer to the box underneath. */
+.intro { display: grid; grid-template-rows: auto minmax(0, 2fr) auto minmax(18px, 1fr) auto; gap: 6px; width: 100%; pointer-events: auto; }
+.intro > .kicker { grid-row: 1; justify-self: start; padding: 6px 12px; border-radius: 999px; color: var(--text-d); text-transform: none;
+  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }   /* readable over the 3D scene; keeps "BASc" as written */
 .intro > .intro-foot { grid-row: 5; }
 .giant-name {
   grid-row: 3;
@@ -563,7 +562,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 5px; margin-inline: 
 .panel-when { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted-d); }
 .stop-panel h3 { font-family: var(--font-display); font-weight: 750; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.03em; }
 .panel-role { color: var(--neon); font-weight: 600; }
-.stop-panel > p:not(.panel-when):not(.panel-role):not(.panel-stat) { color: var(--muted-d); max-width: 60ch; text-align: left; }
+.stop-panel > p:not(.panel-when):not(.panel-role):not(.panel-stat) { color: var(--muted-d); max-width: 60ch; }
 .panel-stat { display: flex; align-items: baseline; gap: 10px; color: var(--muted-d); }
 .panel-stat strong { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; color: var(--text-d); letter-spacing: -0.03em; }
 
