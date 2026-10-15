@@ -21,7 +21,8 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
   (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route,
   the toolbox, the contact form, the top-bar underline that follows the
   section you're in, slide-in reveals and Lenis smooth scrolling (jsDelivr).
-- `Marco_Ching_Resume.pdf` is an export of the Google Doc "Marco Ching's CV".
+- `Marco_Ching_Resume.pdf` is built from `Marco_Ching_Resume.tex` (the CV in LaTeX, converted from the Google Doc "Marco Ching's CV")
+  (`pdflatex Marco_Ching_Resume.tex`, or upload it to Overleaf).
 
 ## Where the numbers come from
 

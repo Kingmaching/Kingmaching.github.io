@@ -1,0 +1,121 @@
+% Marco Ching's CV. Build: pdflatex Marco_Ching_Resume.tex (or upload to Overleaf).
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[margin=0.55in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype} % keeps justified spacing even
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage[shortlabels]{enumitem}
+\input{glyphtounicode}
+\pdfgentounicode=1 % clean copy/paste text for applicant-tracking systems
+
+\hypersetup{pdftitle={Marco Ching's CV}, pdfauthor={Marco Ching}}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+
+\titleformat{\section}{\large\bfseries\itshape}{}{0pt}{}[\vspace{-6pt}\rule{\textwidth}{0.4pt}]
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+
+\setlist[itemize]{leftmargin=1.3em, itemsep=1pt, parsep=0pt, topsep=2pt}
+
+% \heading{left}{right}: bold entry line with a right-aligned date or link
+\newcommand{\heading}[2]{\par\vspace{5pt}#1\hfill#2\par}
+\newcommand{\link}[2]{\href{#1}{\textbf{\textit{#2}}}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries Marco Ching}\\[3pt]
+  \href{mailto:mkbching@uwaterloo.ca}{mkbching@uwaterloo.ca} \textbar{}
+  \href{tel:+15482550389}{+1 (548) 255-0389} \textbar{}
+  \href{https://linkedin.com/in/marco-ching}{linkedin.com/in/marco-ching}
+\end{center}
+
+\section{Education}
+\heading{\textbf{University of Waterloo} \textbar{} \textit{Waterloo, ON, Canada}}{\textit{09/2022 -- 06/2027 (Expected)}}
+Bachelor of Applied Science (BASc) -- \textbf{Honours Mechanical Engineering Co-op}\\
+\textbf{Relevant Coursework:} Building Energy Analysis; Fluid Power Control Systems; HVAC Systems, Equipment \& Energy Efficiency (Winter 2027); HVAC Load Analysis and Design (Winter 2027); Fire Safety Engineering (Winter 2027)
+
+\section{Research Interests}
+Building energy modeling and simulation \textbar{} Building performance verification \textbar{} HVAC systems and controls \textbar{} Adaptive facades and natural ventilation \textbar{} Low-carbon building systems
+
+\section{Technical Skills}
+\textbf{Building Energy \& Simulation:} Whole-building energy modeling, COMFEN, HVAC load calculations and design, U-value and envelope analysis, lighting design, fire protection design, ASHRAE 90.1\\
+\textbf{Fluid Process Systems:} Head-loss calculations, pipe sizing, pump systems, P\&ID interpretation, hydraulic \& pneumatic circuits\\
+\textbf{Design \& Digital Engineering:} Revit, BIM coordination, Navisworks, SolidWorks, AutoCAD, Dynamo, Autodesk Construction Cloud, Bluebeam, ArcGIS, Power BI, GD\&T, DFM/A, tolerance stack-up\\
+\textbf{Computation \& Controls:} C++, MATLAB, Simulink, PLC, Raspberry Pi, Arduino, sensor integration, motor control\\
+\textbf{Fabrication \& Prototyping:} 3D printing, laser cutting, machining
+
+\section{Research \& Technical Projects}
+\heading{\textbf{Energy Simulation \& Parametric Analysis -- ME572 Building Energy Analysis} \textbar{} 2026}{\link{https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing}{Report}}
+\begin{itemize}
+  \item Built a 5,000\,ft\textsuperscript{2} office energy model and benchmarked annual site energy use against ENERGY STAR; evaluated roof, wall, glazing, and ventilation measures through 17 parametric simulations.
+  \item Found that lowering glazing SHGC from 0.70 to 0.30 reduced annual energy cost by 7.5\% and peak cooling load by 31.5\% but increased GHG emissions by 10.6\%, as reduced solar gains shifted demand from electric cooling toward natural-gas heating under the project's emissions assumptions.
+  \item Identified that one-at-a-time parametric analysis could isolate individual design effects but could not capture interactions among envelope variables, limiting conclusions about combined design changes.
+\end{itemize}
+
+\heading{\textbf{Interior Lighting Design \& COMFEN Analysis -- ME572 Building Energy Analysis} \textbar{} 2026}{\link{https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing}{Report}}
+\begin{itemize}
+  \item Designed a 1,632\,ft\textsuperscript{2} lighting layout to 52\,fc at 0.52\,W/ft\textsuperscript{2}, below the 0.6\,W/ft\textsuperscript{2} target; used COMFEN to evaluate how reduced lighting power affected heating and cooling loads.
+  \item Modeled a 25\% reduction in lighting power using Toronto weather data during winter, reducing annual EUI by 6.3\% while increasing heating demand by 13.6\% because lower lighting loads also reduced internal heat gains during the heating season.
+\end{itemize}
+
+\heading{\textbf{Volcanic-Tectonic Earthquake Monitoring \& Low-Cost Detector Development} \textbar{} 2024}{\link{https://docs.google.com/presentation/d/1tkdNsuMAD67OgtxQ-YM7wEmLvsL-Ea81CECaYw2BRl0/edit?usp=sharing}{Poster}}
+\begin{itemize}
+  \item Deployed Raspberry Shake geophones at two locations in Hong Kong to collect low-magnitude tremor data and investigate seismic activity near Cheung Chau.
+  \item Analyzed seismic waveforms from multiple locations and used triangulation to estimate the source region of detected tremors.
+  \item Identified intermittent data loss and measurement limitations in the original Raspberry Shake setup, including dependence on continuous power/connectivity and sensor placement on an elevated structural column.
+  \item Improved monitoring reliability by adding backup power and offline data acquisition, using higher-sensitivity tremor sensors and geophones, and ground-mounting sensors closer to the area of interest to improve coupling and signal quality.
+\end{itemize}
+
+\heading{\textbf{Baseball Aerodynamics \& Pitch Modeling -- ME 362 Fluid Mechanics II} \textbar{} 2025}{\link{https://drive.google.com/file/d/170KikfBvYJqbIyHyzvZuVhXJN9q0Hq_5/view?usp=sharing}{Report}}
+\begin{itemize}
+  \item Developed a MATLAB model of fastball, curveball, slider, and knuckleball trajectories using drag, spin-dependent lift, gravity, release velocity, and spin axis; compared predicted vertical and horizontal break with MLB Statcast data.
+  \item Analyzed Reynolds number, boundary-layer transition and separation, pressure gradients, and seam effects; identified where the smooth-sphere model failed to capture the knuckleball's asymmetric, unsteady wake behavior.
+\end{itemize}
+
+\heading{\textbf{Five-Degree-of-Freedom Remote-Operated Robotic Manipulator} \textbar{} 2025}{\link{https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing}{Report}}
+\begin{itemize}
+  \item Designed and built a 5-DOF robotic manipulator with a 51\,cm reach and $\pm$5\,mm positional accuracy using SolidWorks and 3D-printed components.
+  \item Built the motor-driver and control circuitry and programmed coordinated joint movement in C++ using an Arduino Mega ADK.
+  \item Troubleshot servo over-current, wire-crimp failures, and USB host-shield signal issues through several build and testing iterations.
+\end{itemize}
+
+\heading{\textbf{All-Terrain Electronically-Assisted Collapsible Wagon -- ME481} \textbar{} Ongoing}{\link{https://drive.google.com/file/d/1iHX16wDuQlWoo2We_pLd0g6E9CP2kmpn/view?usp=sharing}{Report}}
+\begin{itemize}
+  \item Designed a fail-safe mechanical steering system that uses lateral handle movement to keep the front wheels steerable if the electrical steering system or motor fails.
+  \item Developed a trailing-arm suspension layout and created CAD assemblies to check fit, clearance, manufacturability, and integration with the rest of the wagon.
+  \item Currently moving into physical prototyping, including supplier selection and procurement of the drive, power, and structural components.
+\end{itemize}
+
+\section{Engineering Experience}
+\heading{\textbf{Chevalier Group} -- Envirotech Trainee \textbar{} \textit{Hong Kong}}{\textit{09/2026 -- Present}}
+\begin{itemize}
+  \item Performed process and hydraulic design calculations for water-treatment chemical systems, including sodium bisulfite storage sizing for a 640\,MLD facility, dosing-flow calculations across a 4:1 turndown range, pipe sizing, and suction \& discharge head-loss analysis incorporating pipe lengths, fittings, valves, manifolds, and pump arrangements.
+  \item Designed and coordinated chemical-storage, dosing-system, and piping layouts from P\&IDs using Navisworks, integrating tanks, pumps, valves, and maintenance access while reviewing installed works for constructability, durability, and compliance with design intent.
+  \item Prepared and reviewed engineering documentation including compliance submissions, pump technical submittals, flange-standard comparisons, and construction schedules. Evaluated centrifugal and progressive-cavity pumps against ARUP \& WSD requirements for hydraulic performance, materials, PLC controls, and manufacturer data.
+\end{itemize}
+
+\heading{\textbf{WSP Global Inc.} -- BIM Co-op Student \textbar{} \textit{Toronto, Canada}}{\textit{01/2026 -- 04/2026}}
+\begin{itemize}
+  \item Developed and coordinated Revit BIM models for HVAC and plumbing systems on the Eglinton Crosstown West Extension, incorporating ductwork, piping, air terminals, valves, fittings, equipment clearances, and multidisciplinary design requirements.
+  \item Designed fire-protection sprinkler layouts and water-distribution systems for Union Station Expansion Project Blue Route Phases 2--6, accounting for code requirements, constructability, spatial coordination, and evolving architectural and engineering constraints.
+  \item Managed BIM coordination and submission workflows across 10 project scopes, supporting internal, interdisciplinary, alliance, and IFC reviews while tracking design changes and resolving model \& interface issues ahead of submission deadlines.
+\end{itemize}
+
+\heading{\textbf{Airport Authority Hong Kong} -- BIM Engineering Trainee \textbar{} \textit{Hong Kong}}{\textit{06/2025 -- 08/2025}}
+\begin{itemize}
+  \item Developed a Dynamo--Power BI workflow to extract and structure BIM data for project analytics, supporting the transition of airport engineering information and model-management processes to Autodesk Construction Cloud.
+  \item Reviewed and maintained 20+ completed Revit BIM models for Hong Kong International Airport, checking model quality, consistency, and alignment with architectural and engineering requirements across airport facilities.
+  \item Contributed to an AI-assisted waste-sorting patrol robot project using SLAM and LiDAR, focusing on real-time environmental mapping, localization, and autonomous navigation within an airport operating environment.
+\end{itemize}
+
+\section{Awards \& Certifications}
+\textbf{3rd Place, IEEE Young Engineers Conference} \textbar{} 2022\\
+\textbf{University of Waterloo President's Scholarship} \textbar{} 2023\\
+\textbf{Mandatory Basic Safety Training Certificate (Construction Work)} -- Hong Kong Human Resources Ltd. \textbar{} 2026
+
+\end{document}
