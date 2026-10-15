@@ -1,16 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1d5a33"/>
-      <stop offset="1" stop-color="#0c2a17"/>
-    </linearGradient>
-    <linearGradient id="m" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#82d1c5"/>
-      <stop offset="0.55" stop-color="#4b97c0"/>
-      <stop offset="1" stop-color="#b5d984"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
-  <circle cx="32" cy="16" r="5" fill="#ffc46b"/>
-  <path d="M12 50V18l20 24 20-24v32" fill="none" stroke="url(#m)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- split M: two angular halves with a gap down the middle; the dark keyline keeps it readable on light tabs -->
+  <g fill="#f5f0e6" stroke="#144425" stroke-width="3" stroke-linejoin="miter" paint-order="stroke">
+    <path d="M5 56V8h10l15 20v14L15 24v32z"/>
+    <path d="M59 56V8H49L34 28v14l15-18v32z"/>
+  </g>
 </svg>
