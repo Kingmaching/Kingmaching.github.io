@@ -405,6 +405,7 @@
   scene.add(trunks, canopies);
   // A lawn under the plaza trees
   flat(46, 46, mat.green, 0, 0, 0.035);
+  flat(3.4, 12.6, mat.walk, 1.2, 17, 0.04);                // the entrance walk across the lawn, straight to the lobby
 
   // ---------- Floors ----------
   const floors = [], risers = [], sensors = [], streams = [], heaters = [];
@@ -816,8 +817,8 @@
   // Fixed scenery, plus things that move with the scroll (people, dog, plane) or on their own (traffic
   // lights cycle, the dog wags, the plane's beacon blinks) in livenStreet(), called every frame.
   const white = new THREE.MeshBasicMaterial({ color: 0xf2f2ea, transparent: true, opacity: 0.85 });
-  // Zebra crossings where the four avenues meet the ring road
-  [[0, RING + 6.5, 0], [RING + 6.5, 0, 1], [0, -RING - 6.5, 0], [-RING - 6.5, 0, 1]].forEach(([cx, cz, across]) => {
+  // Zebra crossings where the four avenues meet the ring road, and one over the ring road to the entrance walk
+  [[0, RING + 6.5, 0], [RING + 6.5, 0, 1], [0, -RING - 6.5, 0], [-RING - 6.5, 0, 1], [1.2, RING, 1]].forEach(([cx, cz, across]) => {
     for (let k = -2; k <= 2; k++) {
       const m = flat(across ? 3 : 0.7, across ? 0.7 : 3, white, cx + (across ? 0 : k * 1.45), cz + (across ? k * 1.45 : 0), 0.08);
       m.receiveShadow = false;

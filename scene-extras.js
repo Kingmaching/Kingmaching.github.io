@@ -11,7 +11,7 @@
   const add=(o,back)=>{if(back)toBack(o);scene.add(o);return o;};
   // 1. more background buildings: copy the nearby blurred blocks into the gaps
   const blocks=[];const wp=new THREE.Vector3();scene.traverse(c=>{if(c.isMesh&&!c.isInstancedMesh&&c.geometry.type==='BoxGeometry'&&c.geometry.parameters.height>8){c.getWorldPosition(wp);const r=Math.hypot(wp.x,wp.z);if(r>40&&r<120){let top=c;while(top.parent&&top.parent!==scene)top=top.parent;if(!blocks.includes(top))blocks.push(top)}}});
-  const extra=[];
+  const extra=[], foot=[];   // foot: building footprints {x, z, r, soft, obj}; soft ones give way to real buildings
   const cxz=[INTRO_CAM.x,INTRO_CAM.z],seen=[];
   const fits=(x,z,w)=>{const b=Math.atan2(z-cxz[1],x-cxz[0]),d=Math.hypot(x-cxz[0],z-cxz[1]),h=w*0.75/d;
     if(seen.some(p=>{let dd=Math.abs(b-p.b);if(dd>Math.PI)dd=2*Math.PI-dd;return dd<h+p.h+0.012}))return false;seen.push({b,h});return true};
@@ -23,11 +23,15 @@
     if(!fits(Math.cos(a)*r,Math.sin(a)*r,w))continue;i++;
     const grp=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(w,h,w),shade(src.material,i));body.position.y=h/2;
     const roof=new THREE.Mesh(new THREE.BoxGeometry(w*.92,.8,w*.92),roofMat);roof.position.y=h+.4;grp.add(body,roof);
-    grp.position.set(Math.cos(a)*r,0,Math.sin(a)*r);grp.rotation.y=rnd()*Math.PI;add(grp,true);extra.push(grp)}
-  // 2. walkways through the near parks (camera side), with bushes along them
+    grp.position.set(Math.cos(a)*r,0,Math.sin(a)*r);grp.rotation.y=rnd()*Math.PI;add(grp,true);extra.push(grp);foot.push({x:grp.position.x,z:grp.position.z,r:w*.75,soft:true,obj:grp})}
+  // 2. walkways through the near parks (camera side), each running from one pavement to another, with bushes
+  //    along them: two diagonals between the +z and +x avenues' pavements, and a link from the ring's corner
   const walk=new THREE.MeshStandardMaterial({color:mat.walk.color.clone(),roughness:.95});
   const path=(x,z,w,d,rot)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),walk);m.rotation.set(-Math.PI/2,0,rot||0);m.position.set(x,0.045,z);m.receiveShadow=true;return add(m)};
-  const paths=[[62,58,3,70,Math.PI/4],[50,82,3,40,-Math.PI/5],[84,46,3,40,Math.PI/2.6],[60,36,30,2.6,0.2],[38,64,2.6,30,0.15]];
+  const pathSegs=[[7,70,70,7],[7,110,110,7],[38.5,38.5,58.5,58.5]];
+  const paths=pathSegs.map(([ax,az,bx,bz])=>{const dx=bx-ax,dz=bz-az;return [(ax+bx)/2,(az+bz)/2,3,Math.hypot(dx,dz),Math.atan2(dx,dz)]});
+  const segDist=([x,z],[ax,az,bx,bz])=>{const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-ax-t*dx,z-az-t*dz)};
+  const nearPath=(x,z,m)=>pathSegs.some(sg=>segDist([x,z],sg)<1.5+m);
   paths.forEach(a=>path(...a));
   const bushGeo=new THREE.IcosahedronGeometry(1,0);const bushMats=['#4f8a45','#5d9a4c','#3f7a3f','#6aa451'].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.9,flatShading:true}));
   let nb=0;paths.forEach(([x,z,w,d,rot])=>{const L=Math.max(w,d),along=d>w;for(let s=-L/2+3;s<L/2;s+=4.2+rnd()*3){for(const side of[-1,1]){if(rnd()<.35)continue;
@@ -95,7 +99,9 @@
   flatOn(7,92,roadMat,-60,16,0.05);            // x = -60, from the -x avenue (z = 0) up to z = 62
   flatOn(23,8,roadMat,-96.5,0,0.05);                    // the -x avenue carries on to the waterfront...
   for(const [cx,cz] of [[-106,0],[0,-79]]){const t=new THREE.Mesh(new THREE.CircleGeometry(7.5,32),roadMat);t.rotation.x=-Math.PI/2;t.position.set(cx,0.051,cz);t.receiveShadow=true;add(t)}   // ...and both harbour roads end in a turning circle
-  for(const sd of[-1,1]){flatOn(2.5,215,walk,sd*5.75,142.5,0.046);flatOn(215,2.5,walk,142.5,sd*5.75,0.046)}   // pavements along the long avenues
+  for(const sd of[-1,1]){flatOn(2.5,215,walk,sd*5.75,142.5,0.046);flatOn(215,2.5,walk,142.5,sd*5.75,0.046)}   // pavements along the long avenues,
+  for(const sd of[-1,1]){flatOn(71,2.5,walk,-70.5,sd*5.75,0.046);flatOn(2.5,44,walk,sd*5.75,-57,0.046)}            // the harbour roads,
+  for(const sd of[-1,1]){flatOn(96,2.5,walk,-52,62+sd*4.75,0.046);flatOn(2.5,62,walk,-60+sd*4.75,31,0.046)}        // and the district streets
   const segs=[[[0,35],[0,250]],[[-31,-35],[-31,35]],[[31,-35],[31,35]],[[-35,31],[35,31]],[[-35,-31],[35,-31]],
               [[-106,0],[-35,0]],[[35,0],[250,0]],[[0,-79],[0,-35]],[[-100,62],[-4,62]],[[-60,0],[-60,62]]];
   // roads as rectangles [x0, x1, z0, z1] (with pavements and turning circles), for keeping buildings off them
@@ -107,9 +113,28 @@
   const doorMat=new THREE.MeshStandardMaterial({color:'#2b3439',roughness:.25,metalness:.4}),slabMat=new THREE.MeshStandardMaterial({color:'#e6e8e6',roughness:.7});
   const rampMat=new THREE.MeshStandardMaterial({color:'#262b2e',roughness:.9}),kerbMat=new THREE.MeshStandardMaterial({color:'#c9cdcc',roughness:.8});
   const plots=[];
+  // a plot's ground rectangles (building, driveway, door footpath) as world corners, and an overlap test
+  const rectsOf=pl=>{const c=Math.cos(pl.rot),s=Math.sin(pl.rot),r=(lx0,lx1,lz0,lz1)=>[[lx0,lz0],[lx1,lz0],[lx1,lz1],[lx0,lz1]].map(([lx,lz])=>[pl.x+lx*c+lz*s,pl.z-lx*s+lz*c]);
+    const h=pl.pw/2,dx=pl.sg*pl.pw*.2,fx=-pl.sg*pl.pw*.28;return [r(-h-1,h+1,-h-1,h+1),r(dx-2.2,dx+2.2,h,h+pl.L),r(fx-1.1,fx+1.1,h,h+pl.L)]};
+  const sat=(A,B)=>{for(const P of [A,B])for(let i=0;i<4;i++){const [x1,z1]=P[i],[x2,z2]=P[(i+1)%4],nx=z2-z1,nz=x1-x2;const pa=A.map(([x,z])=>x*nx+z*nz),pb=B.map(([x,z])=>x*nx+z*nz);
+      if(Math.max(...pa)<=Math.min(...pb)||Math.max(...pb)<=Math.min(...pa))return false}return true};
   const makeBuilding=(x,z,kind,col,haze,hHint)=>{
-    const pw=kind==='box'?10+rnd()*6:10+rnd()*5;[x,z]=clearRoads(x,z,pw/2+3);   // never on a road
+    const pw=kind==='box'?10+rnd()*6:10+rnd()*5;
+    // never on a road (room for a driveway and ramp), never on another building: firm ones push this one
+    // away, background fillers make way
+    for(let it=0;it<8;it++){[x,z]=clearRoads(x,z,pw/2+9);const hit=foot.find(f=>Math.hypot(x-f.x,z-f.z)<f.r+pw*.75+3);if(!hit)break;
+      if(hit.soft){hit.obj.visible=false;foot.splice(foot.indexOf(hit),1);continue}
+      const d=Math.hypot(x-hit.x,z-hit.z)||1,need=hit.r+pw*.75+3.5-d;x+=(x-hit.x)/d*need;z+=(z-hit.z)/d*need}
+    if(foot.some(f=>!f.soft&&Math.hypot(x-f.x,z-f.z)<f.r+pw*.75+3))return;   // no room: leave it out
     const road=nearestRoad(x,z);const rot=Math.atan2(road.px-x,road.pz-z);   // local +z faces the road
+    // Lay out the plot: driveway on one side of the face, the door's footpath on the other. The driveway is
+    // long enough to reach a road; the layout is mirrored if it would run into a neighbour, and the building
+    // left out if neither way fits.
+    const lay=sg=>{const c=Math.cos(rot),s=Math.sin(rot),dxw=sg*pw*.2;let L=Math.max(8,road.d-pw/2-3.4);
+      let reached=false;for(let k=0;k<28&&!reached;k++){const ex=x+dxw*c+(pw/2+L)*s,ez=z-dxw*s+(pw/2+L)*c;reached=nearestRoad(ex,ez).d<4.4;if(!reached)L+=.5}
+      if(!reached)return null;const pl={x,z,rot,pw,L,sg};return rectsOf(pl).some(A=>plots.some(o=>rectsOf(o).some(B=>sat(A,B))))?null:pl};
+    const plot=lay(1)||lay(-1);if(!plot)return;
+    foot.push({x,z,r:pw*.75});
     const g=new THREE.Group();let top=0,topW=0;
     const part=(geo,w,h,y)=>{const m=new THREE.Mesh(geo,winMat(col,w,h,haze));m.position.y=y;g.add(m)};
     if(kind==='box'){const h=hHint||14+rnd()*20;part(new THREE.BoxGeometry(pw,h,pw),pw,h,h/2);top=h;topW=pw}
@@ -120,19 +145,20 @@
       else{const rr=pw*.32,th=18+rnd()*12;part(new THREE.CylinderGeometry(rr,rr,th,24),2*Math.PI*rr,th,top+th/2);top+=th;topW=rr*1.4}}
     const roof=new THREE.Mesh(new THREE.BoxGeometry(topW*.9,.5,topW*.9),hazeMat(roofMat,haze));roof.position.y=top+.25;g.add(roof);rooftop(g,top+.5,topW);
     // front door with a canopy
-    const door=new THREE.Mesh(new THREE.BoxGeometry(2.6,2.7,.15),doorMat);door.position.set(-pw*.18,1.35,pw/2+.05);
-    const can=new THREE.Mesh(new THREE.BoxGeometry(4.2,.25,1.8),slabMat);can.position.set(-pw*.18,3,pw/2+.9);g.add(door,can);
+    const doorX=-plot.sg*pw*.28;
+    const door=new THREE.Mesh(new THREE.BoxGeometry(2.6,2.7,.15),doorMat);door.position.set(doorX,1.35,pw/2+.05);
+    const can=new THREE.Mesh(new THREE.BoxGeometry(4.2,.25,1.8),slabMat);can.position.set(doorX,3,pw/2+.9);g.add(door,can);
     g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
     g.position.set(x,0,z);g.rotation.y=rot;add(g);
-    // ground pieces, laid out in the building's frame: driveway to the road, ramp beside it, footpath down one side
-    const L=Math.max(2,road.d-pw/2-3.5), c=Math.cos(rot), s=Math.sin(rot);
+    // ground pieces, laid out in the building's frame: the driveway runs from the road straight into the car-park
+    // ramp at the building's face; the door has its own footpath out to the pavement
+    const L=plot.L, c=Math.cos(rot), s=Math.sin(rot), dxw=plot.sg*pw*.2, rampL=Math.min(6,L-2);
     const at=(lx,lz)=>[x+lx*c+lz*s, z-lx*s+lz*c];
-    let [dx,dz]=at(pw*.12,pw/2+L/2);flatOn(5,L,roadMat,dx,dz,0.048,rot);                             // driveway
-    [dx,dz]=at(pw*.12+4.4,pw/2+3.2);flatOn(3.4,6,rampMat,dx,dz,0.052,rot);                           // car-park ramp mouth
-    for(const side of[-1,1]){const k=new THREE.Mesh(new THREE.BoxGeometry(.3,.7,6),kerbMat);const [kx,kz]=at(pw*.12+4.4+side*1.85,pw/2+3.2);k.position.set(kx,.35,kz);k.rotation.y=rot;add(k)}
-    const pl=pw+L+3;[dx,dz]=at(-(pw/2+1.9),(pw/2+L)/2-1.5);flatOn(2.4,pl,walk,dx,dz,0.046,rot);    // footpath along the side
-    [dx,dz]=at(-pw*.18,pw/2+1.6);flatOn(3,3.2,walk,dx,dz,0.047,rot);                                 // forecourt by the door
-    plots.push({x,z,rot,pw,L});
+    let [dx,dz]=at(dxw,pw/2+L/2);flatOn(4.4,L,roadMat,dx,dz,0.048,rot);                               // driveway
+    [dx,dz]=at(dxw,pw/2+rampL/2);flatOn(3.4,rampL,rampMat,dx,dz,0.052,rot);                           // ramp mouth, at the end of the driveway
+    for(const side of[-1,1]){const k=new THREE.Mesh(new THREE.BoxGeometry(.3,.7,rampL),kerbMat);const [kx,kz]=at(dxw+side*1.85,pw/2+rampL/2);k.position.set(kx,.35,kz);k.rotation.y=rot;add(k)}
+    [dx,dz]=at(doorX,pw/2+L/2);flatOn(2.2,L,walk,dx,dz,0.047,rot);                                     // the door's footpath to the pavement
+    plots.push(plot);
   };
   // replace the plain blocks beside the tower (and their roof slabs) with the mixed ones
   const old=[];scene.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh&&o.geometry.type==='BoxGeometry'&&o.parent===scene){const g=o.geometry.parameters;const r=Math.hypot(o.position.x,o.position.z);if(r>45&&r<100&&(g.height>8||(g.height<1&&g.width>7)))old.push(o)}});
@@ -225,7 +251,7 @@
     if((x<-35&&x>-114&&az<7.5)||(z<-35&&z>-87&&ax<7.5))return true;                 // harbour roads and turning circles
     if(Math.abs(z-62)<6.5&&x<0&&x>-102)return true;if(Math.abs(x+60)<6.5&&z>0&&z<66)return true;   // district streets
     return false};
-  for(let i=0;i<n;i++){inst[0].getMatrixAt(i,tm);tp.setFromMatrixPosition(tm);if(paved(tp.x,tp.z)){inst.forEach(o=>o.setMatrixAt(i,zeroM))}}inst.forEach(o=>o.instanceMatrix.needsUpdate=true);   // no trees on the new roads either
+  for(let i=0;i<n;i++){inst[0].getMatrixAt(i,tm);tp.setFromMatrixPosition(tm);if(paved(tp.x,tp.z)||nearPath(tp.x,tp.z,1.5)){inst.forEach(o=>o.setMatrixAt(i,zeroM))}}inst.forEach(o=>o.instanceMatrix.needsUpdate=true);   // no trees on the new roads either
   let bushesHidden=0;scene.children.forEach(o=>{if(o.isMesh&&!o.isInstancedMesh&&o.geometry.type==='IcosahedronGeometry'&&o.position.y<2&&o.visible&&paved(o.position.x,o.position.z)){o.visible=false;bushesHidden++}});
   // 18. motion, driven by scroll progress like the rest of the street life (it waits when the page does):
   //     cars drive their routes and then off down the long avenues, people walk their paths and pavements and
@@ -253,8 +279,12 @@
   const WALK_FAR=120, ARRIVE_FROM=100;
   const aveOf=(x,z)=>x<z?'z':'x';                       // the nearer long avenue (+z or +x) from the park quadrant
   const onAve=(ave,x,z)=>ave==='z'?[x<0?-5.6:5.6,z]:[x,z<0?-5.6:5.6];
+  let turn=0;
   const walkOut=(w,far)=>{if(w.path){const {x,z,len,u}=w.path,e1=[x+u[0]*len/2,z+u[1]*len/2],e2=[x-u[0]*len/2,z-u[1]*len/2];const e=Math.hypot(...e1)>Math.hypot(...e2)?e1:e2;
-      const ave=aveOf(...e),a=onAve(ave,...e),end=ave==='z'?[a[0],far]:[far,a[1]];return [[w.px,w.pz],e,a,end]}
+      const pts=[[w.px,w.pz],e];let end=e;
+      if(Math.min(Math.abs(e[0]),Math.abs(e[1]))>8){const sg=pathSegs.find(sg=>segDist(e,sg)<1&&Math.hypot(sg[0]-sg[2],sg[1]-sg[3])>len+1);   // a link path: carry on along the path it joins
+        if(sg){end=turn++%2?[sg[0],sg[1]]:[sg[2],sg[3]];pts.push(end)}}
+      const ave=aveOf(...end),a=onAve(ave,...end),out=ave==='z'?[a[0],far]:[far,a[1]];return [...pts,a,out]}
     const ave=w.pave,a=onAve(ave,w.px,w.pz),end=ave==='z'?[a[0],far]:[far,a[1]];return [[w.px,w.pz],a,end]};
   const outLeave=[-1.8,-1.7,-1.6,-1.5,-1.4,-1.3,-1.2,-1.0,-.8,-.6,1.5,3.0,4.5], inAt=[.4,.9,1.4,1.9,2.4,2.9,3.4,3.9,4.4,4.9,5.4,5.9];
   let no=0,ni=0;
