@@ -62,6 +62,7 @@
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
+  const sceneLight = { day: 1, dusk: 0, night: 0 };   // read by scene-extras.js to dim its haze
   scene.fog = new THREE.Fog(0x121b28, 320, 900);
   const camera = new THREE.PerspectiveCamera(32, 1, 1, 1400);
   const stage = canvas.parentElement;
@@ -1021,6 +1022,7 @@
     // full day by the Project 2.1 introduction, golden hour from the measurement step.
     const day = lerp(0.35, 1, smoothstep(q, -2, 0)), dusk = smoothstep(q, 4.0, 4.85);
     nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 2.2, so its lighting reads
+    sceneLight.day = day; sceneLight.dusk = dusk; sceneLight.night = nightfall;
     const dawn = 4 * day * (1 - day);
     const alt = q < 1.6 ? lerp(14, 46, smoothstep(q, -2, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
     const az = lerp(245, 262, smoothstep(q, -1, 4.8));   // on the intro the sun sits between the name and the tower
@@ -1170,6 +1172,8 @@
     }
     document.documentElement.style.setProperty("--tower-half", Math.round((m * w) / 2) + "px");
   }
+
+  window.__og = { scene, THREE, mat, toBack, light: sceneLight };   // for scene-extras.js
 
   // ---------- Loop ----------
   // Two passes: the backdrop (layer 1) into the blurred canvas, then the tower and streets (layer 0).
