@@ -6,8 +6,8 @@
 //          the sun already up between them; scrolling moves the traffic and people and lifts the sun
 //  −1 → 0  the camera swings round until the tower stands in the middle of the screen, cards either side;
 //          full day by the Project 2.1 introduction
-//   0 → 1  louvres adapt to the sun
-//   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
+//   0 → 1  louvres adapt to the sun; sun rays with arrowheads show where it strikes (fading out as the facade pulls away)
+//   1 → 2  facade pulls away; glazing tint follows the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
 //   4 → 5  sensors switch on as the light turns golden
@@ -93,6 +93,7 @@
     sun: new THREE.MeshBasicMaterial({ color: 0xffe7a8, fog: false }),
   };
   const rayMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0 });
+  const rayHeadMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
   const UP = new THREE.Vector3(0, 1, 0);
   const dummy = new THREE.Object3D();                 // scratch transform for instanced meshes
 
@@ -129,6 +130,7 @@
     mat.air.color.set(cssColor("--c-cool", "#2a9fd6"));
     mat.arrow.color.set(cssColor("--c-cool", "#2a9fd6"));
     rayMat.color.set("#ffc46b");
+    rayHeadMat.color.set("#ffb347");
     mat.sensor.color.set("#f4f8ff");                 // sensors are white so they never read as heat
     mat.lamp.color.set(cssColor("--b-lamp", "#ffd88a"));
   }
@@ -674,19 +676,34 @@
   const rays = new THREE.LineSegments(rayGeo, rayMat);
   rays.frustumCulled = false;
   scene.add(rays);
+  const rayHeads = new THREE.InstancedMesh(new THREE.ConeGeometry(0.9, 2.6, 8), rayHeadMat, RAYS);
+  rayHeads.frustumCulled = false;
+  scene.add(rayHeads);
+  const inbound = new THREE.Vector3();
   const raySeeds = Array.from({ length: RAYS }, () => ({ u: rand() - 0.5, f: rand() * (FLOORS - 1), s: rand() }));
-  function layoutRays() {
-    const ranked = SIDES.map(side => ({ side, d: side.n.dot(flatSun) })).sort((a, b) => b.d - a.d);
+  // The sun mostly lights the faces turned away from the camera, so the rays land on whichever sunlit face
+  // the camera sees best, and stop just short of it so the arrowheads stand clear of the louvres.
+  const toCam = new THREE.Vector3();
+  function layoutRays(explode) {
+    toCam.set(camera.position.x, 0, camera.position.z).normalize();
+    const lit = SIDES.filter(side => side.n.dot(flatSun) > 0.1);
+    const side = (lit.length ? lit : SIDES).reduce((a, b) => (b.n.dot(toCam) > a.n.dot(toCam) ? b : a));
     const pos = rayGeo.attributes.position.array;
     raySeeds.forEach((r, i) => {
-      const pick = r.s < ranked[0].d / (ranked[0].d + Math.max(0, ranked[1].d) + 1e-6) ? ranked[0] : ranked[1];
       const g = floors[Math.floor(r.f)];
-      const end = pick.side.n.clone().multiplyScalar(W / 2 - 0.3).addScaledVector(pick.side.t, r.u * (W - 2));
+      const end = side.n.clone().multiplyScalar(W / 2 + 8 + 10 * explode).addScaledVector(side.t, r.u * (W - 2));
       end.y = g.position.y + 0.6 + (r.f % 1) * (FH - 1);
       const start = end.clone().addScaledVector(sunDir, 46);
       pos.set([start.x, start.y, start.z, end.x, end.y, end.z], i * 6);
+      inbound.copy(sunDir).negate();
+      dummy.position.copy(end).addScaledVector(sunDir, 1.3);   // cone centre, so the tip lands on the ray's end
+      dummy.quaternion.setFromUnitVectors(UP, inbound);
+      dummy.scale.setScalar(1);
+      dummy.updateMatrix();
+      rayHeads.setMatrixAt(i, dummy.matrix);
     });
     rayGeo.attributes.position.needsUpdate = true;
+    rayHeads.instanceMatrix.needsUpdate = true;
   }
 
   // Soft sun shafts: open cones faded at both ends (additive)
@@ -885,8 +902,9 @@
   pose(ownerA, 0);
   scene.add(dog);
   // A plane crossing the distant sky as the page scrolls, leaving a faint contrail. It sits in a group that
-  // turns about the vertical axis, so the plane and its trail ride one arc of radius 560 m.
-  const flight = new THREE.Group(), plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
+  // turns about the vertical axis, so the plane and its trail ride one arc of radius 560 m. Plane and trail
+  // share the `craft` group, centred on the plane, so the trail climbs and shrinks with it as it flies off.
+  const flight = new THREE.Group(), craft = new THREE.Group(), plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
   const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.7, 12, 10), planeMat);
   fuselage.rotation.z = Math.PI / 2; plane.add(fuselage);
   plane.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 13), planeMat));
@@ -894,10 +912,10 @@
   const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff3b3b, fog: false }));
   beacon.position.set(0, -0.9, 0); plane.add(beacon);
   const FLY_R = 560, FLY_H = 150, TRAIL = 0.32;                      // trail length in radians of the arc
-  plane.position.set(FLY_R, FLY_H, 0); plane.rotation.y = -Math.PI / 2;   // nose along +z, the way the arc runs
+  craft.position.set(FLY_R, FLY_H, 0); plane.rotation.y = -Math.PI / 2;   // nose along +z, the way the arc runs
   const trailCurve = new THREE.CatmullRomCurve3(Array.from({ length: 13 }, (_, i) => {
     const f = -TRAIL + (i / 12) * TRAIL;
-    return new THREE.Vector3(Math.cos(f) * FLY_R, FLY_H, Math.sin(f) * FLY_R - 6);
+    return new THREE.Vector3(Math.cos(f) * FLY_R - FLY_R, 0, Math.sin(f) * FLY_R - 6);   // relative to the plane
   }));
   const trailMat = new THREE.ShaderMaterial({
     uniforms: { uOpacity: { value: 0.5 } },
@@ -905,7 +923,8 @@
     fragmentShader: "uniform float uOpacity; varying float vU; void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, uOpacity * pow(vU, 1.6)); }",
     transparent: true, depthWrite: false,
   });
-  flight.add(plane, new THREE.Mesh(new THREE.TubeGeometry(trailCurve, 60, 0.7, 6, false), trailMat));
+  craft.add(plane, new THREE.Mesh(new THREE.TubeGeometry(trailCurve, 60, 0.7, 6, false), trailMat));
+  flight.add(craft);
   scene.add(flight);
   const SKY_NIGHT = C("#1c2633");
 
@@ -923,8 +942,8 @@
     moveActors(q);
     flight.rotation.y = -(3.4 + clamp((q + 2) / 3, 0, 1) * 1.2);     // the plane crosses the sky as you scroll
     const away = smoothstep(q, -0.8, 0.3);                           // ...and flies off into the distance by Project 2.1
-    plane.scale.setScalar(Math.max(0.001, 1 - away));
-    plane.position.y = FLY_H + away * 40;
+    craft.scale.setScalar(Math.max(0.001, 1 - away));
+    craft.position.y = FLY_H + away * 40;
     flight.visible = away < 1;
     beacon.visible = (t % 1.2) < 0.15;
     planeMat.color.set(0xe9eef2).lerp(SKY_NIGHT, nightAmt);
@@ -990,7 +1009,7 @@
       // Airflow has the stage to itself in step 3, then fades out as the heating points come in.
       air: smoothstep(q, 2.4, 2.9) * (1 - smoothstep(q, 3.15, 3.4)),
       heat: smoothstep(q, 3.4, 3.65) * whole,
-      rays: smoothstep(q, 1.25, 1.6) * (1 - smoothstep(q, 2.4, 2.8)),
+      rays: smoothstep(q, 0.45, 0.85) * (1 - smoothstep(q, 1.3, 1.85)),   // the facade step, fading out as the facade pulls away
       lamps: smoothstep(q, 3.25, 3.6) * whole, sense: smoothstep(q, 4.35, 4.9) * whole,
       roof: smoothstep(q, 6.0, 6.6),
     };
@@ -1054,15 +1073,16 @@
     layoutFacade(st);
     layoutMullions(st.spread, st.roof);
 
-    // Envelope: tint follows SHGC, rays carry the transmitted solar gain.
+    // Envelope: tint follows SHGC; rays show the sun striking the facade.
     const tint = norm(0.70 - live.shgc, 0, 0.40);
     const glassNow = blend("glass", day, dusk);
     mat.glass.color.copy(glassNow).lerp(glassNow.clone().multiplyScalar(0.45), tint);
     mat.glass.emissive.copy(WARM).multiplyScalar(glow * 1.1 * (1 - tint * 0.4));
     mat.glass.opacity = lerp(0.4, 0.62, tint);
-    rays.visible = st.rays > 0.01;
-    if (rays.visible) layoutRays();
+    rays.visible = rayHeads.visible = st.rays > 0.01;
+    if (rays.visible) layoutRays(st.explode);
     rayMat.opacity = st.rays * lerp(0.15, 0.7, norm(live.shgc, 0.30, 0.70));
+    rayHeadMat.opacity = Math.min(1, rayMat.opacity * 1.4);
 
     // Air: thicker streams with arrows; density and speed follow outdoor air.
     const airAmt = norm(live.cfm, 10, 30);

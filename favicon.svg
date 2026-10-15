@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0f1b2d"/>
-  <path d="M14 46V18h7l11 15 11-15h7v28h-7V31L32 45 21 31v15z" fill="#f2b705"/>
+  <!-- black on light browser tabs, off-white on dark ones -->
+  <style>.f{fill:#111}@media (prefers-color-scheme:dark){.f{fill:#f5f0e6}}</style>
+  <g class="f">
+    <path d="M4 60V18L17 6l8 8-11 9v29z"/>
+    <path d="M60 60V18L47 6l-8 8 11 9v29z"/>
+    <path d="M18 27l6-6 8 9 8-9 6 6-14 15z"/>
+  </g>
 </svg>
