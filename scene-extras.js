@@ -26,7 +26,7 @@
     grp.position.set(Math.cos(a)*r,0,Math.sin(a)*r);grp.rotation.y=rnd()*Math.PI;add(grp,true);extra.push(grp);foot.push({x:grp.position.x,z:grp.position.z,r:w*.75,soft:true,obj:grp})}
   // 2. walkways through the near parks (camera side), each running from one pavement to another, with bushes
   //    along them: two diagonals between the +z and +x avenues' pavements, and a link from the ring's corner
-  const walk=new THREE.MeshStandardMaterial({color:mat.walk.color.clone(),roughness:.95});
+  const walk=mat.walk;   // the scene's own pavement material, so new paving changes with the light like the rest
   const path=(x,z,w,d,rot)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),walk);m.rotation.set(-Math.PI/2,0,rot||0);m.position.set(x,0.045,z);m.receiveShadow=true;return add(m)};
   const pathSegs=[[7,70,70,7],[7,110,110,7],[38.5,38.5,58.5,58.5]];
   const paths=pathSegs.map(([ax,az,bx,bz])=>{const dx=bx-ax,dz=bz-az;return [(ax+bx)/2,(az+bz)/2,3,Math.hypot(dx,dz),Math.atan2(dx,dz)]});
@@ -92,16 +92,16 @@
     if(rnd()<.4){const mast=new THREE.Mesh(new THREE.CylinderGeometry(.08,.12,4,6),tankMat);mast.position.set(w*.3,y+2,-w*.3);g.add(mast)}};
   // 10. buildings on both sides from one maker: mixed shapes, a front door facing the nearest road, a driveway
   //     to it, an underground car-park ramp beside the driveway, and a footpath down one side.
-  const roadMat=new THREE.MeshStandardMaterial({color:mat.road.color.clone(),roughness:.95});
+  const roadMat=mat.road;   // likewise the road material (where pieces meet or overlap, they never flicker)
   const flatOn=(w,d,m,x,z,y,rot)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);p.rotation.set(-Math.PI/2,0,rot||0);p.position.set(x,y,z);p.receiveShadow=true;return add(p)};
   // local streets through the district (so driveways have somewhere to go)
   flatOn(96,7,roadMat,-52,62,0.05);            // z = 62, from the avenue (x = 0) out to x = -100
-  flatOn(7,92,roadMat,-60,16,0.05);            // x = -60, from the -x avenue (z = 0) up to z = 62
+  flatOn(7,54.5,roadMat,-60,31.25,0.05);       // x = -60, from the -x avenue's edge (z = 4) to the z = 62 street's (z = 58.5)
   flatOn(23,8,roadMat,-96.5,0,0.05);                    // the -x avenue carries on to the waterfront...
   for(const [cx,cz] of [[-106,0],[0,-79]]){const t=new THREE.Mesh(new THREE.CircleGeometry(7.5,32),roadMat);t.rotation.x=-Math.PI/2;t.position.set(cx,0.051,cz);t.receiveShadow=true;add(t)}   // ...and both harbour roads end in a turning circle
   for(const sd of[-1,1]){flatOn(2.5,215,walk,sd*5.75,142.5,0.046);flatOn(215,2.5,walk,142.5,sd*5.75,0.046)}   // pavements along the long avenues,
   for(const sd of[-1,1]){flatOn(71,2.5,walk,-70.5,sd*5.75,0.046);flatOn(2.5,44,walk,sd*5.75,-57,0.046)}            // the harbour roads,
-  for(const sd of[-1,1]){flatOn(96,2.5,walk,-52,62+sd*4.75,0.046);flatOn(2.5,62,walk,-60+sd*4.75,31,0.046)}        // and the district streets
+  for(const sd of[-1,1]){flatOn(96,2.5,walk,-52,62+sd*4.75,0.046);flatOn(2.5,51,walk,-60+sd*4.75,32.5,0.046)}      // and the district streets
   const segs=[[[0,35],[0,250]],[[-31,-35],[-31,35]],[[31,-35],[31,35]],[[-35,31],[35,31]],[[-35,-31],[35,-31]],
               [[-106,0],[-35,0]],[[35,0],[250,0]],[[0,-79],[0,-35]],[[-100,62],[-4,62]],[[-60,0],[-60,62]]];
   // roads as rectangles [x0, x1, z0, z1] (with pavements and turning circles), for keeping buildings off them
@@ -155,7 +155,7 @@
     const L=plot.L, c=Math.cos(rot), s=Math.sin(rot), dxw=plot.sg*pw*.2, rampL=Math.min(6,L-2);
     const at=(lx,lz)=>[x+lx*c+lz*s, z-lx*s+lz*c];
     let [dx,dz]=at(dxw,pw/2+L/2);flatOn(4.4,L,roadMat,dx,dz,0.048,rot);                               // driveway
-    [dx,dz]=at(dxw,pw/2+rampL/2);flatOn(3.4,rampL,rampMat,dx,dz,0.052,rot);                           // ramp mouth, at the end of the driveway
+    [dx,dz]=at(dxw,pw/2+rampL/2);flatOn(3.4,rampL,rampMat,dx,dz,0.07,rot);                           // ramp mouth, at the end of the driveway
     for(const side of[-1,1]){const k=new THREE.Mesh(new THREE.BoxGeometry(.3,.7,rampL),kerbMat);const [kx,kz]=at(dxw+side*1.85,pw/2+rampL/2);k.position.set(kx,.35,kz);k.rotation.y=rot;add(k)}
     [dx,dz]=at(doorX,pw/2+L/2);flatOn(2.2,L,walk,dx,dz,0.047,rot);                                     // the door's footpath to the pavement
     plots.push(plot);
