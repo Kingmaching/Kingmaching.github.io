@@ -6,7 +6,7 @@
 //          the sun already up between them; scrolling moves the traffic and people and lifts the sun
 //  −1 → 0  the camera swings round until the tower stands in the middle of the screen, cards either side;
 //          full day by the Project 2.1 introduction
-//   0 → 1  louvres adapt to the sun
+//   0 → 1  louvres adapt to the sun; sun rays with arrowheads show where it strikes
 //   1 → 2  facade pulls away; glazing tint and solar rays follow the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
@@ -93,6 +93,7 @@
     sun: new THREE.MeshBasicMaterial({ color: 0xffe7a8, fog: false }),
   };
   const rayMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0 });
+  const rayHeadMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
   const UP = new THREE.Vector3(0, 1, 0);
   const dummy = new THREE.Object3D();                 // scratch transform for instanced meshes
 
@@ -129,6 +130,7 @@
     mat.air.color.set(cssColor("--c-cool", "#2a9fd6"));
     mat.arrow.color.set(cssColor("--c-cool", "#2a9fd6"));
     rayMat.color.set("#ffc46b");
+    rayHeadMat.color.set("#ffb347");
     mat.sensor.color.set("#f4f8ff");                 // sensors are white so they never read as heat
     mat.lamp.color.set(cssColor("--b-lamp", "#ffd88a"));
   }
@@ -674,19 +676,30 @@
   const rays = new THREE.LineSegments(rayGeo, rayMat);
   rays.frustumCulled = false;
   scene.add(rays);
+  const rayHeads = new THREE.InstancedMesh(new THREE.ConeGeometry(0.9, 2.6, 8), rayHeadMat, RAYS);
+  rayHeads.frustumCulled = false;
+  scene.add(rayHeads);
+  const inbound = new THREE.Vector3();
   const raySeeds = Array.from({ length: RAYS }, () => ({ u: rand() - 0.5, f: rand() * (FLOORS - 1), s: rand() }));
-  function layoutRays() {
+  function layoutRays(explode) {
     const ranked = SIDES.map(side => ({ side, d: side.n.dot(flatSun) })).sort((a, b) => b.d - a.d);
     const pos = rayGeo.attributes.position.array;
     raySeeds.forEach((r, i) => {
       const pick = r.s < ranked[0].d / (ranked[0].d + Math.max(0, ranked[1].d) + 1e-6) ? ranked[0] : ranked[1];
       const g = floors[Math.floor(r.f)];
-      const end = pick.side.n.clone().multiplyScalar(W / 2 - 0.3).addScaledVector(pick.side.t, r.u * (W - 2));
+      const end = pick.side.n.clone().multiplyScalar(lerp(W / 2 + 2, W / 2 - 0.3, explode))   // on the louvres, then the glass once they pull away.addScaledVector(pick.side.t, r.u * (W - 2));
       end.y = g.position.y + 0.6 + (r.f % 1) * (FH - 1);
       const start = end.clone().addScaledVector(sunDir, 46);
       pos.set([start.x, start.y, start.z, end.x, end.y, end.z], i * 6);
+      inbound.copy(sunDir).negate();
+      dummy.position.copy(end).addScaledVector(sunDir, 1.3);   // cone centre, so the tip lands on the glass
+      dummy.quaternion.setFromUnitVectors(UP, inbound);
+      dummy.scale.setScalar(1);
+      dummy.updateMatrix();
+      rayHeads.setMatrixAt(i, dummy.matrix);
     });
     rayGeo.attributes.position.needsUpdate = true;
+    rayHeads.instanceMatrix.needsUpdate = true;
   }
 
   // Soft sun shafts: open cones faded at both ends (additive)
@@ -990,7 +1003,7 @@
       // Airflow has the stage to itself in step 3, then fades out as the heating points come in.
       air: smoothstep(q, 2.4, 2.9) * (1 - smoothstep(q, 3.15, 3.4)),
       heat: smoothstep(q, 3.4, 3.65) * whole,
-      rays: smoothstep(q, 1.25, 1.6) * (1 - smoothstep(q, 2.4, 2.8)),
+      rays: smoothstep(q, 0.45, 0.85) * (1 - smoothstep(q, 2.4, 2.8)),
       lamps: smoothstep(q, 3.25, 3.6) * whole, sense: smoothstep(q, 4.35, 4.9) * whole,
       roof: smoothstep(q, 6.0, 6.6),
     };
@@ -1004,7 +1017,10 @@
     nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 2.2, so its lighting reads
     const dawn = 4 * day * (1 - day);
     const alt = q < 1.6 ? lerp(14, 46, smoothstep(q, -2, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
-    const az = lerp(245, 262, smoothstep(q, -1, 4.8));   // on the intro the sun sits between the name and the tower
+    // On the facade and glazing steps the sun swings round to the camera's side, so the sunlit faces (and the
+    // rays striking them) face the viewer; it swings back as the airflow step takes over.
+    const swing = smoothstep(q, 0.1, 0.85) * (1 - smoothstep(q, 2.4, 2.85));
+    const az = lerp(245, 262, smoothstep(q, -1, 4.8)) - 125 * swing;   // on the intro the sun sits between the name and the tower
     sunDir.set(Math.cos(degToRad(alt)) * Math.sin(degToRad(az)), Math.sin(degToRad(alt)), Math.cos(degToRad(alt)) * Math.cos(degToRad(az)));
     flatSun.set(sunDir.x, 0, sunDir.z).normalize();
 
@@ -1060,9 +1076,10 @@
     mat.glass.color.copy(glassNow).lerp(glassNow.clone().multiplyScalar(0.45), tint);
     mat.glass.emissive.copy(WARM).multiplyScalar(glow * 1.1 * (1 - tint * 0.4));
     mat.glass.opacity = lerp(0.4, 0.62, tint);
-    rays.visible = st.rays > 0.01;
-    if (rays.visible) layoutRays();
+    rays.visible = rayHeads.visible = st.rays > 0.01;
+    if (rays.visible) layoutRays(st.explode);
     rayMat.opacity = st.rays * lerp(0.15, 0.7, norm(live.shgc, 0.30, 0.70));
+    rayHeadMat.opacity = Math.min(1, rayMat.opacity * 1.4);
 
     // Air: thicker streams with arrows; density and speed follow outdoor air.
     const airAmt = norm(live.cfm, 10, 30);
