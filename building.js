@@ -734,7 +734,7 @@
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
   // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
-  // Most cars and walkers leave at some point in the story; a few stay to the end (qLeave = Infinity). A
+  // Every car and most walkers leave at some point in the story; a few walkers stay (qLeave = Infinity). A
   // leaver, at qLeave, reaches the +z avenue and heads off down it to the edge of the ground, where it is
   // hidden; its start point is set so it is at that junction exactly then.
   const EXIT_S = 5 / 8;                             // rectPath: middle of the +z side
@@ -742,7 +742,7 @@
   const loopOrLeave = (s0, rate, q, h, qLeave, exitX) => (q < qLeave
     ? rectPath(s0 + rate * q, h, h)
     : [exitX, h + (q - qLeave) * Math.abs(rate) * 8 * h, -Math.PI / 2]);   // same speed, now along +z
-  const CAR_LEAVE = [-1.4, -0.3, 1.0, 2.6, Infinity, Infinity], WALK_LEAVE = [-1.2, -0.2, 0.8, 2.0, 3.4, Infinity, Infinity, Infinity];
+  const CAR_LEAVE = [-1.4, -0.3, 1.0, 2.6, 3.8, 5.0], WALK_LEAVE = [-1.2, -0.2, 0.8, 2.0, 3.4, Infinity, Infinity, Infinity];
   const cars = Array.from({ length: 6 }, (_, i) => {
     const c = { lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07, qLeave: CAR_LEAVE[i] };
     c.s0 = isFinite(c.qLeave) ? EXIT_S - c.lane * c.v * c.qLeave : i / 6;

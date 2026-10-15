@@ -241,11 +241,9 @@
   const OUT_Z=route([1.8,33],[1.8,FAR]), OUT_X=route([33,-1.8],[FAR,-1.8]);
   const IN_Z=route([-1.8,FAR],[-1.8,32.8],[32.8,32.8],[32.8,-1.8],[FAR,-1.8]), IN_X=route([FAR,1.8],[29.2,1.8],[29.2,29.2],[1.8,29.2],[1.8,FAR]);
   // Speeds are metres per scroll step. Vehicles 34-58, people 8-11, so nobody walks faster than the traffic.
-  // A few vehicles are about at the start and drive off; more arrive later, from the far end of an avenue, and
-  // are still about at the end.
+  // A few vehicles are about at the start and all drive off, so the streets are clear of traffic by the end.
   [[OUT_Z,62-33,46],[OUT_Z,96-33,52],[IN_Z,FAR-48,50],[OUT_X,50-33,48]].forEach(([r,d0,v])=>drive(car(0,0,0),r,d0,v));
   drive(bus,OUT_Z,72-33,34); drive(tram,OUT_X,78-33,38);
-  [[IN_Z,0.6,50],[IN_X,1.6,55],[IN_Z,2.8,48],[IN_X,3.9,52],[IN_Z,5.0,56]].forEach(([r,q0,v])=>drive(car(0,0,0),r,0,v,{q0}));
   // People. Half are about at the start and walk away: along their park path to its far end, across to the
   // nearest avenue and down its pavement; or along the ring's pavement to the avenue and down it. The other
   // half arrive later, walking in from down an avenue to their spot, and stay there.
