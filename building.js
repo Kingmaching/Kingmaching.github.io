@@ -6,7 +6,7 @@
 //          the sun already up between them; scrolling moves the traffic and people and lifts the sun
 //  −1 → 0  the camera swings round until the tower stands in the middle of the screen, cards either side;
 //          full day by the Project 2.1 introduction
-//   0 → 1  louvres adapt to the sun; sun rays with arrowheads show where it strikes (gone before 1 → 2)
+//   0 → 1  louvres adapt to the sun; sun rays with arrowheads show where it strikes (fading out as the facade pulls away)
 //   1 → 2  facade pulls away; glazing tint follows the SHGC run
 //   2 → 3  floors separate; airflow arrows follow the outdoor-air run
 //   3 → 4  airflow gives way to heating points; ceiling lights follow the lighting-power run
@@ -684,14 +684,14 @@
   // The sun mostly lights the faces turned away from the camera, so the rays land on whichever sunlit face
   // the camera sees best, and stop just short of it so the arrowheads stand clear of the louvres.
   const toCam = new THREE.Vector3();
-  function layoutRays() {
+  function layoutRays(explode) {
     toCam.set(camera.position.x, 0, camera.position.z).normalize();
     const lit = SIDES.filter(side => side.n.dot(flatSun) > 0.1);
     const side = (lit.length ? lit : SIDES).reduce((a, b) => (b.n.dot(toCam) > a.n.dot(toCam) ? b : a));
     const pos = rayGeo.attributes.position.array;
     raySeeds.forEach((r, i) => {
       const g = floors[Math.floor(r.f)];
-      const end = side.n.clone().multiplyScalar(W / 2 + 8).addScaledVector(side.t, r.u * (W - 2));
+      const end = side.n.clone().multiplyScalar(W / 2 + 8 + 10 * explode).addScaledVector(side.t, r.u * (W - 2));
       end.y = g.position.y + 0.6 + (r.f % 1) * (FH - 1);
       const start = end.clone().addScaledVector(sunDir, 46);
       pos.set([start.x, start.y, start.z, end.x, end.y, end.z], i * 6);
@@ -1007,7 +1007,7 @@
       // Airflow has the stage to itself in step 3, then fades out as the heating points come in.
       air: smoothstep(q, 2.4, 2.9) * (1 - smoothstep(q, 3.15, 3.4)),
       heat: smoothstep(q, 3.4, 3.65) * whole,
-      rays: smoothstep(q, 0.45, 0.85) * (1 - smoothstep(q, 1.1, 1.35)),   // the facade step only; gone before the facade pulls away
+      rays: smoothstep(q, 0.45, 0.85) * (1 - smoothstep(q, 1.3, 1.85)),   // the facade step, fading out as the facade pulls away
       lamps: smoothstep(q, 3.25, 3.6) * whole, sense: smoothstep(q, 4.35, 4.9) * whole,
       roof: smoothstep(q, 6.0, 6.6),
     };
@@ -1078,7 +1078,7 @@
     mat.glass.emissive.copy(WARM).multiplyScalar(glow * 1.1 * (1 - tint * 0.4));
     mat.glass.opacity = lerp(0.4, 0.62, tint);
     rays.visible = rayHeads.visible = st.rays > 0.01;
-    if (rays.visible) layoutRays();
+    if (rays.visible) layoutRays(st.explode);
     rayMat.opacity = st.rays * lerp(0.15, 0.7, norm(live.shgc, 0.30, 0.70));
     rayHeadMat.opacity = Math.min(1, rayMat.opacity * 1.4);
 
