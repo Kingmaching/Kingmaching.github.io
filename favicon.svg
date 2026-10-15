@@ -1,7 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- split M: two angular halves with a gap down the middle; the dark keyline keeps it readable on light tabs -->
-  <g fill="#f5f0e6" stroke="#144425" stroke-width="3" stroke-linejoin="miter" paint-order="stroke">
-    <path d="M5 56V8h10l15 20v14L15 24v32z"/>
-    <path d="M59 56V8H49L34 28v14l15-18v32z"/>
+  <!-- M with a chevron nested above its V; the dark keyline keeps it readable on light tabs -->
+  <g fill="none" stroke-linejoin="miter" stroke-miterlimit="8">
+    <g stroke="#144425" stroke-width="9.5">
+      <path d="M9 58V18l23 24 23-24v40"/>
+      <path d="M19 9l13 13.5L45 9"/>
+    </g>
+    <g stroke="#f5f0e6" stroke-width="6">
+      <path d="M9 58V18l23 24 23-24v40"/>
+      <path d="M19 9l13 13.5L45 9"/>
+    </g>
   </g>
 </svg>

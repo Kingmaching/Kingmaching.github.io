@@ -681,18 +681,22 @@
   scene.add(rayHeads);
   const inbound = new THREE.Vector3();
   const raySeeds = Array.from({ length: RAYS }, () => ({ u: rand() - 0.5, f: rand() * (FLOORS - 1), s: rand() }));
+  // The sun mostly lights the faces turned away from the camera, so the rays land on whichever sunlit face
+  // the camera sees best, and stop just short of it so the arrowheads stand clear of the louvres.
+  const toCam = new THREE.Vector3();
   function layoutRays() {
-    const ranked = SIDES.map(side => ({ side, d: side.n.dot(flatSun) })).sort((a, b) => b.d - a.d);
+    toCam.set(camera.position.x, 0, camera.position.z).normalize();
+    const lit = SIDES.filter(side => side.n.dot(flatSun) > 0.1);
+    const side = (lit.length ? lit : SIDES).reduce((a, b) => (b.n.dot(toCam) > a.n.dot(toCam) ? b : a));
     const pos = rayGeo.attributes.position.array;
     raySeeds.forEach((r, i) => {
-      const pick = r.s < ranked[0].d / (ranked[0].d + Math.max(0, ranked[1].d) + 1e-6) ? ranked[0] : ranked[1];
       const g = floors[Math.floor(r.f)];
-      const end = pick.side.n.clone().multiplyScalar(W / 2 + 2)   // on the louvres.addScaledVector(pick.side.t, r.u * (W - 2));
+      const end = side.n.clone().multiplyScalar(W / 2 + 8).addScaledVector(side.t, r.u * (W - 2));
       end.y = g.position.y + 0.6 + (r.f % 1) * (FH - 1);
       const start = end.clone().addScaledVector(sunDir, 46);
       pos.set([start.x, start.y, start.z, end.x, end.y, end.z], i * 6);
       inbound.copy(sunDir).negate();
-      dummy.position.copy(end).addScaledVector(sunDir, 1.3);   // cone centre, so the tip lands on the glass
+      dummy.position.copy(end).addScaledVector(sunDir, 1.3);   // cone centre, so the tip lands on the ray's end
       dummy.quaternion.setFromUnitVectors(UP, inbound);
       dummy.scale.setScalar(1);
       dummy.updateMatrix();
@@ -1017,9 +1021,7 @@
     nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 2.2, so its lighting reads
     const dawn = 4 * day * (1 - day);
     const alt = q < 1.6 ? lerp(14, 46, smoothstep(q, -2, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
-    // One steady arc across the sky: on the intro the sun sits between the name and the tower; through the
-    // morning it travels round to light the faces the camera sees on the facade step, then drifts on slowly.
-    const az = 245 + 75 * smoothstep(q, -1.5, 1.0) + 25 * smoothstep(q, 1.0, 4.8);
+    const az = lerp(245, 262, smoothstep(q, -1, 4.8));   // on the intro the sun sits between the name and the tower
     sunDir.set(Math.cos(degToRad(alt)) * Math.sin(degToRad(az)), Math.sin(degToRad(alt)), Math.cos(degToRad(alt)) * Math.cos(degToRad(az)));
     flatSun.set(sunDir.x, 0, sunDir.z).normalize();
 
