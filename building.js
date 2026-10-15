@@ -62,7 +62,7 @@
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  const sceneLight = { day: 1, dusk: 0, night: 0 };   // read by scene-extras.js to dim its haze
+  const sceneState = { day: 1, dusk: 0, night: 0, q: -2 };   // read by scene-extras.js (haze, moving street life)
   scene.fog = new THREE.Fog(0x121b28, 320, 900);
   const camera = new THREE.PerspectiveCamera(32, 1, 1, 1400);
   const stage = canvas.parentElement;
@@ -245,8 +245,8 @@
     .forEach(([x, z, w, d]) => flat(w, d, mat.walk, x, z, 0.032));
   [[0, -RING, 2 * RING + 8, 8], [0, RING, 2 * RING + 8, 8], [-RING, 0, 8, 2 * RING + 8], [RING, 0, 8, 2 * RING + 8]]
     .forEach(([x, z, w, d]) => flat(w, d, mat.road, x, z, 0.05));
-  flat(8, 120, mat.road, 0, RING + 64, 0.05);           // +z avenue (camera side)
-  flat(120, 8, mat.road, RING + 64, 0, 0.05);           // +x avenue (camera side)
+  flat(8, 215, mat.road, 0, RING + 111.5, 0.05);        // +z avenue (camera side), out to the edge of the ground
+  flat(215, 8, mat.road, RING + 111.5, 0, 0.05);        // +x avenue (camera side), likewise
   flat(8, 50, mat.road, 0, -RING - 29, 0.05);           // −z avenue to the waterfront
   flat(50, 8, mat.road, -RING - 29, 0, 0.05);           // −x avenue to the waterfront
   // Lane markings
@@ -734,15 +734,18 @@
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
   // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
-  // Some cars and people leave before Project 2.1: at qLeave they reach the waterfront avenue (−z) and head
-  // off down it, away from the camera. Their start point is set so they are at that junction exactly then.
-  const EXIT_S = 1 / 8;                             // rectPath: middle of the −z side, heading +x
-  const loopOrLeave = (s0, rate, q, h, qLeave, exitX) => (qLeave === undefined || q < qLeave
+  // Every car and walker leaves at some point in the story, so the streets empty as you scroll: at qLeave it
+  // reaches the +z avenue and heads off down it to the edge of the ground, where it is hidden. Its start
+  // point is set so it is at that junction exactly then.
+  const EXIT_S = 5 / 8;                             // rectPath: middle of the +z side
+  const FAR = 240;                                  // gone once this far down the avenue
+  const loopOrLeave = (s0, rate, q, h, qLeave, exitX) => (q < qLeave
     ? rectPath(s0 + rate * q, h, h)
-    : [exitX, -h - (q - qLeave) * rate * 8 * h, Math.PI / 2]);   // same speed, now along −z
+    : [exitX, h + (q - qLeave) * Math.abs(rate) * 8 * h, -Math.PI / 2]);   // same speed, now along +z
+  const CAR_LEAVE = [-1.4, -0.5, 0.5, 1.6, 2.8, 4.2], WALK_LEAVE = [-1.2, -0.3, 0.4, 1.2, 2.0, 2.9, 3.8, 4.8];
   const cars = Array.from({ length: 6 }, (_, i) => {
-    const c = { s0: i / 6 + rand() * 0.05, lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07 };
-    if (i === 1 || i === 3) { c.qLeave = i === 1 ? -1.4 : -0.5; c.s0 = EXIT_S - c.v * c.qLeave; }
+    const c = { lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07, qLeave: CAR_LEAVE[i] };
+    c.s0 = EXIT_S - c.lane * c.v * c.qLeave;
     return c;
   });
   const carBody = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), mat.car, cars.length);
@@ -782,7 +785,7 @@
     const outer = i % 2 === 0;                          // outer pavement beyond the ring road, or the plaza
     const p = { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4,
       a: makeActor(SHIRTS[i % SHIRTS.length], LEGS[i % LEGS.length]) };
-    if (i === 0 || i === 4) { p.v = Math.abs(p.v); p.qLeave = i ? -0.3 : -1.2; p.s0 = EXIT_S - p.v * p.qLeave; }
+    p.qLeave = WALK_LEAVE[i]; p.s0 = EXIT_S - p.v * p.qLeave;
     pose(p.a, 0);
     return p;
   });
@@ -790,8 +793,8 @@
   function moveTraffic(q, nightAmt) {
     cars.forEach((c, i) => {
       const [x, z, yaw] = loopOrLeave(c.s0, c.lane * c.v, q, RING + c.lane * 1.8, c.qLeave, 1.8);
-      const dir = c.lane > 0 ? yaw : yaw + Math.PI;
-      dummy.position.set(x, 0.75, z); dummy.rotation.set(0, dir, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+      const left = q >= c.qLeave, dir = c.lane > 0 || left ? yaw : yaw + Math.PI;   // once leaving, yaw is already the heading
+      dummy.position.set(x, 0.75, z); dummy.rotation.set(0, dir, 0); dummy.scale.setScalar(left && z > FAR ? 0 : 1); dummy.updateMatrix();
       carBody.setMatrixAt(i, dummy.matrix);
       dummy.position.y = 1.65; dummy.translateX(-0.3); dummy.updateMatrix();
       carCab.setMatrixAt(i, dummy.matrix);
@@ -808,6 +811,7 @@
       const [x, z, yaw] = loopOrLeave(p.s0, p.v, q, r, p.qLeave, 5.6);
       p.a.g.position.set(x, 0.05, z);
       p.a.g.rotation.y = yaw;
+      p.a.g.visible = !(q >= p.qLeave && z > FAR);
     });
     carBody.instanceMatrix.needsUpdate = carCab.instanceMatrix.needsUpdate = lights.instanceMatrix.needsUpdate = true;
     mat.headlight.opacity = nightAmt;
@@ -1022,7 +1026,7 @@
     // full day by the Project 2.1 introduction, golden hour from the measurement step.
     const day = lerp(0.35, 1, smoothstep(q, -2, 0)), dusk = smoothstep(q, 4.0, 4.85);
     nightfall = smoothstep(q, 6.0, 6.7);              // night for Project 2.2, so its lighting reads
-    sceneLight.day = day; sceneLight.dusk = dusk; sceneLight.night = nightfall;
+    sceneState.day = day; sceneState.dusk = dusk; sceneState.night = nightfall; sceneState.q = q;
     const dawn = 4 * day * (1 - day);
     const alt = q < 1.6 ? lerp(14, 46, smoothstep(q, -2, 1.6)) : lerp(46, 7, smoothstep(q, 3.7, 4.9));
     const az = lerp(245, 262, smoothstep(q, -1, 4.8));   // on the intro the sun sits between the name and the tower
@@ -1173,7 +1177,7 @@
     document.documentElement.style.setProperty("--tower-half", Math.round((m * w) / 2) + "px");
   }
 
-  window.__og = { scene, THREE, mat, toBack, light: sceneLight };   // for scene-extras.js
+  window.__og = { scene, THREE, mat, toBack, state: sceneState };   // for scene-extras.js
 
   // ---------- Loop ----------
   // Two passes: the backdrop (layer 1) into the blurred canvas, then the tower and streets (layer 0).

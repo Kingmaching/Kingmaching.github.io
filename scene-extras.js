@@ -39,20 +39,20 @@
     const legs=new THREE.Mesh(new THREE.CylinderGeometry(.3,.26,.6,8),new THREE.MeshStandardMaterial({color:'#2b2f36'}));legs.position.y=.3;
     const head=new THREE.Mesh(new THREE.SphereGeometry(.26,10,8),new THREE.MeshStandardMaterial({color:skin[Math.floor(rnd()*4)]}));head.position.y=1.9;
     g.add(body,legs,head);g.traverse(o=>o.castShadow=true);g.position.set(x,0,z);g.scale.setScalar(1.15);return add(g)};
-  let np=0;paths.forEach(([x,z,w,d,rot])=>{for(let i=0;i<3;i++){const t=(rnd()-.5)*Math.max(w,d)*.8;const along=d>w;let lx=along?(rnd()-.5)*1.2:t,lz=along?t:(rnd()-.5)*1.2;const c=Math.cos(-rot),sn=Math.sin(-rot);person(x+lx*c-lz*sn,z+lx*sn+lz*c);np++}});
-  for(let i=0;i<10;i++){const s=-30+rnd()*60;const sideP=rnd()<.5;person(sideP?s:37.25+(rnd()-.5)*2,sideP?37.25+(rnd()-.5)*2:s);np++}
+  const walkers=[];   // set moving in section 18
+  let np=0;paths.forEach(([x,z,w,d,rot])=>{for(let i=0;i<3;i++){const t=(rnd()-.5)*Math.max(w,d)*.8;const along=d>w;let lx=along?(rnd()-.5)*1.2:t,lz=along?t:(rnd()-.5)*1.2;const c=Math.cos(-rot),sn=Math.sin(-rot);const px=x+lx*c-lz*sn,pz=z+lx*sn+lz*c;walkers.push({g:person(px,pz),px,pz,path:{x,z,len:Math.max(w,d),u:along?[-sn,c]:[c,sn]}});np++}});
+  for(let i=0;i<10;i++){const s=-30+rnd()*60;const sideP=rnd()<.5;const px=sideP?s:37.25+(rnd()-.5)*2,pz=sideP?37.25+(rnd()-.5)*2:s;walkers.push({g:person(px,pz),px,pz,pave:sideP?'z':'x'});np++}
   // 4. cars on the near avenues
   const carCols=['#c8102e','#c8102e','#1f8a4c','#f2f2ee','#2b2f36','#3c6fb0','#e9e1c8','#f2b705'];
   const car=(x,z,yaw)=>{const g=new THREE.Group();const col=carCols[Math.floor(rnd()*8)];const body=new THREE.Mesh(new THREE.BoxGeometry(4.2,1.1,1.9),new THREE.MeshStandardMaterial({color:col,roughness:.45,metalness:.3}));body.position.y=.75;
     const cab=new THREE.Mesh(new THREE.BoxGeometry(2.3,.8,1.7),new THREE.MeshStandardMaterial({color:'#9fc3d4',roughness:.2,metalness:.4}));cab.position.set(-.2,1.6,0);g.add(body,cab);g.traverse(o=>o.castShadow=true);g.position.set(x,0,z);g.rotation.y=yaw;return add(g)};
-  [[ -2, 48],[2,62],[-2,80],[2,96],[-2,112]].forEach(([x,z])=>car(x,z,x<0?Math.PI/2:-Math.PI/2));
-  [[50,2],[66,-2],[88,2],[104,-2]].forEach(([x,z])=>car(x,z,z>0?0:Math.PI));
+  // (they are created and set driving in section 18)
   // 5. clouds (soft, on the blurred layer) and 6. a few birds in the distance
   const cam=INTRO_CAM.clone();const fwd=new THREE.Vector3(-INTRO_CAM.x,0,-INTRO_CAM.z).normalize();
-  const birdMat=new THREE.MeshBasicMaterial({color:0x2b3a40,side:THREE.DoubleSide,fog:false});
+  const birds=[];const birdMat=new THREE.MeshBasicMaterial({color:0x2b3a40,side:THREE.DoubleSide,fog:false});
   const bird=(yaw,dist,y,s,flap)=>{const d=fwd.clone().applyAxisAngle(new THREE.Vector3(0,1,0),yaw*Math.PI/180);const c=cam.clone().addScaledVector(d,dist);
     const sh=new THREE.Shape();sh.moveTo(-1,0.35*flap);sh.quadraticCurveTo(-.45,.05,0,-.18);sh.quadraticCurveTo(.45,.05,1,.35*flap);sh.quadraticCurveTo(.45,-.05,0,-.32);sh.quadraticCurveTo(-.45,-.05,-1,.35*flap);
-    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),birdMat);m.scale.setScalar(s);m.position.set(c.x,y,c.z);m.lookAt(cam);add(m)};
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),birdMat);m.scale.setScalar(s);m.position.set(c.x,y,c.z);m.lookAt(cam);birds.push({m,s,p0:m.position.clone(),ph:rnd()*6});add(m)};
   [[3,170,62,1.0,1],[4.2,175,64.5,.9,.6],[2.2,168,65.5,.85,1.1],[5.1,180,61.5,.8,.8],[1.4,172,60.8,.75,.5],[-9,200,72,.8,1],[-8.2,205,73.8,.7,.7]].forEach(a=>bird(...a));
 
   // 7. thin out the trees (every instanced tree has a trunk and a canopy at the same index)
@@ -93,16 +93,24 @@
   // local streets through the district (so driveways have somewhere to go)
   flatOn(96,7,roadMat,-52,62,0.05);            // z = 62, from the avenue (x = 0) out to x = -100
   flatOn(7,92,roadMat,-60,16,0.05);            // x = -60, from the -x avenue (z = 0) up to z = 62
-  const segs=[[[0,35],[0,95]],[[-31,-35],[-31,35]],[[31,-35],[31,35]],[[-35,31],[35,31]],[[-35,-31],[35,-31]],
-              [[-60,0],[-35,0]],[[35,0],[95,0]],[[0,-60],[0,-35]],[[-100,62],[-4,62]],[[-60,0],[-60,62]]];
+  flatOn(23,8,roadMat,-96.5,0,0.05);                    // the -x avenue carries on to the waterfront...
+  for(const [cx,cz] of [[-106,0],[0,-79]]){const t=new THREE.Mesh(new THREE.CircleGeometry(7.5,32),roadMat);t.rotation.x=-Math.PI/2;t.position.set(cx,0.051,cz);t.receiveShadow=true;add(t)}   // ...and both harbour roads end in a turning circle
+  for(const sd of[-1,1]){flatOn(2.5,215,walk,sd*5.75,142.5,0.046);flatOn(215,2.5,walk,142.5,sd*5.75,0.046)}   // pavements along the long avenues
+  const segs=[[[0,35],[0,250]],[[-31,-35],[-31,35]],[[31,-35],[31,35]],[[-35,31],[35,31]],[[-35,-31],[35,-31]],
+              [[-106,0],[-35,0]],[[35,0],[250,0]],[[0,-79],[0,-35]],[[-100,62],[-4,62]],[[-60,0],[-60,62]]];
+  // roads as rectangles [x0, x1, z0, z1] (with pavements and turning circles), for keeping buildings off them
+  const roadRects=[[-7,7,35,250],[35,250,-7,7],[-113.5,-35,-5,5],[-5,5,-86.5,-35],[-102,-2,58.5,65.5],[-63.5,-56.5,-4,66]];
+  const clearRoads=(x,z,h)=>{for(let it=0;it<3;it++)for(const [x0,x1,z0,z1] of roadRects){if(x+h<=x0||x-h>=x1||z+h<=z0||z-h>=z1)continue;
+      const opts=[[x0-h-x,0],[x1+h-x,0],[0,z0-h-z],[0,z1+h-z]].sort((a,b)=>Math.hypot(...a)-Math.hypot(...b));x+=opts[0][0];z+=opts[0][1]}return [x,z]};
   const nearestRoad=(x,z)=>{let best=null;for(const [[ax,az],[bx,bz]] of segs){const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
       const px=ax+t*dx,pz=az+t*dz,d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={px,pz,d}}return best};
   const doorMat=new THREE.MeshStandardMaterial({color:'#2b3439',roughness:.25,metalness:.4}),slabMat=new THREE.MeshStandardMaterial({color:'#e6e8e6',roughness:.7});
   const rampMat=new THREE.MeshStandardMaterial({color:'#262b2e',roughness:.9}),kerbMat=new THREE.MeshStandardMaterial({color:'#c9cdcc',roughness:.8});
   const plots=[];
   const makeBuilding=(x,z,kind,col,haze,hHint)=>{
+    const pw=kind==='box'?10+rnd()*6:10+rnd()*5;[x,z]=clearRoads(x,z,pw/2+3);   // never on a road
     const road=nearestRoad(x,z);const rot=Math.atan2(road.px-x,road.pz-z);   // local +z faces the road
-    const g=new THREE.Group();let top=0,topW=0;const pw=kind==='box'?10+rnd()*6:10+rnd()*5;
+    const g=new THREE.Group();let top=0,topW=0;
     const part=(geo,w,h,y)=>{const m=new THREE.Mesh(geo,winMat(col,w,h,haze));m.position.y=y;g.add(m)};
     if(kind==='box'){const h=hHint||14+rnd()*20;part(new THREE.BoxGeometry(pw,h,pw),pw,h,h/2);top=h;topW=pw}
     else{const ph=4+rnd()*2.5;const base=new THREE.Mesh(new THREE.BoxGeometry(pw,ph,pw),shopMat(col,pw,haze));base.position.y=ph/2;g.add(base);top=ph;
@@ -151,15 +159,15 @@
       const d2=new THREE.Mesh(new THREE.BoxGeometry(8,1.2,3.4),white);d2.position.y=3.3;const band=new THREE.Mesh(new THREE.BoxGeometry(12.1,.35,3.9),new THREE.MeshStandardMaterial({color:'#2f6b3f'}));band.position.y=2.75;g.add(h,d1,d2,band)}
     else{const h=hull(5+rnd()*3,1.8,kind);h.position.y=.5;const cab=new THREE.Mesh(new THREE.BoxGeometry(2,1,1.4),new THREE.MeshStandardMaterial({color:'#f5f5f2'}));cab.position.set(-.6,1.5,0);g.add(h,cab)}
     const wake=new THREE.Mesh(new THREE.PlaneGeometry(kind==='ferry'?22:10,kind==='ferry'?5:2.4),wakeMat);wake.rotation.x=-Math.PI/2;wake.position.set(kind==='ferry'?-17:-7,.08,0);g.add(wake);
-    g.traverse(o=>{if(o.isMesh&&o!==wake)o.castShadow=true});const a=deg*Math.PI/180;g.position.set(Math.cos(a)*r,.06,Math.sin(a)*r);g.rotation.y=yaw;add(g)};
-  boat(170,215,-.3,'#f2f2ee');boat(136,230,1.1,'#c8102e');boat(-160,175,.2,'#f2f2ee');boat(182,160,-1.2,'#2b77a1');
+    g.traverse(o=>{if(o.isMesh&&o!==wake)o.castShadow=true});const a=deg*Math.PI/180;g.position.set(Math.cos(a)*r,.06,Math.sin(a)*r);g.rotation.y=yaw;return add(g)};
+  const boats=[[215,170,10,'#f2f2ee'],[235,132,12,'#c8102e'],[190,205,-6,'#f2f2ee'],[160,190,14,'#2b77a1']].map(([r,a0,w,col])=>({g:boat(a0,r,0,col),r,a0,w,ph:rnd()*6}));
   // 12. a Hong Kong double-decker on the avenue to the tower, and a tram on the other avenue
   const deck=(col,len,wid,hgt)=>{const g=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(len,hgt,wid),new THREE.MeshStandardMaterial({color:col,roughness:.5}));b.position.y=hgt/2+.35;
     const glass=new THREE.MeshStandardMaterial({color:'#2e3a40',roughness:.2,metalness:.4});[hgt*.35,hgt*.8].forEach(y=>{const w=new THREE.Mesh(new THREE.BoxGeometry(len*.94,hgt*.2,wid*1.01),glass);w.position.y=y+.35;g.add(w)});g.add(b);g.traverse(o=>o.castShadow=true);return g};
   const bus=deck('#c8102e',11,2.5,4.2);const cream=new THREE.Mesh(new THREE.BoxGeometry(11.05,.6,2.55),new THREE.MeshStandardMaterial({color:'#f2ead6'}));cream.position.y=2.4;bus.add(cream);
-  bus.position.set(2.2,0,72);bus.rotation.y=-Math.PI/2;add(bus);
+  add(bus);
   const tram=deck('#1f7a4c',9,2.3,4);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.4,6),new THREE.MeshStandardMaterial({color:'#333'}));pole.position.y=5.4;pole.rotation.z=.5;tram.add(pole);
-  tram.position.set(78,0,-2.2);add(tram);
+  add(tram);
 
   // 13. a ferry pier at the end of the street that runs to the water, with the Star Ferry alongside
   const deckMat=new THREE.MeshStandardMaterial({color:'#d9d6cc',roughness:.85}),pierWhite=new THREE.MeshStandardMaterial({color:'#f1efe8',roughness:.7}),pierRoof=new THREE.MeshStandardMaterial({color:'#2f6b3f',roughness:.7});
@@ -168,7 +176,7 @@
   const hroof=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.6,12.6,4,1,false,Math.PI/4),pierRoof);hroof.rotation.z=Math.PI/2;hroof.scale.set(1,1,.6);hroof.position.set(-12,6.4,0);
   const clock=new THREE.Mesh(new THREE.BoxGeometry(2.2,9,2.2),pierWhite);clock.position.set(-3,5.5,3);const face=new THREE.Mesh(new THREE.CylinderGeometry(.75,.75,.1,16),new THREE.MeshBasicMaterial({color:'#2b2f36'}));face.rotation.x=Math.PI/2;face.position.set(-3,8.6,4.12);
   pierG.add(hall,hroof,clock,face);pierG.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});pierG.position.set(-100,0,62);add(pierG);
-  boat(147.5,128,0,'ferry');
+  const ferry=boat(147.5,128,0,'ferry');
   // 14. a promenade with a glass fence along the water's edge
   const promMat=new THREE.MeshStandardMaterial({color:'#d8d6cd',roughness:.9,side:THREE.DoubleSide});
   const glass=new THREE.MeshStandardMaterial({color:'#bfe3ee',transparent:true,opacity:.38,roughness:.1,metalness:.2,side:THREE.DoubleSide,depthWrite:false});
@@ -192,7 +200,7 @@
     g.add(post,arm,head);g.traverse(o=>o.castShadow=true);g.position.set(x,0,z);g.rotation.y=Math.atan2(-dz,dx);add(g)};
   const lampRow=(ax,az,bx,bz,step)=>{const len=Math.hypot(bx-ax,bz-az),ux=(bx-ax)/len,uz=(bz-az)/len,nx=-uz,nz=ux;
     for(let t=4,k=0;t<len;t+=step,k++){const side=k%2?1:-1;const x=ax+ux*t+nx*5.4*side,z=az+uz*t+nz*5.4*side;if(!inPlot(x,z,0))lamp(x,z,-nx*side,-nz*side)}};
-  lampRow(0,38,0,118,13);lampRow(38,0,118,0,13);lampRow(-4,62,-98,62,14);lampRow(-60,4,-60,56,14);lampRow(-38,0,-60,0,11);lampRow(0,-38,0,-60,11);
+  lampRow(0,38,0,240,14);lampRow(38,0,240,0,14);lampRow(-4,62,-98,62,14);lampRow(-60,4,-60,56,14);lampRow(-38,0,-60,0,11);lampRow(0,-38,0,-60,11);
   // 16. road signs: green direction boards, no-entry and keep-left signs
   const signTex=(lines,bg)=>{const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,256,128);x.strokeStyle='#fff';x.lineWidth=5;x.strokeRect(6,6,244,116);
     x.fillStyle='#fff';x.font='bold 30px sans-serif';lines.forEach((l,i)=>x.fillText(l,20,48+i*44));const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t};
@@ -213,14 +221,60 @@
   const paved=(x,z)=>{const ax=Math.abs(x),az=Math.abs(z);
     if(ax<29&&az<29)return true;                                                     // apron round the tower
     if(ax<40.5&&az<40.5&&(ax>26||az>26))return true;                                 // ring road and its pavements
-    if((ax<7&&az<122)||(az<7&&ax<122))return true;                                   // avenues and their kerbs
+    if((ax<7.5&&az<250)||(az<7.5&&ax<250))return true;                               // avenues and their pavements
+    if((x<-35&&x>-114&&az<7.5)||(z<-35&&z>-87&&ax<7.5))return true;                 // harbour roads and turning circles
     if(Math.abs(z-62)<6.5&&x<0&&x>-102)return true;if(Math.abs(x+60)<6.5&&z>0&&z<66)return true;   // district streets
     return false};
+  for(let i=0;i<n;i++){inst[0].getMatrixAt(i,tm);tp.setFromMatrixPosition(tm);if(paved(tp.x,tp.z)){inst.forEach(o=>o.setMatrixAt(i,zeroM))}}inst.forEach(o=>o.instanceMatrix.needsUpdate=true);   // no trees on the new roads either
   let bushesHidden=0;scene.children.forEach(o=>{if(o.isMesh&&!o.isInstancedMesh&&o.geometry.type==='IcosahedronGeometry'&&o.position.y<2&&o.visible&&paved(o.position.x,o.position.z)){o.visible=false;bushesHidden++}});
+  // 18. motion, driven by scroll progress like the rest of the street life (it waits when the page does):
+  //     cars drive their routes and then off down the long avenues, people walk their paths and pavements and
+  //     then away, boats cross the harbour, the ferry pulls away from the pier, the birds fly off. Each leaves
+  //     at its own point in the story, so the streets empty as you scroll; anything gone is hidden.
+  const FAR=245, Q0=-2;
+  const route=(...pts)=>{const sg=[];let L=0;for(let i=1;i<pts.length;i++){const [ax,az]=pts[i-1],[bx,bz]=pts[i],len=Math.hypot(bx-ax,bz-az);sg.push({ax,az,bx,bz,len,at:L});L+=len}return {sg,L}};
+  const along=(r,d)=>{if(d>=r.L)return null;d=Math.max(0,d);let k=0;while(k<r.sg.length-1&&d>r.sg[k].at+r.sg[k].len)k++;const g=r.sg[k],t=(d-g.at)/g.len;
+    return {x:g.ax+(g.bx-g.ax)*t,z:g.az+(g.bz-g.az)*t,yaw:Math.atan2(-(g.bz-g.az),g.bx-g.ax)}};
+  const movers=[];   // {obj, r, d0, v, bob, keep}: at scroll q it is d0 + v·(q − Q0) along route r
+  const drive=(obj,r,d0,qLeave,bob)=>{movers.push({obj,r,d0,v:(r.L-d0)/(qLeave-Q0),bob,keep:obj.visible})};   // speed set so it leaves at qLeave
+  // routes (traffic keeps left, as in Hong Kong): out along an avenue, or in along one, round the ring and out the other
+  const OUT_Z=route([1.8,33],[1.8,FAR]), OUT_X=route([33,-1.8],[FAR,-1.8]);
+  const IN_Z=route([-1.8,FAR],[-1.8,32.8],[32.8,32.8],[32.8,-1.8],[FAR,-1.8]), IN_X=route([FAR,1.8],[29.2,1.8],[29.2,29.2],[1.8,29.2],[1.8,FAR]);
+  [[OUT_Z,62-33,-.8],[OUT_Z,96-33,1.8],[IN_Z,FAR-112,5.8],[IN_Z,FAR-80,3.4],[IN_Z,FAR-48,1.0],[OUT_X,50-33,.2],[OUT_X,88-33,2.6],[IN_X,FAR-66,4.2],[IN_X,FAR-104,5.0]]
+    .forEach(([r,d0,ql])=>drive(car(0,0,0),r,d0,ql,false));
+  drive(bus,OUT_Z,72-33,3.0,false); drive(tram,OUT_X,78-33,2.0,false);
+  // walkers: along their park path to its far end, then straight out across the park; pavement walkers along
+  // the ring's pavement to the nearest avenue, then down its pavement
+  const WALK_FAR=170, leaves=[-.6,.1,.7,1.3,1.9,2.5,3.1,3.7,4.3,4.9,5.5,6.1];
+  walkers.forEach((w,i)=>{let r;
+    if(w.path){const {x,z,len,u}=w.path,e1=[x+u[0]*len/2,z+u[1]*len/2],e2=[x-u[0]*len/2,z-u[1]*len/2];const e=Math.hypot(...e1)>Math.hypot(...e2)?e1:e2;const k=WALK_FAR/Math.hypot(...e);
+      r=route([w.px,w.pz],e,[e[0]*k,e[1]*k])}
+    else if(w.pave==='z'){const sx=w.px<0?-5.6:5.6;r=route([w.px,w.pz],[sx,w.pz],[sx,WALK_FAR])}
+    else{const sz=w.pz<0?-5.6:5.6;r=route([w.px,w.pz],[w.px,sz],[WALK_FAR,sz])}
+    drive(w.g,r,0,leaves[i%leaves.length]+(i>=leaves.length?.3:0),true)});
+  const move=(m,q)=>{const d=m.d0+m.v*(q-Q0),p=along(m.r,d);m.obj.visible=!!p&&m.keep;if(!p)return;
+    m.obj.position.set(p.x,m.bob?Math.abs(Math.sin(d*2.4))*0.08:0,p.z);m.obj.rotation.y=p.yaw};
+  const dockA=147.5*Math.PI/180;
+  (function animate(){
+    const q=og.state.q,t=performance.now()/1000;
+    movers.forEach(m=>move(m,q));
+    // boats: round the harbour on arcs that stay on the water, bobbing gently
+    boats.forEach(b=>{const a=(b.a0+b.w*(q-Q0))*Math.PI/180,dir=Math.sign(b.w);b.g.position.set(Math.cos(a)*b.r,.06+Math.sin(t*1.4+b.ph)*.07,Math.sin(a)*b.r);
+      b.g.rotation.y=Math.atan2(-Math.cos(a)*dir,-Math.sin(a)*dir);b.g.rotation.x=Math.sin(t*1.1+b.ph)*.03});
+    // the ferry waits at the pier, backs out into the harbour, then crosses it
+    {let a=dockA,r=128,yaw;if(q<-1.2){yaw=Math.atan2(-Math.cos(a),-Math.sin(a))}
+      else if(q<-.2){r=128+47*(q+1.2);yaw=Math.atan2(-Math.sin(a),Math.cos(a))}
+      else{r=175;a=dockA+22*(q+.2)*Math.PI/180;yaw=Math.atan2(-Math.cos(a),-Math.sin(a))}
+      ferry.position.set(Math.cos(a)*r,.06+Math.sin(t*1.2)*.05,Math.sin(a)*r);ferry.rotation.y=yaw}
+    // birds: fly off, away from the opening shot and upward, until they are gone
+    birds.forEach(b=>{const k=Math.max(0,q-Q0);b.m.position.copy(b.p0).addScaledVector(fwd,k*90);b.m.position.y=b.p0.y+k*22;
+      b.m.visible=k<3.2;b.m.scale.set(b.s,b.s*(.55+.45*Math.abs(Math.sin(t*7+b.ph))),b.s)});
+    requestAnimationFrame(animate);
+  })();
   // the haze is daylight: it fades through dusk and is gone at night
   let lastK = -1;
   (function dim() {
-    const L = og.light, k = (1 - L.dusk * 0.7) * (1 - L.night * 0.95);
+    const L = og.state, k = (1 - L.dusk * 0.7) * (1 - L.night * 0.95);
     if (Math.abs(k - lastK) > 0.01) { hazeList.forEach(m => { m.emissiveIntensity = k; }); lastK = k; }
     requestAnimationFrame(dim);
   })();
