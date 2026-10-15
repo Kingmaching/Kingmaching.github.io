@@ -240,22 +240,25 @@
   // routes (traffic keeps left, as in Hong Kong): out along an avenue, or in along one, round the ring and out the other
   const OUT_Z=route([1.8,33],[1.8,FAR]), OUT_X=route([33,-1.8],[FAR,-1.8]);
   const IN_Z=route([-1.8,FAR],[-1.8,32.8],[32.8,32.8],[32.8,-1.8],[FAR,-1.8]), IN_X=route([FAR,1.8],[29.2,1.8],[29.2,29.2],[1.8,29.2],[1.8,FAR]);
-  // Speeds are metres per scroll step. Vehicles 34-58, people 8-11, so nobody walks faster than the traffic.
-  // A few vehicles are about at the start and all drive off, so the streets are clear of traffic by the end.
-  [[OUT_Z,62-33,46],[OUT_Z,96-33,52],[IN_Z,FAR-48,50],[OUT_X,50-33,48]].forEach(([r,d0,v])=>drive(car(0,0,0),r,d0,v));
-  drive(bus,OUT_Z,72-33,34); drive(tram,OUT_X,78-33,38);
-  // People. Half are about at the start and walk away: along their park path to its far end, across to the
-  // nearest avenue and down its pavement; or along the ring's pavement to the avenue and down it. The other
-  // half arrive later, walking in from down an avenue to their spot, and stay there.
-  const WALK_FAR=150, ARRIVE_FROM=100;
+  // Speeds are metres per scroll step. Vehicles 40-80, people 14-18, so nobody walks faster than the traffic.
+  // A few vehicles are about at the start and drive off, most of them before Project 2.1 (q = 0); the bus and
+  // tram too. Each one's speed comes from when it should leave, kept between 40 and 80.
+  const leaveBy=(obj,r,d0,ql)=>drive(obj,r,d0,Math.min(80,Math.max(40,(r.L-d0)/(ql-Q0))));
+  [[OUT_Z,96-33,-1.0],[OUT_Z,62-33,-.6],[IN_Z,380,-.6],[OUT_X,50-33,-.8]].forEach(([r,d0,ql])=>leaveBy(car(0,0,0),r,d0,ql));   // the IN_Z car is already round the ring
+  leaveBy(bus,OUT_Z,72-33,-.4); leaveBy(tram,OUT_X,78-33,-.6);
+  // People. Half are about at the start and walk away, most of them gone by Project 2.1: along their park
+  // path to its far end, across to the nearest avenue and down its pavement; or along the ring's pavement to
+  // the avenue and down it. The other half arrive after Project 2.1 starts, walking in from down an avenue to
+  // their spot, and stay there.
+  const WALK_FAR=120, ARRIVE_FROM=100;
   const aveOf=(x,z)=>x<z?'z':'x';                       // the nearer long avenue (+z or +x) from the park quadrant
   const onAve=(ave,x,z)=>ave==='z'?[x<0?-5.6:5.6,z]:[x,z<0?-5.6:5.6];
   const walkOut=(w,far)=>{if(w.path){const {x,z,len,u}=w.path,e1=[x+u[0]*len/2,z+u[1]*len/2],e2=[x-u[0]*len/2,z-u[1]*len/2];const e=Math.hypot(...e1)>Math.hypot(...e2)?e1:e2;
       const ave=aveOf(...e),a=onAve(ave,...e),end=ave==='z'?[a[0],far]:[far,a[1]];return [[w.px,w.pz],e,a,end]}
     const ave=w.pave,a=onAve(ave,w.px,w.pz),end=ave==='z'?[a[0],far]:[far,a[1]];return [[w.px,w.pz],a,end]};
-  const outLeave=[-.8,-.1,.5,1.1,1.8,2.4,3.0,3.7,4.3,5.0,5.6,6.2,6.8], inAt=[-1.0,-.3,.4,1.1,1.7,2.3,2.9,3.5,4.1,4.7,5.3,5.9];
+  const outLeave=[-1.8,-1.7,-1.6,-1.5,-1.4,-1.3,-1.2,-1.0,-.8,-.6,1.5,3.0,4.5], inAt=[.4,.9,1.4,1.9,2.4,2.9,3.4,3.9,4.4,4.9,5.4,5.9];
   let no=0,ni=0;
-  walkers.forEach((w,i)=>{const v=8+rnd()*3;
+  walkers.forEach((w,i)=>{const v=14+rnd()*4;
     if(i%2===0){const r=route(...walkOut(w,WALK_FAR)),ql=outLeave[no++%outLeave.length];drive(w.g,r,Math.max(0,r.L-v*(ql-Q0)),v,{bob:true})}
     else{const r=route(...walkOut(w,ARRIVE_FROM).reverse());drive(w.g,r,0,v,{q0:inAt[ni++%inAt.length],hold:true,bob:true})}});
   const move=(m,q)=>{if(q<m.q0){m.obj.visible=false;return}

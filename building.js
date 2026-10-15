@@ -411,8 +411,6 @@
   let top;                                          // the top floor's parts, filled in below
   const sensorGeo = new THREE.SphereGeometry(0.45, 12, 10);
   const lampGeo = new THREE.PlaneGeometry(W - 2, W - 2);
-  const smallCanopy = new THREE.IcosahedronGeometry(1.3, 0);
-  const SKY_GARDENS = [4, 9];
   const heaterGeo = new THREE.BufferGeometry();
   {
     const pts = [];
@@ -434,12 +432,6 @@
     box(W + 1.0, 0.45, 0.6, mat.hedge, g, 0, 1.15, W / 2 + 0.35, false);
     box(0.7, 0.5, W + 1.2, mat.slab, g, -W / 2 - 0.35, 0.7, 0, false);
     box(0.6, 0.45, W + 1.0, mat.hedge, g, -W / 2 - 0.35, 1.15, 0, false);
-    if (SKY_GARDENS.includes(i)) {                                                          // sky garden trees
-      [[-7, 7], [7, 7], [-7, -7], [7, -7]].forEach(([x, z]) => {
-        const t = new THREE.Mesh(smallCanopy, mat.canopy);
-        t.position.set(x, 2.1, z); t.castShadow = true; g.add(t);
-      });
-    }
 
     const lamp = new THREE.Mesh(lampGeo, mat.lamp);
     lamp.rotation.x = Math.PI / 2;
@@ -487,9 +479,6 @@
       box(W + 1.6, 0.5, W + 1.6, mat.slab, roof, 0, FH + 0.25, 0);
       box(W - 1, 0.4, W - 1, mat.green, roof, 0, FH + 0.7, 0, false);
       [[-5, -5, 5, 2.4, 3], [4, -5, 4, 2, 4], [0, 5, 7, 2.6, 3.5]].forEach(([x, z, w, h, d]) => box(w, h, d, mat.plant, roof, x, FH + 0.9 + h / 2, z));
-      [[-7, 6], [7, 7], [-7, 0], [7, 0]].forEach(([x, z]) => {
-        const t = new THREE.Mesh(smallCanopy, mat.canopy); t.position.set(x, FH + 2.4, z); t.castShadow = true; roof.add(t);
-      });
       top = { g, roof, inside: [glazing, core, lamp] };   // hidden while we look into the room
     }
     floors.push(g);
@@ -734,15 +723,16 @@
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
   // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
-  // Every car and most walkers leave at some point in the story; a few walkers stay (qLeave = Infinity). A
-  // leaver, at qLeave, reaches the +z avenue and heads off down it to the edge of the ground, where it is
-  // hidden; its start point is set so it is at that junction exactly then.
+  // Every car and most walkers leave early in the story, most before Project 2.1 (q = 0); two walkers stay
+  // (qLeave = Infinity). At qLeave a car reaches the +z avenue and speeds off down it to the edge of the ground,
+  // where it is hidden; a walker reaches the same point of their loop and heads into the tower's lobby. The
+  // start point is set so each is at that point exactly then.
   const EXIT_S = 5 / 8;                             // rectPath: middle of the +z side
-  const FAR = 240;                                  // gone once this far down the avenue
-  const loopOrLeave = (s0, rate, q, h, qLeave, exitX) => (q < qLeave
+  const FAR = 240;                                  // cars are gone once this far down the avenue
+  const loopOrLeave = (s0, rate, q, h, qLeave, exitX, k = 1) => (q < qLeave
     ? rectPath(s0 + rate * q, h, h)
-    : [exitX, h + (q - qLeave) * Math.abs(rate) * 8 * h, -Math.PI / 2]);   // same speed, now along +z
-  const CAR_LEAVE = [-1.4, -0.3, 1.0, 2.6, 3.8, 5.0], WALK_LEAVE = [-1.2, -0.2, 0.8, 2.0, 3.4, Infinity, Infinity, Infinity];
+    : [exitX, h + (q - qLeave) * Math.abs(rate) * 8 * h * k, -Math.PI / 2]);   // along +z, k times the loop speed
+  const CAR_LEAVE = [-1.9, -1.6, -1.3, -1.0, 1.5, 3.5], WALK_LEAVE = [-1.9, -1.7, -1.5, -1.3, -1.1, -0.9, Infinity, Infinity];   // most gone by Project 2.1 (q = 0)
   const cars = Array.from({ length: 6 }, (_, i) => {
     const c = { lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07, qLeave: CAR_LEAVE[i] };
     c.s0 = isFinite(c.qLeave) ? EXIT_S - c.lane * c.v * c.qLeave : i / 6;
@@ -792,7 +782,7 @@
 
   function moveTraffic(q, nightAmt) {
     cars.forEach((c, i) => {
-      const [x, z, yaw] = loopOrLeave(c.s0, c.lane * c.v, q, RING + c.lane * 1.8, c.qLeave, 1.8);
+      const [x, z, yaw] = loopOrLeave(c.s0, c.lane * c.v, q, RING + c.lane * 1.8, c.qLeave, 1.8, 1.6);   // speeds up as it drives off
       const left = q >= c.qLeave, dir = c.lane > 0 || left ? yaw : yaw + Math.PI;   // once leaving, yaw is already the heading
       dummy.position.set(x, 0.75, z); dummy.rotation.set(0, dir, 0); dummy.scale.setScalar(left && z > FAR ? 0 : 1); dummy.updateMatrix();
       carBody.setMatrixAt(i, dummy.matrix);
@@ -808,10 +798,13 @@
     beams.instanceMatrix.needsUpdate = tails.instanceMatrix.needsUpdate = true;
     people.forEach(p => {
       const r = (p.outer ? RING + 5.2 : 24.8) + p.off * 0.5;
-      const [x, z, yaw] = loopOrLeave(p.s0, p.v, q, r, p.qLeave, 5.6);
+      const leaving = q >= p.qLeave;
+      const [x, z, yaw] = leaving                     // into the lobby: straight towards the tower's +z face, a brisker pace
+        ? [1.2, r - (q - p.qLeave) * Math.abs(p.v) * 8 * r * 1.2, Math.PI / 2]
+        : rectPath(p.s0 + p.v * q, r, r);
       p.a.g.position.set(x, 0.05, z);
       p.a.g.rotation.y = yaw;
-      p.a.g.visible = !(q >= p.qLeave && z > FAR);
+      p.a.g.visible = !(leaving && z < W / 2 + 1.5);
     });
     carBody.instanceMatrix.needsUpdate = carCab.instanceMatrix.needsUpdate = lights.instanceMatrix.needsUpdate = true;
     mat.headlight.opacity = nightAmt;
