@@ -108,8 +108,9 @@
   const roadRects=[[-7,7,35,250],[35,250,-7,7],[-113.5,-35,-5,5],[-5,5,-86.5,-35],[-102,-2,58.5,65.5],[-63.5,-56.5,-4,66]];
   const clearRoads=(x,z,h)=>{for(let it=0;it<3;it++)for(const [x0,x1,z0,z1] of roadRects){if(x+h<=x0||x-h>=x1||z+h<=z0||z-h>=z1)continue;
       const opts=[[x0-h-x,0],[x1+h-x,0],[0,z0-h-z],[0,z1+h-z]].sort((a,b)=>Math.hypot(...a)-Math.hypot(...b));x+=opts[0][0];z+=opts[0][1]}return [x,z]};
-  const nearestRoad=(x,z)=>{let best=null;for(const [[ax,az],[bx,bz]] of segs){const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
-      const px=ax+t*dx,pz=az+t*dz,d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={px,pz,d}}return best};
+  const segHW=segs.map((_,i)=>i>=8?3.5:4);   // half-widths: the two district streets are narrower than the rest
+  const nearestRoad=(x,z)=>{let best=null;segs.forEach(([[ax,az],[bx,bz]],i)=>{const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
+      const px=ax+t*dx,pz=az+t*dz,d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={px,pz,d,hw:segHW[i]}});return best};
   const doorMat=new THREE.MeshStandardMaterial({color:'#2b3439',roughness:.25,metalness:.4}),slabMat=new THREE.MeshStandardMaterial({color:'#e6e8e6',roughness:.7});
   const rampMat=new THREE.MeshStandardMaterial({color:'#262b2e',roughness:.9}),kerbMat=new THREE.MeshStandardMaterial({color:'#c9cdcc',roughness:.8});
   const plots=[];
@@ -131,7 +132,7 @@
     // long enough to reach a road; the layout is mirrored if it would run into a neighbour, and the building
     // left out if neither way fits.
     const lay=sg=>{const c=Math.cos(rot),s=Math.sin(rot),dxw=sg*pw*.2;let L=Math.max(8,road.d-pw/2-3.4);
-      let reached=false;for(let k=0;k<28&&!reached;k++){const ex=x+dxw*c+(pw/2+L)*s,ez=z-dxw*s+(pw/2+L)*c;reached=nearestRoad(ex,ez).d<4.4;if(!reached)L+=.5}
+      let reached=false;for(let k=0;k<28&&!reached;k++){const ex=x+dxw*c+(pw/2+L)*s,ez=z-dxw*s+(pw/2+L)*c;const nr=nearestRoad(ex,ez);reached=nr.d<nr.hw-.5;if(!reached)L+=.5}   // the driveway ends on the road itself, not on the pavement
       if(!reached)return null;const pl={x,z,rot,pw,L,sg};return rectsOf(pl).some(A=>plots.some(o=>rectsOf(o).some(B=>sat(A,B))))?null:pl};
     const plot=lay(1)||lay(-1);if(!plot)return;
     foot.push({x,z,r:pw*.75});
