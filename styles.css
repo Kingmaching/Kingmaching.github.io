@@ -270,6 +270,8 @@ em { font-style: normal; color: var(--neon); }
 .statement-text.panel-title { max-width: 21ch; font-weight: 700; font-size: clamp(2.2rem, min(5.4vw, 8.5vh), 5rem); line-height: 1.02; }
 .panel-foot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: end; }
 .panel-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--muted-d); max-width: 52ch; }
+/* Background and Project 2.1 body text, justified */
+#about .panel-lede, .step[data-nav="projects"]:not([data-step="9"]) .step-card > p:not([class]) { text-align: justify; hyphens: auto; }
 .panel-full .about-facts dd { font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
 .panel-full .marquee span { font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: var(--muted-d); }
 .step-card .proj-meta { color: var(--muted-d); margin-top: 6px; }

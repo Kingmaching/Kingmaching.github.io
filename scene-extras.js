@@ -134,10 +134,12 @@
     // Lay out the plot: driveway on one side of the face, the door's footpath on the other. The driveway is
     // long enough to reach a road; the layout is mirrored if it would run into a neighbour, and the building
     // left out if neither way fits.
-    const lay=sg=>{const c=Math.cos(rot),s=Math.sin(rot),dxw=sg*pw*.2;let L=Math.max(8,road.d-pw/2-3.4);
-      let reached=false;for(let k=0;k<28&&!reached;k++){const ex=x+dxw*c+(pw/2+L)*s,ez=z-dxw*s+(pw/2+L)*c;reached=onRoad(ex,ez,.5);if(!reached)L+=.5}   // the driveway ends on the road surface itself, not on a pavement
+    // Best: both corners of the driveway's end on the road surface, so an angled one leaves no gap; failing
+    // that (either side), just its middle.
+    const lay=(sg,both)=>{const c=Math.cos(rot),s=Math.sin(rot),dxw=sg*pw*.2;let L=Math.max(8,road.d-pw/2-3.4);
+      let reached=false;for(let k=0;k<28&&!reached;k++){reached=(both?[-2.2,2.2]:[0]).every(o=>onRoad(x+(dxw+o)*c+(pw/2+L)*s,z-(dxw+o)*s+(pw/2+L)*c,both?.3:.5));if(!reached)L+=.5}
       if(!reached)return null;const pl={x,z,rot,pw,L,sg};return rectsOf(pl).some(A=>plots.some(o=>rectsOf(o).some(B=>sat(A,B))))?null:pl};
-    const plot=lay(1)||lay(-1);if(!plot)return;
+    const plot=lay(1,true)||lay(-1,true)||lay(1)||lay(-1);if(!plot)return;
     foot.push({x,z,r:pw*.75});
     const g=new THREE.Group();let top=0,topW=0;
     const part=(geo,w,h,y)=>{const m=new THREE.Mesh(geo,winMat(col,w,h,haze));m.position.y=y;g.add(m)};
@@ -221,9 +223,13 @@
   arcRing(86,92,186*d2r,347*d2r,promMat,.055);fence(91.6,186*d2r,347*d2r);                                            // behind the tower
 
   // 15. street lights: thin out the ring road round the tower, add them along the other roads
-  scene.traverse(o=>{if(!o.isInstancedMesh)return;const g=o.geometry.parameters||{};
-    const isLamp=(o.geometry.type==='CylinderGeometry'&&g.radiusTop===0.1&&g.height===6)||(o.geometry.type==='BoxGeometry'&&g.width===1&&g.height===0.22)||(o.geometry.type==='PlaneGeometry'&&g.width===12);
-    if(!isLamp)return;const z0=new THREE.Matrix4().makeScale(0,0,0);for(let i=0;i<o.count;i++)if(i%8>=4)o.setMatrixAt(i,z0);o.instanceMatrix.needsUpdate=true});
+  //     (and none left standing on a driveway)
+  const onDrive=(px,pz,m)=>plots.some(({x,z,rot,pw,L,sg})=>{const dx=px-x,dz=pz-z,c=Math.cos(rot),s=Math.sin(rot);const lx=dx*c-dz*s,lz=dx*s+dz*c;
+      return Math.abs(lx-sg*pw*.2)<2.2+m&&lz>pw/2-m&&lz<pw/2+L+m});
+  const lampMs=[];scene.traverse(o=>{if(!o.isInstancedMesh)return;const g=o.geometry.parameters||{};
+    if((o.geometry.type==='CylinderGeometry'&&g.radiusTop===0.1&&g.height===6)||(o.geometry.type==='BoxGeometry'&&g.width===1&&g.height===0.22)||(o.geometry.type==='PlaneGeometry'&&g.width===12))lampMs.push(o)});
+  const lampPosts=lampMs.find(o=>o.geometry.type==='CylinderGeometry');
+  if(lampPosts){for(let i=0;i<lampPosts.count;i++){lampPosts.getMatrixAt(i,tm);tp.setFromMatrixPosition(tm);if(i%8>=4||onDrive(tp.x,tp.z,.8))lampMs.forEach(o=>o.setMatrixAt(i,zeroM))}lampMs.forEach(o=>o.instanceMatrix.needsUpdate=true)}
   const postMat=new THREE.MeshStandardMaterial({color:mat.mullion.color.clone(),roughness:.5,metalness:.4}),headMat=new THREE.MeshBasicMaterial({color:'#9aa3a8'});
   const lamp=(x,z,dx,dz)=>{const g=new THREE.Group();const post=new THREE.Mesh(new THREE.CylinderGeometry(.1,.14,6,6),postMat);post.position.y=3;
     const arm=new THREE.Mesh(new THREE.BoxGeometry(1.4,.08,.08),postMat);arm.position.set(.6,5.95,0);const head=new THREE.Mesh(new THREE.BoxGeometry(1,.22,.55),headMat);head.position.set(1.2,5.9,0);
