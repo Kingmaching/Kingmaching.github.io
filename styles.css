@@ -318,7 +318,7 @@ em { font-style: normal; color: var(--neon); }
 /* Wider screens: the text box is exactly as wide as the name (contain stops its text from widening the column). */
 @media (min-width: 721px) {
   .intro { width: fit-content; }
-  .intro > .intro-foot { contain: inline-size; max-width: none; }
+  .intro > .intro-foot { contain: inline-size; max-width: none; margin-top: calc(0.15 * min(15vw, 23vh, 12rem)); }   /* clears the "g" of Ching */
   .intro > .kicker { margin-inline-end: -100vw; }   /* the kicker may run past the name without widening the column */
   .intro .lede { font-size: clamp(1rem, min(1.72vw, 2.65vh), 1.38rem); }   /* scales with the name, so it stays three lines */
 }   /* short windows: the intro still fits one screen */

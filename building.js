@@ -902,8 +902,9 @@
   pose(ownerA, 0);
   scene.add(dog);
   // A plane crossing the distant sky as the page scrolls, leaving a faint contrail. It sits in a group that
-  // turns about the vertical axis, so the plane and its trail ride one arc of radius 560 m.
-  const flight = new THREE.Group(), plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
+  // turns about the vertical axis, so the plane and its trail ride one arc of radius 560 m. Plane and trail
+  // share the `craft` group, centred on the plane, so the trail climbs and shrinks with it as it flies off.
+  const flight = new THREE.Group(), craft = new THREE.Group(), plane = new THREE.Group(), planeMat = new THREE.MeshBasicMaterial({ color: 0xe9eef2, fog: false });
   const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.7, 12, 10), planeMat);
   fuselage.rotation.z = Math.PI / 2; plane.add(fuselage);
   plane.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 13), planeMat));
@@ -911,10 +912,10 @@
   const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff3b3b, fog: false }));
   beacon.position.set(0, -0.9, 0); plane.add(beacon);
   const FLY_R = 560, FLY_H = 150, TRAIL = 0.32;                      // trail length in radians of the arc
-  plane.position.set(FLY_R, FLY_H, 0); plane.rotation.y = -Math.PI / 2;   // nose along +z, the way the arc runs
+  craft.position.set(FLY_R, FLY_H, 0); plane.rotation.y = -Math.PI / 2;   // nose along +z, the way the arc runs
   const trailCurve = new THREE.CatmullRomCurve3(Array.from({ length: 13 }, (_, i) => {
     const f = -TRAIL + (i / 12) * TRAIL;
-    return new THREE.Vector3(Math.cos(f) * FLY_R, FLY_H, Math.sin(f) * FLY_R - 6);
+    return new THREE.Vector3(Math.cos(f) * FLY_R - FLY_R, 0, Math.sin(f) * FLY_R - 6);   // relative to the plane
   }));
   const trailMat = new THREE.ShaderMaterial({
     uniforms: { uOpacity: { value: 0.5 } },
@@ -922,7 +923,8 @@
     fragmentShader: "uniform float uOpacity; varying float vU; void main() { gl_FragColor = vec4(1.0, 1.0, 1.0, uOpacity * pow(vU, 1.6)); }",
     transparent: true, depthWrite: false,
   });
-  flight.add(plane, new THREE.Mesh(new THREE.TubeGeometry(trailCurve, 60, 0.7, 6, false), trailMat));
+  craft.add(plane, new THREE.Mesh(new THREE.TubeGeometry(trailCurve, 60, 0.7, 6, false), trailMat));
+  flight.add(craft);
   scene.add(flight);
   const SKY_NIGHT = C("#1c2633");
 
@@ -940,8 +942,8 @@
     moveActors(q);
     flight.rotation.y = -(3.4 + clamp((q + 2) / 3, 0, 1) * 1.2);     // the plane crosses the sky as you scroll
     const away = smoothstep(q, -0.8, 0.3);                           // ...and flies off into the distance by Project 2.1
-    plane.scale.setScalar(Math.max(0.001, 1 - away));
-    plane.position.y = FLY_H + away * 40;
+    craft.scale.setScalar(Math.max(0.001, 1 - away));
+    craft.position.y = FLY_H + away * 40;
     flight.visible = away < 1;
     beacon.visible = (t % 1.2) < 0.15;
     planeMat.color.set(0xe9eef2).lerp(SKY_NIGHT, nightAmt);
