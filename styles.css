@@ -167,7 +167,7 @@ em { font-style: normal; color: var(--neon); }
   pointer-events: auto;
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; text-decoration: none; white-space: nowrap; }
-.brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--celestial), var(--may)); }
+.brand-mark { width: 22px; height: 22px; flex: none; filter: drop-shadow(0 0 2px rgba(75, 151, 192, 0.6)) drop-shadow(0 0 5px rgba(70, 149, 61, 0.35)); }   /* the logo, glowing in the old dot's blue-green */
 .nav-links { display: flex; align-items: center; gap: clamp(10px, 2vw, 24px); min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .nav-links::-webkit-scrollbar { display: none; }
 .nav-links a { font-size: 0.9375rem; color: var(--muted-d); text-decoration: none; white-space: nowrap; padding-block: 6px; }

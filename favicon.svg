@@ -1,9 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <!-- black on light browser tabs, off-white on dark ones -->
   <style>.f{fill:#111}@media (prefers-color-scheme:dark){.f{fill:#f5f0e6}}</style>
-  <g class="f">
-    <path d="M4 60V18L17 6l8 8-11 9v29z"/>
-    <path d="M60 60V18L47 6l-8 8 11 9v29z"/>
-    <path d="M18 27l6-6 8 9 8-9 6 6-14 15z"/>
-  </g>
+  <path class="f" d="M5.00 60.00 5.00 19.00 16.89 8.29 23.62 14.35 14.00 23.01 14.00 51.90ZM59.00 60.00 59.00 19.00 47.11 8.29 40.38 14.35 50.00 23.01 50.00 51.90ZM32.00 26.61 23.62 19.06 16.89 25.11 32.00 38.72 47.11 25.11 40.38 19.06Z"/>
 </svg>
