@@ -734,18 +734,18 @@
   }
   const CAR_COLOURS = ["#c8102e", "#c8102e", "#1f8a4c", "#f2f2ee", "#2b2f36", "#f2f2ee", "#3c6fb0", "#e9e1c8"]; // red & green taxis, minibus cream
   // Positions are functions of scroll progress: traffic moves when the page scrolls and waits when it stops.
-  // Every car and walker leaves at some point in the story, so the streets empty as you scroll: at qLeave it
-  // reaches the +z avenue and heads off down it to the edge of the ground, where it is hidden. Its start
-  // point is set so it is at that junction exactly then.
+  // Most cars and walkers leave at some point in the story; a few stay to the end (qLeave = Infinity). A
+  // leaver, at qLeave, reaches the +z avenue and heads off down it to the edge of the ground, where it is
+  // hidden; its start point is set so it is at that junction exactly then.
   const EXIT_S = 5 / 8;                             // rectPath: middle of the +z side
   const FAR = 240;                                  // gone once this far down the avenue
   const loopOrLeave = (s0, rate, q, h, qLeave, exitX) => (q < qLeave
     ? rectPath(s0 + rate * q, h, h)
     : [exitX, h + (q - qLeave) * Math.abs(rate) * 8 * h, -Math.PI / 2]);   // same speed, now along +z
-  const CAR_LEAVE = [-1.4, -0.5, 0.5, 1.6, 2.8, 4.2], WALK_LEAVE = [-1.2, -0.3, 0.4, 1.2, 2.0, 2.9, 3.8, 4.8];
+  const CAR_LEAVE = [-1.4, -0.3, 1.0, 2.6, Infinity, Infinity], WALK_LEAVE = [-1.2, -0.2, 0.8, 2.0, 3.4, Infinity, Infinity, Infinity];
   const cars = Array.from({ length: 6 }, (_, i) => {
     const c = { lane: i % 2 ? 1 : -1, v: 0.12 + rand() * 0.07, qLeave: CAR_LEAVE[i] };
-    c.s0 = EXIT_S - c.lane * c.v * c.qLeave;
+    c.s0 = isFinite(c.qLeave) ? EXIT_S - c.lane * c.v * c.qLeave : i / 6;
     return c;
   });
   const carBody = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), mat.car, cars.length);
@@ -785,7 +785,7 @@
     const outer = i % 2 === 0;                          // outer pavement beyond the ring road, or the plaza
     const p = { s0: rand(), v: (0.035 + rand() * 0.035) * (rand() < 0.5 ? 1 : -1), outer, off: (rand() - 0.5) * 1.4,
       a: makeActor(SHIRTS[i % SHIRTS.length], LEGS[i % LEGS.length]) };
-    p.qLeave = WALK_LEAVE[i]; p.s0 = EXIT_S - p.v * p.qLeave;
+    p.qLeave = WALK_LEAVE[i]; if (isFinite(p.qLeave)) p.s0 = EXIT_S - p.v * p.qLeave;
     pose(p.a, 0);
     return p;
   });
