@@ -27,13 +27,13 @@
   // 2. walkways through the near parks (camera side), each running from one pavement to another, with bushes
   //    along them: two diagonals between the +z and +x avenues' pavements, and a link from the ring's corner
   const walk=mat.walk;   // the scene's own pavement material, so new paving changes with the light like the rest
-  const path=(x,z,w,d,rot)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),walk);m.rotation.set(-Math.PI/2,0,rot||0);m.position.set(x,0.045,z);m.receiveShadow=true;return add(m)};
+  const path=(x,z,w,d,rot)=>{const m=new THREE.Mesh(og.meterUV(new THREE.PlaneGeometry(w,d),w,d),walk);m.rotation.set(-Math.PI/2,0,rot||0);m.position.set(x,0.045,z);m.receiveShadow=true;return add(m)};
   const pathSegs=[[7,70,70,7],[7,110,110,7],[38.5,38.5,58.5,58.5]];
   const paths=pathSegs.map(([ax,az,bx,bz])=>{const dx=bx-ax,dz=bz-az;return [(ax+bx)/2,(az+bz)/2,3,Math.hypot(dx,dz),Math.atan2(dx,dz)]});
   const segDist=([x,z],[ax,az,bx,bz])=>{const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-ax-t*dx,z-az-t*dz)};
   const nearPath=(x,z,m)=>pathSegs.some(sg=>segDist([x,z],sg)<1.5+m);
   paths.forEach(a=>path(...a));
-  const bushGeo=new THREE.IcosahedronGeometry(1,0);const bushMats=['#4f8a45','#5d9a4c','#3f7a3f','#6aa451'].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.9,flatShading:true}));
+  const bushGeo=og.canopyGeo;const bushMats=['#4a6e2c','#557a34','#3d6029','#62823a'].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.85,map:og.leafTex,bumpMap:og.leafTex,bumpScale:.8}));
   let nb=0;paths.forEach(([x,z,w,d,rot])=>{const L=Math.max(w,d),along=d>w;for(let s=-L/2+3;s<L/2;s+=4.2+rnd()*3){for(const side of[-1,1]){if(rnd()<.35)continue;
     const off=(Math.min(w,d)/2+1.4)*side;let lx=along?off:s,lz=along?s:off;const c=Math.cos(-rot),sn=Math.sin(-rot);
     const bx=x+lx*c-lz*sn,bz=z+lx*sn+lz*c;const m=new THREE.Mesh(bushGeo,bushMats[nb++%4]);const k=.7+rnd()*.6;m.scale.set(1.3*k,.9*k,1.2*k);m.position.set(bx,.6*k,bz);m.castShadow=true;add(m)}}});
@@ -66,9 +66,9 @@
   // 8. the water carries on behind the name (world angles ~120°-190°), with a distant row of buildings across it
   const water=[];scene.traverse(o=>{if(o.isMesh&&o.geometry.type==='RingGeometry')water.push(o)});
   const wm=water[0];const a0=120*Math.PI/180,a1=190*Math.PI/180;
-  const extMat=wm.material.clone();extMat.color.set('#86c3d9');extMat.metalness=0.1;extMat.roughness=0.35;const ext=new THREE.Mesh(new THREE.RingGeometry(120,330,48,1,-a1,a1-a0),extMat);ext.rotation.copy(wm.rotation);ext.position.copy(wm.position);ext.position.y=0.065;ext.receiveShadow=true;add(ext);
+  const extMat=wm.material.clone();extMat.color.set('#2a5a72');const ext=new THREE.Mesh(new THREE.RingGeometry(120,330,48,1,-a1,a1-a0),extMat);ext.rotation.copy(wm.rotation);ext.position.copy(wm.position);ext.position.y=0.065;ext.receiveShadow=true;add(ext);
   const sky=new THREE.Color('#8fa9b6');
-  const hazeList=[];const hazeMat=(base,k)=>{const m=base.clone();m.color.lerp(sky,k);m.emissive=sky.clone().multiplyScalar(k*0.45);m.emissiveMap=null;m.emissiveIntensity=1;m.needsUpdate=true;hazeList.push(m);return m};
+  const hazeList=[];const hazeMat=(base,k)=>{const m=base.clone();m.color.lerp(sky,k);m.emissive=sky.clone().multiplyScalar(k*0.08);m.emissiveMap=null;m.emissiveIntensity=1;m.needsUpdate=true;hazeList.push(m);return m};
   const farMat=hazeMat(blocks[0].material,0.7), farRoof=hazeMat(roofMat,0.7);
   for(let i=0,tries=0;i<14&&tries<400;tries++){const a=(122+rnd()*68)*Math.PI/180, r=345+rnd()*80;const w=10+rnd()*12,h=30+rnd()*70;
     if(!fits(Math.cos(a)*r,Math.sin(a)*r,w))continue;i++;
@@ -80,11 +80,11 @@
 
   // window texture: a grid of panes, tinted by each material's colour
   const wc=document.createElement('canvas');wc.width=wc.height=64;const wx=wc.getContext('2d');wx.fillStyle='#ffffff';wx.fillRect(0,0,64,64);
-  wx.fillStyle='#7c929c';for(const [x,y] of [[6,8],[36,8],[6,40],[36,40]])wx.fillRect(x,y,22,16);
+  wx.fillStyle='#34434b';for(const [x,y] of [[6,8],[36,8],[6,40],[36,40]])wx.fillRect(x,y,22,16);
   const winTex=(w,h)=>{const t=new THREE.CanvasTexture(wc);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(Math.max(1,Math.round(w/3.2)),Math.max(1,Math.round(h/3.4)));t.anisotropy=4;return t};
-  const sc=document.createElement('canvas');sc.width=sc.height=64;const sx=sc.getContext('2d');sx.fillStyle='#ffffff';sx.fillRect(0,0,64,64);sx.fillStyle='#6f8590';sx.fillRect(4,10,56,48);sx.fillStyle='#ffffff';sx.fillRect(31,10,2,48);
-  const shopMat=(color,w,k)=>{const m=hazeMat(new THREE.MeshStandardMaterial({color,roughness:.7}),k);const t=new THREE.CanvasTexture(sc);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(Math.max(2,Math.round(w/5)),1);t.anisotropy=4;m.map=t;m.needsUpdate=true;return m};
-  const winMat=(color,w,h,k)=>{const m=hazeMat(new THREE.MeshStandardMaterial({color,roughness:.7}),k);m.map=winTex(w,h);m.needsUpdate=true;return m};
+  const sc=document.createElement('canvas');sc.width=sc.height=64;const sx=sc.getContext('2d');sx.fillStyle='#ffffff';sx.fillRect(0,0,64,64);sx.fillStyle='#2f3d44';sx.fillRect(4,10,56,48);sx.fillStyle='#ffffff';sx.fillRect(31,10,2,48);
+  const shopMat=(color,w,k)=>{const m=hazeMat(new THREE.MeshStandardMaterial({color,roughness:.7}),k);const t=new THREE.CanvasTexture(sc);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(Math.max(2,Math.round(w/5)),1);t.anisotropy=4;m.map=m.roughnessMap=t;m.roughness=1;m.needsUpdate=true;return m};
+  const winMat=(color,w,h,k)=>{const m=hazeMat(new THREE.MeshStandardMaterial({color,roughness:.7}),k);m.map=m.roughnessMap=winTex(w,h);m.roughness=1;m.needsUpdate=true;return m};   // the dark panes are glossy glass
   // rooftop clutter: water tanks, AC units, a mast
   const tankMat=new THREE.MeshStandardMaterial({color:'#b9c2c4',roughness:.6}),acMat=new THREE.MeshStandardMaterial({color:'#d7dcdc',roughness:.6});
   const rooftop=(g,y,w)=>{const n=1+Math.floor(rnd()*3);for(let i=0;i<n;i++){const t=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,1.6,10),tankMat);t.position.set((rnd()-.5)*w*.6,y+.8,(rnd()-.5)*w*.6);g.add(t)}
@@ -93,7 +93,7 @@
   // 10. buildings on both sides from one maker: mixed shapes, a front door facing the nearest road, a driveway
   //     to it, an underground car-park ramp beside the driveway, and a footpath down one side.
   const roadMat=mat.road;   // likewise the road material (where pieces meet or overlap, they never flicker)
-  const flatOn=(w,d,m,x,z,y,rot)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);p.rotation.set(-Math.PI/2,0,rot||0);p.position.set(x,y,z);p.receiveShadow=true;return add(p)};
+  const flatOn=(w,d,m,x,z,y,rot)=>{const p=new THREE.Mesh(og.meterUV(new THREE.PlaneGeometry(w,d),w,d),m);p.rotation.set(-Math.PI/2,0,rot||0);p.position.set(x,y,z);p.receiveShadow=true;return add(p)};
   // local streets through the district (so driveways have somewhere to go)
   flatOn(96,7,roadMat,-52,62,0.05);            // z = 62, from the avenue (x = 0) out to x = -100
   flatOn(7,54.5,roadMat,-60,31.25,0.05);       // x = -60, from the -x avenue's edge (z = 4) to the z = 62 street's (z = 58.5)
@@ -322,6 +322,8 @@
       b.m.visible=k<3.2;b.m.scale.set(b.s,b.s*(.55+.45*Math.abs(Math.sin(t*7+b.ph))),b.s)});
     requestAnimationFrame(animate);
   })();
+  // painted textures are sRGB (building.js lights the scene in linear space)
+  scene.traverse(o=>[].concat(o.material||[]).forEach(m=>['map','emissiveMap'].forEach(k=>{if(m[k]&&m[k].encoding!==THREE.sRGBEncoding){m[k].encoding=THREE.sRGBEncoding;m.needsUpdate=true}})));
   // the haze is daylight: it fades through dusk and is gone at night
   let lastK = -1;
   (function dim() {

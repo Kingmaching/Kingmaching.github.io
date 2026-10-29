@@ -208,14 +208,14 @@ em { font-style: normal; color: var(--neon); }
 .sun-glare {                          /* warm glare and rays around the sun, faded in by daylight */
   position: absolute; inset: 0; pointer-events: none; opacity: var(--day);
   background:
-    radial-gradient(circle at var(--sx) var(--sy), rgba(255, 236, 170, 0.75) 0, rgba(255, 200, 90, 0.35) 4%, rgba(255, 170, 60, 0.1) 16%, transparent 36%),
-    repeating-conic-gradient(from 0deg at var(--sx) var(--sy), rgba(255, 210, 120, 0.055) 0deg 3deg, transparent 3deg 11deg);
+    radial-gradient(circle at var(--sx) var(--sy), rgba(255, 236, 170, 0.75) 0, rgba(255, 200, 90, 0.35) 4%, rgba(255, 170, 60, 0.1) 16%, transparent 36%);
   -webkit-mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 0, #000 22%, transparent 70%);
   mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 0, #000 22%, transparent 70%);
   mix-blend-mode: screen;
 }
 #building-canvas, #backdrop-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 #backdrop-canvas { filter: blur(var(--focus-blur, 3px)); }   /* skyline and light show sit out of focus behind the tower */
+.grade { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 55%, rgba(6, 12, 18, 0.3) 100%); }   /* lens vignette */
 .stage::after {                       /* at the end of the story the sunset fades into the next section */
   content: ""; position: absolute; inset: auto 0 0 0; height: 45%; pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--paper-2) 70%, var(--paper));

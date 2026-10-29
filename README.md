@@ -17,6 +17,9 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
   focus; and, for Project 2.2, night (street lamps, car lights, neon signs and their glow on wet roads)
   and the top floor as the 48 × 34 ft office with its luminaires and
   the light they put on the floor. It also measures how wide the tower is on screen so the cards keep clear of it.
+  The look is photographic rather than flat: filmic (ACES) tone mapping with colours lit in linear space, real-world
+  surface colours, sky reflections from an environment map rebuilt as the light changes, painted noise textures for
+  grass, asphalt, paving, concrete, leaves and water, rounded trees and ridged hills, and haze that thickens with distance.
 - `sections.js` runs everything below the hero: statement reveal, sliding tabs, the project demos
   (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route,
   the toolbox, the contact form, the top-bar underline that follows the

@@ -26,6 +26,11 @@
   if (!canvas || !story || !S) return;
   if (!window.THREE) { canvas.hidden = true; return; }
 
+  // Colours are written in sRGB; light them in linear space, as three.js r152+ does by default.
+  const setColor = THREE.Color.prototype.set;
+  THREE.Color.prototype.set = function (v) { setColor.call(this, v); return v && v.isColor ? this : this.convertSRGBToLinear(); };
+  const filmic = r => { r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; };
+
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -43,6 +48,7 @@
     try {
       backRenderer = new THREE.WebGLRenderer({ canvas: backCanvas, antialias: false, alpha: true });
       backRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * 0.5);
+      filmic(backRenderer);
     } catch (err) {
       backCanvas.hidden = true;
     }
@@ -58,12 +64,13 @@
   const RING = 31;                                  // ring road centreline half-size
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  filmic(renderer);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
   const sceneState = { day: 1, dusk: 0, night: 0, q: -2 };   // read by scene-extras.js (haze, moving street life)
-  scene.fog = new THREE.Fog(0x121b28, 320, 900);
+  scene.fog = new THREE.FogExp2(0x121b28, 0.0016);   // aerial perspective: the far shore and hills fade into the sky
   const camera = new THREE.PerspectiveCamera(32, 1, 1, 1400);
   const stage = canvas.parentElement;
 
@@ -71,20 +78,80 @@
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const C = hex => new THREE.Color(hex);
 
+  // ---------- Surface textures: tileable fractal noise painted on canvases (own seed, so layouts don't move) ----------
+  let tseed = 3;
+  const trand = () => (tseed = (tseed * 16807) % 2147483647) / 2147483647;
+  function noiseTex(size, octaves, paint) {
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const g = c.getContext("2d"), img = g.createImageData(size, size);
+    const grids = octaves.map(([cells]) => Float32Array.from({ length: cells * cells }, trand));
+    const h = new Float32Array(size * size);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      let n = 0;
+      octaves.forEach(([cells, amp], k) => {
+        const fx = x / size * cells, fy = y / size * cells, x0 = Math.floor(fx), y0 = Math.floor(fy);
+        const sx = smoothstep(fx - x0, 0, 1), sy = smoothstep(fy - y0, 0, 1), v = grids[k];
+        const at = (i, j) => v[(j % cells) * cells + (i % cells)];
+        n += amp * lerp(lerp(at(x0, y0), at(x0 + 1, y0), sx), lerp(at(x0, y0 + 1), at(x0 + 1, y0 + 1), sx), sy);
+      });
+      h[y * size + x] = n;
+    }
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const rgb = paint(h, x, y, size), i = (y * size + x) * 4;
+      img.data[i] = rgb[0]; img.data[i + 1] = rgb[1]; img.data[i + 2] = rgb[2]; img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = 8;
+    return t;
+  }
+  const grey = v => { v = clamp(v, 0, 1) * 255; return [v, v, v]; };
+  const hAt = (h, x, y, n) => h[((y + n) % n) * n + ((x + n) % n)];
+  const grassTex = noiseTex(256, [[4, 0.35], [16, 0.3], [64, 0.2], [128, 0.15]], (h, x, y, n) => {
+    const v = 0.58 + 0.42 * hAt(h, x, y, n) + (trand() - 0.5) * 0.12;
+    return [v * 255 * (0.9 + 0.2 * hAt(h, x + 97, y + 31, n)), v * 255, v * 230];
+  });
+  grassTex.repeat.set(90, 90);
+  const asphaltTex = noiseTex(256, [[8, 0.5], [32, 0.3], [128, 0.2]], (h, x, y, n) => grey(0.62 + 0.22 * hAt(h, x, y, n) + (trand() - 0.5) * 0.3));
+  const pavingTex = noiseTex(256, [[8, 0.6], [64, 0.4]], (h, x, y, n) =>
+    grey((x % 32 < 2 || y % 32 < 2 ? 0.62 : 0.86) + 0.14 * hAt(h, x, y, n) + (trand() - 0.5) * 0.08));   // 0.75 m slabs on a 6 m tile
+  const concreteTex = noiseTex(128, [[4, 0.5], [16, 0.3], [64, 0.2]], (h, x, y, n) => grey(0.8 + 0.2 * hAt(h, x, y, n)));
+  const leafTex = noiseTex(128, [[8, 0.4], [32, 0.35], [64, 0.25]], (h, x, y, n) => {
+    const v = hAt(h, x, y, n);
+    return [v * 200 + 40, v * 215 + 40, v * 170 + 30];
+  });
+  const waterNormals = noiseTex(256, [[4, 0.3], [16, 0.4], [32, 0.3]], (h, x, y, n) => {
+    const dx = (hAt(h, x + 1, y, n) - hAt(h, x - 1, y, n)) * 6, dy = (hAt(h, x, y + 1, n) - hAt(h, x, y - 1, n)) * 6;
+    const l = Math.hypot(dx, dy, 1);
+    return [(-dx / l * 0.5 + 0.5) * 255, (-dy / l * 0.5 + 0.5) * 255, (1 / l * 0.5 + 0.5) * 255];
+  });
+  waterNormals.repeat.set(70, 70);
+  // UVs in metres (one texture tile per `s` metres), so paving and asphalt keep their scale on any plane
+  const meterUV = (geo, w, d, s = 6) => {
+    const uv = geo.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / s, uv.getY(i) * d / s);
+    return geo;
+  };
+
   // ---------- Materials ----------
   const std = (o = {}) => new THREE.MeshStandardMaterial({ roughness: 0.75, metalness: 0.05, ...o });
   const mat = {
-    concrete: std(), core: std(), slab: std(),
+    concrete: std({ map: concreteTex }), core: std({ map: concreteTex }), slab: std({ map: concreteTex }),
     panel: std({ roughness: 0.45, metalness: 0.3, color: 0xffffff }),     // tinted per instance
     mullion: std({ roughness: 0.4, metalness: 0.5 }),
-    glass: std({ roughness: 0.12, metalness: 0.25, transparent: true, opacity: 0.4, depthWrite: false }),
-    ground: std({ roughness: 1 }), road: std({ roughness: 0.95 }), walk: std({ roughness: 0.95 }),
-    water: std({ roughness: 0.22, metalness: 0.35 }),
-    green: std({ roughness: 0.9 }), hedge: std({ roughness: 0.95 }), trunk: std({ roughness: 1, color: 0x6b5641 }),
-    canopy: std({ roughness: 0.9, flatShading: true, color: 0xffffff }),
-    hill: std({ roughness: 1, flatShading: true }),
+    glass: std({ roughness: 0.04, metalness: 0.5, envMapIntensity: 1.6, transparent: true, opacity: 0.4, depthWrite: false }),
+    ground: std({ roughness: 1, map: grassTex, bumpMap: grassTex, bumpScale: 0.15 }),
+    road: std({ roughness: 0.95, map: asphaltTex, bumpMap: asphaltTex, bumpScale: 0.08 }),
+    walk: std({ roughness: 0.9, map: pavingTex, bumpMap: pavingTex, bumpScale: 0.12 }),
+    water: std({ roughness: 0.12, metalness: 0, normalMap: waterNormals, normalScale: new THREE.Vector2(0.5, 0.5), envMapIntensity: 0.6 }),
+    green: std({ roughness: 1, map: leafTex, bumpMap: leafTex, bumpScale: 0.5 }), hedge: std({ roughness: 1, map: leafTex, bumpMap: leafTex, bumpScale: 0.6 }),
+    trunk: std({ roughness: 1, color: 0x4a3a2c, map: concreteTex }),
+    canopy: std({ roughness: 0.85, color: 0xffffff, map: leafTex, bumpMap: leafTex, bumpScale: 0.8 }),
+    hill: std({ roughness: 1 }),
     plant: std({ roughness: 0.6, metalness: 0.4 }),
-    car: std({ roughness: 0.45, metalness: 0.3, color: 0xffffff }),
+    car: std({ roughness: 0.25, metalness: 0.6, color: 0xffffff }),
     air: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     arrow: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
     sensor: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
@@ -106,15 +173,16 @@
   // Palettes: early morning (start, still called night), day, golden hour, and real night for Project 3.2.
   // update() blends between them; `nightfall` (0 → 1) is set at the top of each update.
   const PAL = {
-    night: { concrete: C("#c3ced2"), slab: C("#e4eaeb"), panelTint: C("#eef4f4"), glass: C("#bfe0ec"), ground: C("#9cc47e"),
-      road: C("#8b9497"), walk: C("#e3e6dc"), water: C("#82c3d8"), green: C("#7fbf5e"), context: C("#d3e2e8"), hill: C("#8dbf74"),
-      skyTop: C("#8fcbe6"), skyLow: C("#e6f6f3"), light: C("#f4fbff") },
-    day: { concrete: C("#b8c3c6"), slab: C("#e2e7e7"), panelTint: C("#ffffff"), glass: C("#9ccbe2"), ground: C("#8fc06a"),
-      road: C("#6e777b"), walk: C("#dcdccf"), water: C("#4b97c0"), green: C("#6fb34e"), context: C("#c4d4dc"), hill: C("#6aa85a"),
-      skyTop: C("#4b97c0"), skyLow: C("#d8f0f4"), light: C("#fff8ea") },
-    sunset: { concrete: C("#c8bfb6"), slab: C("#e8ddd2"), panelTint: C("#fbe9da"), glass: C("#f5c49a"), ground: C("#9cb877"),
-      road: C("#6d6a6c"), walk: C("#ddd0c2"), water: C("#8fb6cf"), green: C("#78a85a"), context: C("#c8c4cc"), hill: C("#7ea067"),
-      skyTop: C("#6fa3cf"), skyLow: C("#ffd9a8"), light: C("#ffd2a0") },
+    // Real-world albedos: the lighting, not the paint, makes the scene bright.
+    night: { concrete: C("#9ea19d"), slab: C("#bdbbb3"), panelTint: C("#d2d0ca"), glass: C("#4c6676"), ground: C("#5c7438"),
+      road: C("#4a4b4c"), walk: C("#a09c92"), water: C("#2d5a6e"), green: C("#4f6e2e"), context: C("#a9adab"), hill: C("#3a5233"),
+      skyTop: C("#6f9fd0"), skyLow: C("#d6dde2"), light: C("#ffe4c8") },
+    day: { concrete: C("#9a9e9c"), slab: C("#bab9b2"), panelTint: C("#dddbd4"), glass: C("#3f5a6b"), ground: C("#577832"),
+      road: C("#3f4143"), walk: C("#a19e95"), water: C("#245572"), green: C("#4a702a"), context: C("#a3a9ab"), hill: C("#44633a"),
+      skyTop: C("#3d7cc4"), skyLow: C("#cfe0ea"), light: C("#fff3e0") },
+    sunset: { concrete: C("#a59184"), slab: C("#c3ad9b"), panelTint: C("#e6c8ae"), glass: C("#8f6447"), ground: C("#62702f"),
+      road: C("#47403f"), walk: C("#ab9682"), water: C("#4f5a6c"), green: C("#566a2b"), context: C("#ad9e9a"), hill: C("#3f4f33"),
+      skyTop: C("#4f73ad"), skyLow: C("#f2c9a2"), light: C("#ffbf8a") },
     dark: { concrete: C("#2c3540"), slab: C("#3a4552"), panelTint: C("#5b6672"), glass: C("#1d2a38"), ground: C("#142019"),
       road: C("#10151b"), walk: C("#252b31"), water: C("#0b1826"), green: C("#1d3324"), context: C("#18212b"), hill: C("#13201a"),
       skyTop: C("#050a14"), skyLow: C("#142235"), light: C("#8fa3c8") },
@@ -212,6 +280,35 @@
   const sunDisc = toBack(new THREE.Mesh(new THREE.SphereGeometry(7, 24, 16), mat.sun));
   scene.add(sunDisc);
 
+  // Sky reflections: a small sky (gradient and sun) prefiltered into the environment map, so glass,
+  // water, cars and wet roads reflect the sky of the moment. Rebuilt only when the light has moved on.
+  const envScene = new THREE.Scene();
+  const envSkyGeo = new THREE.SphereGeometry(10, 32, 16);
+  envSkyGeo.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(envSkyGeo.attributes.position.count * 3), 3));
+  const envSun = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 8), new THREE.MeshBasicMaterial());
+  envScene.add(new THREE.Mesh(envSkyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })), envSun);
+  const pmrem = new THREE.PMREMGenerator(renderer), envGround = C("#4a5444"), envC = new THREE.Color();
+  let envRT = null, envKey = "";
+  function updateEnv(top, low, day, night) {
+    const key = [day, night, sunDir.x, sunDir.y, low.r, low.g].map(v => Math.round(v * 30)).join();
+    if (key === envKey) return;
+    envKey = key;
+    const pos = envSkyGeo.attributes.position, col = envSkyGeo.attributes.color;
+    for (let i = 0; i < pos.count; i++) {
+      const h = pos.getY(i) / 10;
+      if (h >= 0) envC.copy(low).lerp(top, Math.pow(h, 0.6));
+      else envC.copy(low).lerp(envGround, Math.min(1, -h * 4)).multiplyScalar(lerp(1, 0.25, night));
+      col.setXYZ(i, envC.r, envC.g, envC.b);
+    }
+    col.needsUpdate = true;
+    envSun.visible = night < 0.5;
+    envSun.position.copy(sunDir).multiplyScalar(9);
+    envSun.material.color.copy(sunLight.color).multiplyScalar(40 * day);
+    if (envRT) envRT.dispose();
+    envRT = pmrem.fromScene(envScene, 0.02);
+    scene.environment = envRT.texture;
+  }
+
   // ---------- Ground: parks, roads, harbour ----------
   // In focus: the ground out to the far shore. Behind it, the backdrop gets its own full ground disc
   // so the skyline stands on something and the blur has no gaps to bleed into.
@@ -231,7 +328,7 @@
   scene.add(water);
 
   function flat(w, d, material, x, z, y = 0.04) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), material);
+    const m = new THREE.Mesh(meterUV(new THREE.PlaneGeometry(w, d), w, d), material);
     m.rotation.x = -Math.PI / 2;
     m.position.set(x, y, z);
     m.receiveShadow = true;
@@ -319,13 +416,25 @@
     const w = 12 + rand() * 12, h = 36 + rand() * 90;
     place(stack([[w, h]]), a, r);
   }
-  // The Peak and the hills behind: green, not grey
+  // The Peak and the hills behind: green, not grey. Rounded, ridged domes rather than cones.
+  const hillGeo = new THREE.SphereGeometry(1, 64, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+  {
+    const p = hillGeo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), th = Math.atan2(z, x);
+      const ridge = 1 + 0.1 * Math.sin(th * 5) + 0.06 * Math.sin(th * 13 + y * 4) + 0.03 * Math.sin(th * 31);
+      const crest = 0.8 + 0.25 * Math.sin(x * 4 + 1.3) * Math.sin(z * 3.7 + 0.4) + 0.1 * Math.sin(x * 9 + z * 7) + 0.05 * Math.sin(x * 17 - z * 13);
+      p.setXYZ(i, x * ridge, Math.pow(y, 1.4) * crest, z * ridge);
+    }
+    hillGeo.computeVertexNormals();
+  }
   for (let i = 0; i < 9; i++) {
     const a = HARBOUR[0] - 0.1 + (i / 8) * (HARBOUR[1] - HARBOUR[0] + 0.2);
-    const hill = new THREE.Mesh(new THREE.ConeGeometry(110 + rand() * 60, 90 + rand() * 80, 7), mat.hill);
-    hill.position.set(Math.cos(a) * (430 + rand() * 70), 30, Math.sin(a) * (430 + rand() * 70));
+    const r = 110 + rand() * 60, h = 90 + rand() * 80;
+    const hill = new THREE.Mesh(hillGeo, mat.hill);
+    hill.position.set(Math.cos(a) * (430 + rand() * 70), 0, Math.sin(a) * (430 + rand() * 70));
     hill.rotation.y = rand() * 3;
-    hill.scale.y = 1.2;
+    hill.scale.set(r, h * 0.85, r);
     scene.add(toBack(hill));
   }
   toBack(skyline);
@@ -383,15 +492,32 @@
     if (a > HARBOUR[0] && a < HARBOUR[1] && r > 88) continue;
     treeSpots.push([x, z]);
   }
-  const trunkGeo = new THREE.CylinderGeometry(0.25, 0.35, 3, 6);
+  const trunkGeo = new THREE.CylinderGeometry(0.2, 0.35, 3, 8);
   trunkGeo.translate(0, 1.5, 0);
-  const canopyGeo = new THREE.IcosahedronGeometry(1, 0);
+  // Crowns: three lumpy, smooth-shaded clumps in one geometry (still an IcosahedronGeometry, which scene-extras.js looks for)
+  const canopyGeo = new THREE.IcosahedronGeometry(1, 2);
+  {
+    const src = canopyGeo.attributes.position, srcUV = canopyGeo.attributes.uv, pos = [], nor = [], uv = [];
+    [[0, 0.1, 0, 1], [0.5, -0.25, 0.25, 0.68], [-0.45, -0.2, -0.3, 0.72], [0.1, -0.3, -0.5, 0.6]].forEach(([cx, cy, cz, r], k) => {
+      for (let i = 0; i < src.count; i++) {
+        const x = src.getX(i), y = src.getY(i), z = src.getZ(i);
+        const lump = 1 + 0.14 * Math.sin(x * 6.1 + k * 2) * Math.sin(y * 5.3 + k) * Math.sin(z * 6.7 + k * 3) + 0.06 * Math.sin(x * 13 + y * 11 + z * 9 + k);
+        pos.push(cx + x * r * lump, cy + y * r * lump, cz + z * r * lump);
+        nor.push(x, y, z);
+        uv.push(srcUV.getX(i) * 2, srcUV.getY(i) * 2);
+      }
+    });
+    canopyGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    canopyGeo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+    canopyGeo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    canopyGeo.computeBoundingSphere();
+  }
   const PLAZA_TREES = [[-20, -14], [21, 12], [-21, 5], [8, 21], [-6, -21], [14, 20]];
   const trunks = new THREE.InstancedMesh(trunkGeo, mat.trunk, treeSpots.length + PLAZA_TREES.length);
   const canopies = new THREE.InstancedMesh(canopyGeo, mat.canopy, treeSpots.length + PLAZA_TREES.length);
-  canopies.castShadow = true;
+  canopies.castShadow = canopies.receiveShadow = trunks.castShadow = true;
   const leaf = new THREE.Color();
-  const LEAVES = ["#4f8a45", "#5d9a4c", "#3f7a3f", "#6aa451", "#7aa85a"];
+  const LEAVES = ["#4a6e2c", "#557a34", "#3d6029", "#62823a", "#6b8440"];
   function addTree(i, x, y, z, s) {
     dummy.position.set(x, y, z); dummy.rotation.set(0, rand() * 3, 0); dummy.scale.set(s, s, s); dummy.updateMatrix();
     trunks.setMatrixAt(i, dummy.matrix);
@@ -633,7 +759,7 @@
     mullions.instanceMatrix.needsUpdate = true;
   }
 
-  const sunDir = new THREE.Vector3(), flatSun = new THREE.Vector3();
+  const sunDir = new THREE.Vector3(), flatSun = new THREE.Vector3(), cssC = new THREE.Color();
   function layoutFacade(st) {
     let idx = 0;
     for (let f = 0; f < FLOORS; f++) {
@@ -1028,15 +1154,16 @@
     flatSun.set(sunDir.x, 0, sunDir.z).normalize();
 
     const skyTop = blend("skyTop", day, dusk), skyLow = blend("skyLow", day, dusk).clone().lerp(PAL.sunset.skyLow, dawn * 0.45);
-    stage.style.setProperty("--sky-a", "#" + skyTop.getHexString());
-    stage.style.setProperty("--sky-b", "#" + skyLow.getHexString());
+    stage.style.setProperty("--sky-a", "#" + cssC.copy(skyTop).convertLinearToSRGB().getHexString());
+    stage.style.setProperty("--sky-b", "#" + cssC.copy(skyLow).convertLinearToSRGB().getHexString());
     scene.fog.color.copy(skyLow);
-    // Soft light: strong sky fill, gentle sun
-    hemi.intensity = lerp(0.85, 0.95, day) * lerp(1, 0.85, dusk) * lerp(1, 0.5, nightfall);
+    // Hard sun, with the sky's own light (the environment map) and a little bounce as fill
+    hemi.intensity = lerp(0.3, 0.35, day) * lerp(1, 0.85, dusk) * lerp(1, 0.5, nightfall);
     hemi.color.copy(blend("light", day, dusk)).lerp(new THREE.Color(0xffffff), 0.5);
     hemi.groundColor.set(0x5a6b4e);
-    sunLight.intensity = lerp(0.5, 0.72, day) * lerp(1, 0.75, dusk) * (1 - nightfall * 0.85);
+    sunLight.intensity = lerp(1.8, 2.8, day) * lerp(1, 0.8, dusk) * (1 - nightfall * 0.92);
     sunLight.color.copy(blend("light", day, dusk));
+    updateEnv(skyTop, skyLow, day, nightfall);
     ["concrete", "slab", "ground", "green", "road", "walk", "water", "hill"].forEach(key => {
       const m = key === "hill" ? mat.hill : mat[key];
       m.color.copy(blend(key, day, dusk));
@@ -1063,7 +1190,8 @@
     sunLight.position.copy(sunDir).multiplyScalar(240);
     sunLight.target.position.set(0, 25, 0);
     sunDisc.position.copy(sunDir).multiplyScalar(520);
-    shaftMat.opacity = day * (1 - dusk * 0.6) * (1 - nightfall) * smoothstep(day, 0.4, 0.9) * 0.11;
+    shaftMat.opacity = day * (1 - dusk * 0.6) * (1 - nightfall) * smoothstep(day, 0.4, 0.9) * 0.015;
+    waterNormals.offset.set(time * 4e-6, time * 2.5e-6);
     shafts.forEach(m => {
       m.visible = shaftMat.opacity > 0.004;
       if (m.visible) { m.position.copy(m.userData.aim).addScaledVector(sunDir, 90); m.quaternion.setFromUnitVectors(UP, sunDir); }
@@ -1146,8 +1274,7 @@
     if (backRenderer) backRenderer.setSize(w, h, false);
     camera.aspect = w / h;
     distScale = camera.aspect < 1 ? 2.1 : 1;
-    scene.fog.near = 300 * distScale;
-    scene.fog.far = 950 * distScale;
+    scene.fog.density = 0.0016 / distScale;
     stage.style.setProperty("--focus-blur", (w > 720 ? 3 : 2) + "px");
     if (w > 720) camera.clearViewOffset();
     else camera.setViewOffset(w, h * 1.1, 0, h * 0.1, w, h);
@@ -1171,7 +1298,7 @@
     document.documentElement.style.setProperty("--tower-half", Math.round((m * w) / 2) + "px");
   }
 
-  window.__og = { scene, THREE, mat, toBack, state: sceneState };   // for scene-extras.js
+  window.__og = { scene, THREE, mat, toBack, state: sceneState, canopyGeo, leafTex, meterUV };   // for scene-extras.js
 
   // ---------- Loop ----------
   // Two passes: the backdrop (layer 1) into the blurred canvas, then the tower and streets (layer 0).
