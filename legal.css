@@ -1,0 +1,18 @@
+/* The privacy and terms pages: plain reading pages in the site's colours and fonts. */
+:root { color-scheme: light; --ink: #144425; --muted: #41625a; --link: #2b77a1; --bg: #f2faf8; --line: #cfe3dc; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 1.0625rem/1.65 "Funnel Sans", system-ui, sans-serif; }
+main { max-width: 44rem; margin: 0 auto; padding: 40px 16px 72px; }
+h1, h2 { font-family: "Readex Pro", system-ui, sans-serif; line-height: 1.2; }
+h1 { font-size: clamp(2rem, 6vw, 2.75rem); margin: 24px 0 4px; }
+h2 { font-size: 1.3rem; margin: 40px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+p, li { color: var(--muted); }
+strong { color: var(--ink); }
+a { color: var(--link); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; border-radius: 4px; }
+.back { font-weight: 600; }
+.updated { margin-top: 0; font-size: 0.9375rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px 8px 0; border-top: 1px solid var(--line); color: var(--muted); }
+th { color: var(--ink); }
+footer { margin-top: 48px; font-size: 0.9375rem; color: var(--muted); }

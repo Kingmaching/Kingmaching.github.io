@@ -48,7 +48,7 @@
     }
   }
 
-  const reduceMotion = false;                        // motion stays on (see sections.js)
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;   // the scene follows the scroll without easing
   const { clamp, lerp, smoothstep, degToRad } = THREE.MathUtils;
   const D = S.DATA;
 

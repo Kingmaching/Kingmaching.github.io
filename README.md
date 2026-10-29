@@ -11,7 +11,7 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
   swatches (celestial blue, May green, yellow-green, pearl aqua, Cal Poly Pomona green); demo panels and
   the toolbox sit in deep green (the `.deep` scope). Display face Readex Pro, body Funnel Sans.
 - `story.js` holds the ME572 data, draws the hero charts and turns scroll into story progress (−3 to 7).
-- `building.js` draws the scroll-driven 3D scene with Three.js (cdnjs): the street-level tower with
+- `building.js` draws the scroll-driven 3D scene with Three.js: the street-level tower with
   planted fins and sky gardens in the middle of the screen; parks, roads, cars and people that move with
   the scroll; a stylised Hong Kong skyline drawn on a second canvas that CSS blurs so the tower stays in
   focus; and, for Project 2.2, night (street lamps, car lights, neon signs and their glow on wet roads)
@@ -20,7 +20,7 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 - `sections.js` runs everything below the hero: statement reveal, sliding tabs, the project demos
   (envelope chart, lighting meters, seismic schematic, pitch model, crane, suspension), the MTR route,
   the toolbox, the contact form, the top-bar underline that follows the
-  section you're in, slide-in reveals and Lenis smooth scrolling (jsDelivr).
+  section you're in, slide-in reveals and Lenis smooth scrolling.
 - `Marco_Ching_Resume.pdf` is built from `Marco_Ching_Resume.tex` (the CV in LaTeX, converted from the Google Doc "Marco Ching's CV")
   (`pdflatex Marco_Ching_Resume.tex`, or upload it to Overleaf).
 
@@ -34,6 +34,15 @@ Static site served by GitHub Pages at https://kingmaching.github.io.
 | Suspension | ME 481 FDR §3.4 and §4.3 (131 N/mm shock, MR 0.316, 263 mm arm, 50 mm travel) |
 | Crane | Robotic crane report + CV (51 cm reach, ±5 mm) |
 | Seismic schematic | IEEE poster (stations, Cheung Chau, HKO threshold). Traces are illustrative. |
+
+## Privacy, terms and third parties
+
+- `privacy.html` (privacy and cookies) and `terms.html` (terms of use), styled by `legal.css`, are linked
+  from the footer and the contact form. Update them, and the date at the top, if the site starts collecting
+  anything new (analytics, embeds, cookies, a newsletter).
+- Three.js, Lenis and the fonts are self-hosted in `vendor/` with their licences, so a page view sends
+  nothing to Google, Cloudflare or jsDelivr. Keep it that way: an external font or script would need
+  adding to the privacy page.
 
 ## Contact form
 

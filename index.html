@@ -16,18 +16,15 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#eaf7f5">
   <link rel="icon" href="favicon.svg?v=3" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400..700&family=Funnel+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
-  <!-- Chinese labels: only the glyphs used on the page are downloaded. -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&text=%E9%97%9C%E6%96%BC%E9%A6%99%E6%B8%AF%E6%96%B9%E5%90%91%E9%A0%85%E7%9B%AE%E7%B6%93%E9%A9%97%E6%BB%91%E9%90%B5%E7%9B%A7%E6%A9%9F%E5%A0%B4%E5%A4%9A%E5%80%AB%E8%91%B5%E6%B6%8C%E7%A0%94%E7%A9%B6%E9%99%A2%E4%B8%8B%E4%B8%80%E7%AB%99%E6%8A%80%E8%83%BD%E8%81%AF%E7%B5%A1&display=swap">
-  <link rel="stylesheet" href="styles.css?v=3">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <!-- Fonts and libraries are served from this site (vendor/), so a visit sends nothing to third parties. -->
+  <link rel="stylesheet" href="vendor/fonts.css">
+  <link rel="stylesheet" href="styles.css?v=4">
+  <script src="vendor/three.min.js" defer></script>
+  <script src="vendor/lenis.min.js" defer></script>
   <script src="story.js?v=2" defer></script>
-  <script src="building.js?v=2" defer></script>
+  <script src="building.js?v=3" defer></script>
   <script src="scene-extras.js?v=2" defer></script>
-  <script src="sections.js?v=2" defer></script>
+  <script src="sections.js?v=3" defer></script>
 </head>
 
 <body>
@@ -39,6 +36,7 @@
        Project demos, route map, toolbox, contact form, smooth scrolling: sections.js.
        ========================================================= -->
 
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="topbar">
     <nav class="topbar-inner glass" aria-label="Primary">
       <a class="brand" href="#top"><svg class="brand-mark" width="22" height="22" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="brand-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b97c0"/><stop offset="1" stop-color="#46953d"/></linearGradient></defs><path fill="url(#brand-grad)" d="M5.00 60.00 5.00 19.00 16.89 8.29 23.62 14.35 14.00 23.01 14.00 51.90ZM59.00 60.00 59.00 19.00 47.11 8.29 40.38 14.35 50.00 23.01 50.00 51.90ZM32.00 26.61 23.62 19.06 16.89 25.11 32.00 38.72 47.11 25.11 40.38 19.06Z"/></svg>Marco Ching</a>
@@ -49,12 +47,13 @@
         <a href="#skills">Skills</a>
         <a href="#direction">What’s next</a>
         <a href="#contact">Contact</a>
-        <a class="nav-cta" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
+        <a class="nav-cta" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
       </div>
     </nav>
   </header>
 
   <main id="top">
+    <span id="main" tabindex="-1"></span>
     <!-- EDIT: SCROLL STORY ----------------------------------------
          Eleven steps, one screen each, around the 3D tower in the middle of the
          screen. Intro, background and what's next sit over the louvres in the early
@@ -79,7 +78,7 @@
               <p class="lede">I study how buildings use energy: I model them, compare the models with real data, and work out <em>where they get it wrong</em>.</p>
               <div class="actions">
                 <a class="btn btn-neon" href="#projects">See projects</a>
-                <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;↗</a>
+                <a class="btn btn-glass" href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
               </div>
             </div>
           </div>
@@ -180,7 +179,7 @@
               <p class="kicker"><span class="kicker-num">2.1</span><span>All runs</span></p>
               <h2>Every run, <em>side by side</em></h2>
               <p>The building changed one thing at a time. Here is the best tested value of each parameter against the control, or all 17 runs at once.</p>
-              <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+              <a class="proj-link" href="https://drive.google.com/file/d/1qgUcDs9oEhyyiolWMIB6J6YNq6vntja0/view?usp=sharing" target="_blank" rel="noopener">Read the report <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
             </div>
             <div class="demo step-card" data-demo="envelope">
               <div class="demo-bar">
@@ -209,7 +208,7 @@
               <button type="button" data-layout="1" aria-pressed="true">5 × 4</button>
             </div>
             <div class="meters" id="lighting-meters"></div>
-            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            <a class="proj-link" href="https://drive.google.com/file/d/1wPKlTcNWM-JF55plGB3gbL2lsn6SgzUL/view?usp=sharing" target="_blank" rel="noopener">Read the report <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
           </div>
         </article>
       </div>
@@ -231,7 +230,7 @@
               <div><dt>HKO lists</dt><dd>≥M3</dd></div>
               <div><dt>Station gap</dt><dd>280 m</dd></div>
             </dl>
-            <a class="proj-link" href="https://docs.google.com/presentation/d/1tkdNsuMAD67OgtxQ-YM7wEmLvsL-Ea81CECaYw2BRl0/edit?usp=sharing" target="_blank" rel="noopener">See the poster ↗</a>
+            <a class="proj-link" href="https://docs.google.com/presentation/d/1tkdNsuMAD67OgtxQ-YM7wEmLvsL-Ea81CECaYw2BRl0/edit?usp=sharing" target="_blank" rel="noopener">See the poster <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
           </div>
           <div class="demo" data-demo="seismic">
             <div class="demo-bar">
@@ -255,7 +254,7 @@
               <div><dt>Slider break</dt><dd>0.48 m</dd></div>
               <div><dt>Re</dt><dd>~2×10⁵</dd></div>
             </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/170KikfBvYJqbIyHyzvZuVhXJN9q0Hq_5/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            <a class="proj-link" href="https://drive.google.com/file/d/170KikfBvYJqbIyHyzvZuVhXJN9q0Hq_5/view?usp=sharing" target="_blank" rel="noopener">Read the report <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
           </div>
           <div class="demo" data-demo="pitch">
             <div class="demo-bar">
@@ -288,7 +287,7 @@
               <div><dt>Accuracy</dt><dd>±5 mm</dd></div>
               <div><dt>Axes</dt><dd>5</dd></div>
             </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            <a class="proj-link" href="https://drive.google.com/file/d/1YOB3gRWFRcl3RdIVAYN1r-pzPckR6uln/view?usp=sharing" target="_blank" rel="noopener">Read the report <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
           </div>
           <div class="demo" data-demo="crane" tabindex="0" aria-label="Crane controls: arrow keys move the trolley and hoist, Q and E rotate, space closes the gripper">
             <div class="demo-bar">
@@ -320,7 +319,7 @@
               <div><dt>Wheel travel</dt><dd>50 mm</dd></div>
               <div><dt>Powertrain</dt><dd>36 V</dd></div>
             </dl>
-            <a class="proj-link" href="https://drive.google.com/file/d/1iHX16wDuQlWoo2We_pLd0g6E9CP2kmpn/view?usp=sharing" target="_blank" rel="noopener">Read the report ↗</a>
+            <a class="proj-link" href="https://drive.google.com/file/d/1iHX16wDuQlWoo2We_pLd0g6E9CP2kmpn/view?usp=sharing" target="_blank" rel="noopener">Read the report <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
           </div>
           <div class="demo" data-demo="suspension">
             <div class="demo-bar">
@@ -496,11 +495,11 @@
           <h2>Working on facades, ventilation or building performance? <em>Let’s talk</em></h2>
           <div class="contact-row">
             <a class="contact-email" href="mailto:marcokingching@gmail.com">marcokingching@gmail.com</a>
-            <button class="btn btn-glass btn-small" type="button" id="copy-email" data-email="marcokingching@gmail.com">Copy</button>
+            <button class="btn btn-glass btn-small" type="button" id="copy-email" data-email="marcokingching@gmail.com" aria-label="Copy email address">Copy</button>
           </div>
           <p class="contact-links">
-            <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn ↗</a>
-            <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV ↗</a>
+            <a href="https://www.linkedin.com/in/marco-ching/" target="_blank" rel="noopener">LinkedIn <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
+            <a href="Marco_Ching_Resume.pdf" target="_blank" rel="noopener">CV <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>
           </p>
         </div>
         <form class="mail-form" id="mail-form" novalidate data-access-key="0339b063-9075-45ef-893a-902152c48b8e">
@@ -510,8 +509,9 @@
           </div>
           <div class="field"><label for="f-email">Your email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
           <div class="field"><label for="f-body">Message</label><textarea id="f-body" name="message" rows="6" required></textarea></div>
+          <p class="form-note" id="form-note">Your name, email and message are delivered to my Gmail inbox through Web3Forms, a form service, and used only to reply to you. More in the <a href="privacy.html">privacy policy</a>.</p>
           <div class="form-foot">
-            <button class="btn btn-neon" type="submit">Send message</button>
+            <button class="btn btn-neon" type="submit" aria-describedby="form-note">Send message</button>
             <p class="form-status" id="form-status" role="status"></p>
           </div>
         </form>
@@ -523,6 +523,7 @@
     <div class="wrap footer-row">
       <span>© <span id="year">2026</span> Marco Ching</span>
       <span><span class="zh">下一站</span> Next stop: graduate school, 2027</span>
+      <nav class="footer-links" aria-label="Legal"><a href="privacy.html">Privacy &amp; cookies</a><a href="terms.html">Terms of use</a></nav>
     </div>
   </footer>
 </body>
